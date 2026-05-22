@@ -1,0 +1,93 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "confirm": "Confirm"
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "register": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot your password?",
+    "continueWithGoogle": "Continue with Google",
+    "noAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?"
+  },
+  "wardrobe": {
+    "title": "My wardrobe",
+    "empty": "You have no garments yet",
+    "addFirst": "Add your first garment",
+    "search": "Search garments...",
+    "filters": "Filters",
+    "favorites": "Favorites only"
+  },
+  "garment": {
+    "add": "Add garment",
+    "edit": "Edit garment",
+    "name": "Name",
+    "category": "Category",
+    "subcategory": "Subcategory",
+    "color": "Color",
+    "season": "Season",
+    "occasion": "Occasion",
+    "style": "Style",
+    "notes": "Notes",
+    "analyzingWithAI": "Analyzing with AI...",
+    "aiSuggested": "AI suggested",
+    "retryAnalysis": "Retry AI analysis"
+  },
+  "looks": {
+    "title": "My looks",
+    "generate": "Generate look",
+    "generateFromScratch": "From scratch",
+    "generateFromGarment": "From a garment",
+    "save": "Save look",
+    "name": "Look name",
+    "usageDate": "Usage date",
+    "regenerate": "Generate another",
+    "history": "Look history"
+  },
+  "weather": {
+    "title": "Weather",
+    "loading": "Getting weather...",
+    "notAvailable": "Weather unavailable",
+    "configure": "Configure city",
+    "ignore": "Ignore weather"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "style": "Style",
+    "general": "General",
+    "account": "Account",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "weatherEnabled": "Enable weather in generator",
+    "deleteAccount": "Delete account",
+    "signOutAll": "Sign out from all devices"
+  },
+  "navigation": {
+    "wardrobe": "Wardrobe",
+    "generator": "Generator",
+    "looks": "Looks",
+    "settings": "Settings"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized",
+    "reload": "Reload page"
+  }
+}

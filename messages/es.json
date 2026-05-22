@@ -1,0 +1,93 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "retry": "Reintentar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "confirm": "Confirmar"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "register": "Crear cuenta",
+    "email": "Email",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "continueWithGoogle": "Continuar con Google",
+    "noAccount": "¿No tenés cuenta?",
+    "alreadyHaveAccount": "¿Ya tenés cuenta?"
+  },
+  "wardrobe": {
+    "title": "Mi guardarropas",
+    "empty": "Todavía no tenés prendas",
+    "addFirst": "Agregá tu primera prenda",
+    "search": "Buscar prendas...",
+    "filters": "Filtros",
+    "favorites": "Solo favoritos"
+  },
+  "garment": {
+    "add": "Agregar prenda",
+    "edit": "Editar prenda",
+    "name": "Nombre",
+    "category": "Categoría",
+    "subcategory": "Subcategoría",
+    "color": "Color",
+    "season": "Temporada",
+    "occasion": "Ocasión",
+    "style": "Estilo",
+    "notes": "Notas",
+    "analyzingWithAI": "Analizando con IA...",
+    "aiSuggested": "Sugerido por IA",
+    "retryAnalysis": "Reintentar análisis IA"
+  },
+  "looks": {
+    "title": "Mis looks",
+    "generate": "Generar look",
+    "generateFromScratch": "Desde cero",
+    "generateFromGarment": "Desde una prenda",
+    "save": "Guardar look",
+    "name": "Nombre del look",
+    "usageDate": "Fecha de uso",
+    "regenerate": "Generar otro",
+    "history": "Historial de looks"
+  },
+  "weather": {
+    "title": "Clima",
+    "loading": "Obteniendo clima...",
+    "notAvailable": "Clima no disponible",
+    "configure": "Configurar ciudad",
+    "ignore": "Ignorar clima"
+  },
+  "settings": {
+    "title": "Configuración",
+    "profile": "Perfil",
+    "style": "Estilo",
+    "general": "General",
+    "account": "Cuenta",
+    "language": "Idioma",
+    "theme": "Tema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "themeSystem": "Sistema",
+    "weatherEnabled": "Activar clima en generador",
+    "deleteAccount": "Eliminar cuenta",
+    "signOutAll": "Cerrar sesión en todos los dispositivos"
+  },
+  "navigation": {
+    "wardrobe": "Guardarropas",
+    "generator": "Generador",
+    "looks": "Looks",
+    "settings": "Configuración"
+  },
+  "errors": {
+    "generic": "Algo salió mal. Por favor, intentá de nuevo.",
+    "notFound": "No encontrado",
+    "unauthorized": "No autorizado",
+    "reload": "Recargar página"
+  }
+}
