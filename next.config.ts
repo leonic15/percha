@@ -14,6 +14,10 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  // Next 16 usa Turbopack por defecto; el plugin PWA agrega config webpack.
+  // Declarar Turbopack explícitamente evita que Next lo trate como un error.
+  turbopack: {},
+
   // Cabeceras de seguridad HTTP (LOOKSI-029)
   async headers() {
     return [
