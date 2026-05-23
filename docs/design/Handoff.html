@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="es-AR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LookSi — handoff doc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* mirror del @theme {} del paquete handoff (paleta sage) */
+    :root {
+      --font-sans: "Inter", system-ui, sans-serif;
+      --font-display: "Archivo Narrow", sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+      --color-sage-50:#f1f3ed; --color-sage-100:#e6e9e1; --color-sage-200:#ced3c3;
+      --color-sage-300:#b3bba4; --color-sage-400:#97a386; --color-sage-500:#7d896d;
+      --color-sage-600:#6b7563; --color-sage-700:#545d4f; --color-sage-800:#3e453b;
+      --color-sage-900:#292d27; --color-sage-950:#16180f;
+
+      --color-stone-50:#f7f5ef; --color-stone-100:#f1ede4; --color-stone-200:#e5e0d2;
+      --color-stone-300:#d2cbb8; --color-stone-400:#aaa28a; --color-stone-500:#8a8273;
+      --color-stone-600:#6e6759; --color-stone-700:#524d44; --color-stone-800:#2e2b25;
+      --color-stone-900:#1a1814; --color-stone-950:#0d0c0a;
+
+      --color-terra-50:#faefe8; --color-terra-100:#f3dccd; --color-terra-200:#e9bba1;
+      --color-terra-300:#dd9874; --color-terra-400:#cc7752; --color-terra-500:#b85c3a;
+      --color-terra-600:#a04a2d; --color-terra-700:#7e3a25; --color-terra-800:#5b2a1d;
+      --color-terra-900:#3a1c14; --color-terra-950:#1f0f0a;
+
+      --color-success-50:#ecf3ed; --color-success-500:#4f8255; --color-success-700:#355a39;
+      --color-warning-50:#fbf2dd; --color-warning-500:#c69b1f; --color-warning-700:#8a6c14;
+
+      --bg: var(--color-stone-50);
+      --surface: #ffffff;
+      --surface-2: var(--color-stone-200);
+      --ink: #1a1a1a;
+      --ink-2: #4a4a48;
+      --ink-3: #8a877f;
+      --line: rgb(26 26 26 / 0.10);
+      --line-2: rgb(26 26 26 / 0.06);
+      --accent: var(--color-sage-600);
+      --accent-ink: #ffffff;
+      --accent-tint: var(--color-sage-100);
+      --danger: var(--color-terra-500);
+
+      --radius-card: 2px;
+      --radius-button: 9999px;
+      --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 14px rgb(0 0 0 / 0.05);
+      --shadow-modal: 0 -8px 30px rgb(0 0 0 / 0.20);
+      --shadow-toast: 0 8px 30px rgb(0 0 0 / 0.25);
+    }
+    [data-theme="dark"] {
+      --bg: var(--color-stone-950);
+      --surface: var(--color-stone-900);
+      --surface-2: var(--color-stone-800);
+      --ink: #f1ede5;
+      --ink-2: #b8b3a8;
+      --ink-3: #7a766d;
+      --line: rgb(241 237 229 / 0.10);
+      --line-2: rgb(241 237 229 / 0.05);
+      --accent: var(--color-sage-400);
+      --accent-ink: var(--color-stone-950);
+      --accent-tint: var(--color-sage-900);
+      --danger: var(--color-terra-400);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      transition: background-color .2s, color .2s;
+    }
+    a { color: var(--accent); text-decoration: none; }
+
+    /* layout */
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 56px 40px 120px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+    /* typography helpers */
+    .eyebrow {
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-3); font-weight: 500;
+    }
+    .h1 {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 64px; line-height: 0.95; text-transform: uppercase;
+      letter-spacing: -0.01em; margin: 0;
+    }
+    .h2 {
+      font-family: var(--font-display); font-weight: 600;
+      font-size: 32px; line-height: 1; text-transform: uppercase;
+      letter-spacing: -0.01em; margin: 0 0 16px;
+    }
+    .h3 {
+      font-family: var(--font-display); font-weight: 600;
+      font-size: 18px; line-height: 1.1; text-transform: uppercase;
+      letter-spacing: 0.02em; margin: 0 0 10px;
+    }
+    .body { font-size: 14px; line-height: 1.6; color: var(--ink-2); margin: 0 0 12px; }
+    .mono { font-family: var(--font-mono); }
+
+    /* section */
+    section { padding: 56px 0; border-top: 1px solid var(--line-2); }
+    section:first-of-type { border-top: none; padding-top: 0; }
+
+    /* topbar */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: color-mix(in oklch, var(--bg) 90%, transparent);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--line-2);
+      padding: 14px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 11px; color: var(--ink-2);
+      background: var(--surface);
+    }
+
+    /* swatch */
+    .swatch { display: flex; gap: 0; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-card); }
+    .swatch-step {
+      flex: 1; padding: 14px 10px; min-height: 90px;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      font-size: 10px; font-family: var(--font-mono);
+    }
+
+    /* token row */
+    .token-row {
+      display: grid; grid-template-columns: 200px 60px 1fr 1fr; align-items: center;
+      gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line-2);
+      font-size: 12px;
+    }
+    .token-row .name { font-family: var(--font-mono); color: var(--ink); }
+    .token-row .preview { width: 40px; height: 40px; border-radius: 6px; border: 1px solid var(--line); }
+    .token-row .value { color: var(--ink-3); font-family: var(--font-mono); }
+    .token-row .use { color: var(--ink-2); }
+
+    /* example block */
+    .example {
+      background: var(--surface); border: 1px solid var(--line-2);
+      padding: 28px; border-radius: 4px; box-shadow: var(--shadow-card);
+    }
+    .code {
+      background: var(--color-stone-900); color: #f1ede5;
+      padding: 16px 18px; border-radius: 6px;
+      font-family: var(--font-mono); font-size: 11px; line-height: 1.6;
+      overflow-x: auto; margin-top: 14px;
+      white-space: pre;
+    }
+    [data-theme="dark"] .code { background: #000; }
+    .code .k { color: #97a386; }
+    .code .s { color: #dd9874; }
+    .code .c { color: var(--ink-3); }
+
+    /* components ↓ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; border-radius: 999px; font-family: var(--font-sans);
+      font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em;
+      cursor: pointer; border: 1px solid transparent;
+      transition: transform .12s, background-color .12s;
+    }
+    .btn:active { transform: scale(0.985); }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-accent { background: var(--accent); color: var(--accent-ink); }
+    .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { height: 36px; padding: 0 16px; font-size: 11px; }
+    .btn-md { height: 44px; padding: 0 20px; font-size: 12px; }
+    .btn-lg { height: 52px; padding: 0 24px; font-size: 13px; }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 6px 12px; border-radius: 999px;
+      border: 1px solid var(--line); background: transparent;
+      color: var(--ink-2); font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: var(--font-sans);
+    }
+    .chip-active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 999px;
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      font-weight: 500; line-height: 1;
+    }
+    .badge-ai { background: var(--accent-tint); color: var(--accent); }
+    .badge-success { background: var(--color-success-50); color: var(--color-success-700); }
+    .badge-warning { background: var(--color-warning-50); color: var(--color-warning-700); }
+    .badge-error { background: var(--color-terra-50); color: var(--color-terra-700); }
+
+    .input {
+      display: flex; align-items: center; height: 44px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px; color: var(--ink);
+    }
+
+    /* garment card */
+    .gcard {
+      background: var(--surface); border-radius: 2px;
+      box-shadow: var(--shadow-card); overflow: hidden;
+    }
+    .gcard-img {
+      aspect-ratio: 4/5; background: var(--surface-2);
+      background-image: repeating-linear-gradient(45deg,
+        var(--surface-2) 0 6px, var(--color-stone-300) 6px 12px);
+      position: relative;
+    }
+    .gcard-meta { padding: 8px 10px 10px; }
+    .gcard-name {
+      font-family: var(--font-display); font-weight: 600; font-size: 13px;
+      text-transform: uppercase; line-height: 1.1; letter-spacing: 0.02em;
+    }
+    .gcard-cat { font-size: 10px; color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+
+    /* toast */
+    .toast {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 8px;
+      box-shadow: var(--shadow-toast);
+      font-size: 13px; min-width: 240px;
+    }
+    .toast-success { background: var(--ink); color: var(--bg); }
+    .toast-error { background: var(--danger); color: white; }
+    .toast-warn { background: var(--color-warning-500); color: var(--color-stone-950); }
+
+    /* radii preview */
+    .radii { display: flex; gap: 18px; flex-wrap: wrap; }
+    .radii-item { text-align: center; }
+    .radii-item .box {
+      width: 80px; height: 80px;
+      background: var(--surface); border: 1px solid var(--line);
+    }
+    .radii-item .label { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); margin-top: 8px; text-transform: uppercase; }
+
+    /* shadow preview */
+    .sh-card { background: var(--surface); padding: 24px; border-radius: 2px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+
+    /* nav previews */
+    .nav-preview {
+      display: flex; gap: 0;
+      background: var(--bg); border: 1px solid var(--line-2);
+      border-radius: 6px; overflow: hidden;
+    }
+    .nav-item {
+      flex: 1; padding: 14px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ink-3); font-weight: 500;
+      position: relative;
+    }
+    .nav-item.on { color: var(--ink); }
+    .nav-item.on::before {
+      content: ""; position: absolute; top: 0; width: 18px; height: 2px;
+      background: var(--ink);
+    }
+
+    /* manifest table */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line-2); }
+    th { font-family: var(--font-mono); font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); }
+    td.mono { font-family: var(--font-mono); }
+
+    /* hero */
+    .hero {
+      padding: 30px 0 80px;
+      position: relative;
+    }
+
+    /* file tree */
+    .tree {
+      background: var(--surface); border: 1px solid var(--line-2);
+      padding: 24px; border-radius: 6px;
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.8;
+      color: var(--ink-2);
+      white-space: pre;
+    }
+    .tree .dir { color: var(--ink); font-weight: 500; }
+    .tree .file { color: var(--accent); }
+    .tree .comment { color: var(--ink-3); font-style: italic; }
+
+    .filebar {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; background: var(--surface-2); border-radius: 4px;
+      font-family: var(--font-mono); font-size: 11px; color: var(--ink-2);
+    }
+
+    /* ─────────── Screen specs ─────────── */
+    .screens-toc {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--line-2);
+      border: 1px solid var(--line-2);
+      margin: 24px 0 56px;
+    }
+    .screens-toc a {
+      background: var(--bg);
+      padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 4px;
+      color: var(--ink);
+      transition: background-color .12s;
+    }
+    .screens-toc a:hover { background: var(--surface); }
+    .screens-toc .n {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--ink-3); letter-spacing: 0.08em;
+    }
+    .screens-toc .t {
+      font-family: var(--font-display);
+      font-weight: 600; font-size: 14px;
+      text-transform: uppercase; letter-spacing: 0.02em;
+      line-height: 1.1;
+    }
+
+    .spec {
+      border-top: 1px solid var(--line);
+      padding: 36px 0 8px;
+    }
+    .spec-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 24px; margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .spec-head .num {
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--ink-3); letter-spacing: 0.12em;
+    }
+    .spec-head h3 {
+      font-family: var(--font-display); font-weight: 600;
+      font-size: 28px; line-height: 1; text-transform: uppercase;
+      letter-spacing: -0.005em; margin: 4px 0 0;
+      flex: 1;
+    }
+    .spec-route {
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--ink-2);
+      padding: 5px 10px; background: var(--surface-2);
+      border-radius: 4px; white-space: nowrap;
+    }
+    .spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px 36px;
+      margin-bottom: 12px;
+    }
+    .spec-block .label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-3); font-weight: 500;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--line-2);
+    }
+    .spec-block .label .badge-side {
+      margin-left: auto;
+      padding: 2px 7px; font-size: 9px; line-height: 1;
+      background: var(--ink); color: var(--bg);
+      border-radius: 3px; letter-spacing: 0.08em;
+    }
+    .spec-block ul {
+      margin: 0; padding: 0; list-style: none;
+      font-size: 13px; line-height: 1.55; color: var(--ink-2);
+    }
+    .spec-block ul li {
+      padding: 4px 0 4px 14px; position: relative;
+    }
+    .spec-block ul li::before {
+      content: ""; position: absolute; left: 0; top: 12px;
+      width: 6px; height: 1px; background: var(--ink-3);
+    }
+    .spec-block ul li strong { color: var(--ink); font-weight: 500; }
+
+    .spec-states {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+      background: var(--line-2);
+      border: 1px solid var(--line-2);
+      margin-top: 14px;
+    }
+    .spec-states .st {
+      background: var(--bg); padding: 14px 16px;
+    }
+    .spec-states .st .lbl {
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-3); font-weight: 500; margin-bottom: 6px;
+    }
+    .spec-states .st .desc {
+      font-size: 12px; line-height: 1.5; color: var(--ink-2);
+    }
+
+    .spec-notes {
+      margin-top: 18px;
+      padding: 16px 20px;
+      background: var(--surface);
+      border-left: 2px solid var(--accent);
+    }
+    .spec-notes .lbl {
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--accent); font-weight: 500; margin-bottom: 8px;
+    }
+    .spec-notes ul {
+      margin: 0; padding: 0; list-style: none;
+      font-size: 12.5px; line-height: 1.6; color: var(--ink-2);
+    }
+    .spec-notes ul li { padding: 2px 0; }
+    .spec-notes ul li::before { content: "·  "; color: var(--ink-3); }
+
+    .global-rules {
+      margin-top: 56px;
+      padding: 28px 32px;
+      background: var(--surface);
+      border: 1px solid var(--line-2);
+    }
+    .global-rules h3 {
+      font-family: var(--font-display); font-weight: 600;
+      font-size: 18px; text-transform: uppercase; letter-spacing: 0.02em;
+      margin: 0 0 18px;
+    }
+    .global-rules .grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px 32px;
+    }
+
+    @media (max-width: 720px) {
+      .wrap { padding: 40px 20px 80px; }
+      .topbar { padding: 12px 20px; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .token-row { grid-template-columns: 1fr; gap: 4px; padding: 14px 0; }
+      .token-row .preview { width: 24px; height: 24px; }
+      .h1 { font-size: 44px; }
+      .screens-toc { grid-template-columns: repeat(2, 1fr); }
+      .spec-grid { grid-template-columns: 1fr; gap: 22px; }
+      .spec-states { grid-template-columns: 1fr; }
+      .global-rules .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <span style="font-family: var(--font-display); font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:0.08em;">
+      LookSi<span style="color: var(--accent);">.</span>
+    </span>
+    <span class="pill">Developer Handoff · v1</span>
+  </div>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <span class="eyebrow">Tema</span>
+    <button id="theme-toggle" class="pill" style="cursor: pointer;">
+      <span id="theme-label">Claro</span>
+    </button>
+    <a class="pill" href="LookSi.html" style="color: var(--ink);">← Prototipo</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="eyebrow">PAQUETE DE HANDOFF · 22·MAY·26 · v1</div>
+    <h1 class="h1" style="margin: 18px 0 22px;">
+      Tokens,<br/>
+      <span style="color: var(--accent);">componentes</span><br/>
+      &amp; manifest.
+    </h1>
+    <p style="font-size: 18px; line-height: 1.5; max-width: 620px; color: var(--ink-2); margin: 0 0 32px;">
+      Todo lo necesario para drop-in en <span class="mono">Next.js 16 + Tailwind CSS v4 + TypeScript</span>.
+      Los tokens viven dentro de <span class="mono">@theme</span> en <span class="mono">app/globals.css</span> — no hay <span class="mono">tailwind.config.js</span>.
+    </p>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 36px;">
+      <span class="pill">11 componentes TS</span>
+      <span class="pill">16 pantallas spec</span>
+      <span class="pill">Dark mode incluido</span>
+      <span class="pill">PWA manifest</span>
+      <span class="pill">es-AR</span>
+      <span class="pill">A11y · touch ≥ 44px</span>
+    </div>
+
+    <h3 class="h3" style="margin-top: 40px;">Estructura del paquete</h3>
+    <div class="tree"><span class="dir">handoff/</span>
+├── <span class="dir">app/</span>
+│   └── <span class="file">globals.css</span>           <span class="comment">// @theme {} — tokens</span>
+├── <span class="dir">components/ui/</span>
+│   ├── <span class="file">Button.tsx</span>
+│   ├── <span class="file">Input.tsx</span>             <span class="comment">// + Textarea</span>
+│   ├── <span class="file">Badge.tsx</span>             <span class="comment">// default | ai | success | warning | error</span>
+│   ├── <span class="file">Chip.tsx</span>
+│   ├── <span class="file">GarmentCard.tsx</span>       <span class="comment">// + GarmentCardSkeleton</span>
+│   ├── <span class="file">LookCard.tsx</span>          <span class="comment">// row | tile + LookCollage</span>
+│   ├── <span class="file">BottomNav.tsx</span>         <span class="comment">// mobile (&lt;md)</span>
+│   ├── <span class="file">Sidebar.tsx</span>           <span class="comment">// desktop (md+)</span>
+│   ├── <span class="file">Toast.tsx</span>             <span class="comment">// ToastProvider + useToast()</span>
+│   ├── <span class="file">Skeleton.tsx</span>          <span class="comment">// + GarmentGridSkeleton + LookListSkeleton</span>
+│   └── <span class="file">index.ts</span>              <span class="comment">// barrel</span>
+├── <span class="dir">lib/</span>
+│   └── <span class="file">cn.ts</span>
+├── <span class="dir">public/</span>
+│   ├── <span class="file">manifest.json</span>
+│   └── <span class="dir">icons/</span>
+│       ├── <span class="file">icon-192.png</span>
+│       ├── <span class="file">icon-512.png</span>
+│       ├── <span class="file">icon-maskable-192.png</span>
+│       └── <span class="file">icon-maskable-512.png</span>
+└── <span class="file">README.md</span></div>
+  </section>
+
+  <!-- COLOR -->
+  <section>
+    <div class="eyebrow">01</div>
+    <h2 class="h2" style="margin-top: 6px;">Color</h2>
+    <p class="body" style="max-width: 620px;">
+      Tres escalas crudas (50–950) más tokens semánticos. En componentes usar SIEMPRE los semánticos
+      (<span class="mono">bg-bg</span>, <span class="mono">text-ink</span>, <span class="mono">bg-accent</span>) — el modo oscuro se logra reasignando estos en <span class="mono">[data-theme="dark"]</span>.
+    </p>
+
+    <h3 class="h3" style="margin-top: 32px;">Sage <span class="eyebrow" style="font-size: 9px; margin-left: 6px;">primaria · acento</span></h3>
+    <div class="swatch">
+      <div class="swatch-step" style="background:#f1f3ed; color:#16180f;">50<br/>#F1F3ED</div>
+      <div class="swatch-step" style="background:#e6e9e1; color:#16180f;">100</div>
+      <div class="swatch-step" style="background:#ced3c3; color:#16180f;">200</div>
+      <div class="swatch-step" style="background:#b3bba4; color:#16180f;">300</div>
+      <div class="swatch-step" style="background:#97a386; color:#16180f;">400</div>
+      <div class="swatch-step" style="background:#7d896d; color:#f1f3ed;">500</div>
+      <div class="swatch-step" style="background:#6b7563; color:#f1f3ed;">600<br/>#6B7563</div>
+      <div class="swatch-step" style="background:#545d4f; color:#f1f3ed;">700</div>
+      <div class="swatch-step" style="background:#3e453b; color:#f1f3ed;">800</div>
+      <div class="swatch-step" style="background:#292d27; color:#f1f3ed;">900</div>
+      <div class="swatch-step" style="background:#16180f; color:#f1f3ed;">950</div>
+    </div>
+
+    <h3 class="h3" style="margin-top: 32px;">Stone <span class="eyebrow" style="font-size: 9px; margin-left: 6px;">neutros cálidos · base</span></h3>
+    <div class="swatch">
+      <div class="swatch-step" style="background:#f7f5ef; color:#0d0c0a;">50<br/>#F7F5EF</div>
+      <div class="swatch-step" style="background:#f1ede4; color:#0d0c0a;">100</div>
+      <div class="swatch-step" style="background:#e5e0d2; color:#0d0c0a;">200</div>
+      <div class="swatch-step" style="background:#d2cbb8; color:#0d0c0a;">300</div>
+      <div class="swatch-step" style="background:#aaa28a; color:#0d0c0a;">400</div>
+      <div class="swatch-step" style="background:#8a8273; color:#f7f5ef;">500</div>
+      <div class="swatch-step" style="background:#6e6759; color:#f7f5ef;">600</div>
+      <div class="swatch-step" style="background:#524d44; color:#f7f5ef;">700</div>
+      <div class="swatch-step" style="background:#2e2b25; color:#f7f5ef;">800</div>
+      <div class="swatch-step" style="background:#1a1814; color:#f7f5ef;">900</div>
+      <div class="swatch-step" style="background:#0d0c0a; color:#f7f5ef;">950<br/>#0D0C0A</div>
+    </div>
+
+    <h3 class="h3" style="margin-top: 32px;">Terra <span class="eyebrow" style="font-size: 9px; margin-left: 6px;">secundaria · alias de error</span></h3>
+    <div class="swatch">
+      <div class="swatch-step" style="background:#faefe8; color:#1f0f0a;">50</div>
+      <div class="swatch-step" style="background:#f3dccd; color:#1f0f0a;">100</div>
+      <div class="swatch-step" style="background:#e9bba1; color:#1f0f0a;">200</div>
+      <div class="swatch-step" style="background:#dd9874; color:#1f0f0a;">300</div>
+      <div class="swatch-step" style="background:#cc7752; color:#1f0f0a;">400</div>
+      <div class="swatch-step" style="background:#b85c3a; color:#faefe8;">500<br/>#B85C3A</div>
+      <div class="swatch-step" style="background:#a04a2d; color:#faefe8;">600</div>
+      <div class="swatch-step" style="background:#7e3a25; color:#faefe8;">700</div>
+      <div class="swatch-step" style="background:#5b2a1d; color:#faefe8;">800</div>
+      <div class="swatch-step" style="background:#3a1c14; color:#faefe8;">900</div>
+      <div class="swatch-step" style="background:#1f0f0a; color:#faefe8;">950</div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 32px;">
+      <div>
+        <h3 class="h3">Success</h3>
+        <div class="swatch">
+          <div class="swatch-step" style="background:#ecf3ed; color:#1a2c1c;">50</div>
+          <div class="swatch-step" style="background:#d6e5d8; color:#1a2c1c;">100</div>
+          <div class="swatch-step" style="background:#87b48b; color:#1a2c1c;">300</div>
+          <div class="swatch-step" style="background:#4f8255; color:#ecf3ed;">500</div>
+          <div class="swatch-step" style="background:#355a39; color:#ecf3ed;">700</div>
+          <div class="swatch-step" style="background:#1a2c1c; color:#ecf3ed;">900</div>
+        </div>
+      </div>
+      <div>
+        <h3 class="h3">Warning</h3>
+        <div class="swatch">
+          <div class="swatch-step" style="background:#fbf2dd; color:#4a3a08;">50</div>
+          <div class="swatch-step" style="background:#f5e3b2; color:#4a3a08;">100</div>
+          <div class="swatch-step" style="background:#e3c25e; color:#4a3a08;">300</div>
+          <div class="swatch-step" style="background:#c69b1f; color:#fbf2dd;">500</div>
+          <div class="swatch-step" style="background:#8a6c14; color:#fbf2dd;">700</div>
+          <div class="swatch-step" style="background:#4a3a08; color:#fbf2dd;">900</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="h3" style="margin-top: 40px;">Tokens semánticos</h3>
+    <p class="body">Cambian de valor automáticamente cuando se aplica <span class="mono">data-theme="dark"</span> en <span class="mono">&lt;html&gt;</span>. Usá estos en componentes; nunca las escalas crudas para color de fondo/texto.</p>
+
+    <div style="margin-top: 12px;">
+      <div class="token-row" style="border-top: 1px solid var(--line-2);">
+        <span class="name">--color-bg</span>
+        <span class="preview" style="background: var(--bg);"></span>
+        <span class="value">stone-50 / stone-950</span>
+        <span class="use">Fondo de la app</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-surface</span>
+        <span class="preview" style="background: var(--surface);"></span>
+        <span class="value">#ffffff / stone-900</span>
+        <span class="use">Cards, modales, list rows</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-surface-2</span>
+        <span class="preview" style="background: var(--surface-2);"></span>
+        <span class="value">stone-200 / stone-800</span>
+        <span class="use">Surface secundaria</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-ink</span>
+        <span class="preview" style="background: var(--ink);"></span>
+        <span class="value">#1a1a1a / #f1ede5</span>
+        <span class="use">Texto primario</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-ink-2</span>
+        <span class="preview" style="background: var(--ink-2);"></span>
+        <span class="value">#4a4a48 / #b8b3a8</span>
+        <span class="use">Texto secundario</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-ink-3</span>
+        <span class="preview" style="background: var(--ink-3);"></span>
+        <span class="value">#8a877f / #7a766d</span>
+        <span class="use">Eyebrow, meta, hint</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-accent</span>
+        <span class="preview" style="background: var(--accent);"></span>
+        <span class="value">sage-600 / sage-400</span>
+        <span class="use">Marca, CTAs, links</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-accent-tint</span>
+        <span class="preview" style="background: var(--accent-tint);"></span>
+        <span class="value">sage-100 / sage-900</span>
+        <span class="use">Fondo del badge IA</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-danger</span>
+        <span class="preview" style="background: var(--danger);"></span>
+        <span class="value">terra-500 / terra-400</span>
+        <span class="use">Errores, eliminar</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-line</span>
+        <span class="preview" style="background: var(--line);"></span>
+        <span class="value">10% ink</span>
+        <span class="use">Bordes de inputs, dividers fuertes</span>
+      </div>
+      <div class="token-row">
+        <span class="name">--color-line-2</span>
+        <span class="preview" style="background: var(--line-2);"></span>
+        <span class="value">6% ink</span>
+        <span class="use">Dividers sutiles</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- TYPE -->
+  <section>
+    <div class="eyebrow">02</div>
+    <h2 class="h2" style="margin-top: 6px;">Tipografía</h2>
+
+    <div class="grid-3" style="margin-bottom: 32px;">
+      <div>
+        <div class="eyebrow" style="margin-bottom: 8px;">font-display</div>
+        <div style="font-family: var(--font-display); font-weight: 700; font-size: 56px; line-height: 0.9; text-transform: uppercase;">Aa Áá<br/>0123</div>
+        <div class="mono" style="font-size: 11px; color: var(--ink-3); margin-top: 12px;">Archivo Narrow · 400/500/600/700</div>
+        <div class="body" style="margin-top: 6px;">Headings editoriales, wordmark, nombres de prendas.</div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: 8px;">font-sans</div>
+        <div style="font-family: var(--font-sans); font-weight: 500; font-size: 36px; line-height: 1; letter-spacing: -0.02em;">Aa Áá<br/>0123</div>
+        <div class="mono" style="font-size: 11px; color: var(--ink-3); margin-top: 12px;">Inter · 400/500/600/700</div>
+        <div class="body" style="margin-top: 6px;">Body, formularios, UI strings, descripciones IA.</div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom: 8px;">font-mono</div>
+        <div style="font-family: var(--font-mono); font-weight: 500; font-size: 32px; line-height: 1;">Aa.0<br/>0123</div>
+        <div class="mono" style="font-size: 11px; color: var(--ink-3); margin-top: 12px;">JetBrains Mono · 400/500</div>
+        <div class="body" style="margin-top: 6px;">Cifras (47 prendas), fechas (22·MAY·26), labels técnicos.</div>
+      </div>
+    </div>
+
+    <h3 class="h3">Escala de tamaños</h3>
+    <div style="margin-top: 12px; border-top: 1px solid var(--line-2);">
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-xs</span>
+        <span class="value">11px / 1.45</span>
+        <span style="font-size: 11px; color: var(--ink);">El zorro marrón sobre el perro.</span>
+        <span class="use">Eyebrow, meta, hint, fechas</span>
+      </div>
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-sm</span>
+        <span class="value">12px / 1.45</span>
+        <span style="font-size: 12px; color: var(--ink);">El zorro marrón sobre el perro.</span>
+        <span class="use">Chips, helper texts</span>
+      </div>
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-base</span>
+        <span class="value">14px / 1.5</span>
+        <span style="font-size: 14px; color: var(--ink);">El zorro marrón sobre el perro.</span>
+        <span class="use">Body (default)</span>
+      </div>
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-lg</span>
+        <span class="value">16px / 1.5</span>
+        <span style="font-size: 16px; color: var(--ink);">El zorro marrón sobre el perro.</span>
+        <span class="use">Body grande, list rows</span>
+      </div>
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-xl</span>
+        <span class="value">20px / 1.3</span>
+        <span style="font-size: 20px; color: var(--ink); font-family: var(--font-display); text-transform: uppercase;">Subtitle</span>
+        <span class="use">Subtitles</span>
+      </div>
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-2xl</span>
+        <span class="value">24px / 1.15</span>
+        <span style="font-size: 24px; color: var(--ink); font-family: var(--font-display); text-transform: uppercase; font-weight: 600;">Sheet title</span>
+        <span class="use">Bottom sheets, modales</span>
+      </div>
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-3xl</span>
+        <span class="value">32px / 1.05</span>
+        <span style="font-size: 32px; color: var(--ink); font-family: var(--font-display); text-transform: uppercase; font-weight: 600;">Detail H2</span>
+        <span class="use">Detalle de prenda</span>
+      </div>
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-4xl</span>
+        <span class="value">42px / 0.95</span>
+        <span style="font-size: 42px; color: var(--ink); font-family: var(--font-display); text-transform: uppercase; font-weight: 600; letter-spacing: -0.01em;">Page H1</span>
+        <span class="use">H1 de pantalla</span>
+      </div>
+      <div class="token-row" style="grid-template-columns: 120px 80px 1fr 1fr; align-items: baseline;">
+        <span class="name">text-5xl</span>
+        <span class="value">56px / 0.9</span>
+        <span style="font-size: 56px; color: var(--ink); font-family: var(--font-display); text-transform: uppercase; font-weight: 700; letter-spacing: -0.01em;">Hero</span>
+        <span class="use">Onboarding</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RADII + SHADOWS -->
+  <section>
+    <div class="eyebrow">03</div>
+    <h2 class="h2" style="margin-top: 6px;">Radios y sombras</h2>
+
+    <div class="grid-2" style="gap: 60px;">
+      <div>
+        <h3 class="h3">Border-radius</h3>
+        <p class="body">Estética editorial: cards y forms con esquinas ~rectas; chips, botones y avatares siempre pill.</p>
+        <div class="radii" style="margin-top: 20px;">
+          <div class="radii-item">
+            <div class="box" style="border-radius: 0;"></div>
+            <div class="label">none / 0</div>
+          </div>
+          <div class="radii-item">
+            <div class="box" style="border-radius: 2px;"></div>
+            <div class="label">xs · 2px · card</div>
+          </div>
+          <div class="radii-item">
+            <div class="box" style="border-radius: 6px;"></div>
+            <div class="label">sm · 6px</div>
+          </div>
+          <div class="radii-item">
+            <div class="box" style="border-radius: 10px;"></div>
+            <div class="label">md · 10px</div>
+          </div>
+          <div class="radii-item">
+            <div class="box" style="border-radius: 14px;"></div>
+            <div class="label">lg · 14px</div>
+          </div>
+          <div class="radii-item">
+            <div class="box" style="border-radius: 22px;"></div>
+            <div class="label">xl · 22px · sheet</div>
+          </div>
+          <div class="radii-item">
+            <div class="box" style="border-radius: 9999px;"></div>
+            <div class="label">full · pill</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 class="h3">Sombras</h3>
+        <p class="body">Las sombras son sutiles en light; más fuertes (50% opacity black) en dark para crear separación sin halo.</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+          <div class="sh-card" style="box-shadow: var(--shadow-card);">shadow-card</div>
+          <div class="sh-card" style="box-shadow: 0 8px 24px rgb(0 0 0 / 0.15);">shadow-fab</div>
+          <div class="sh-card" style="box-shadow: var(--shadow-modal);">shadow-modal</div>
+          <div class="sh-card" style="box-shadow: var(--shadow-toast);">shadow-toast</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section>
+    <div class="eyebrow">04</div>
+    <h2 class="h2" style="margin-top: 6px;">Componentes</h2>
+
+    <!-- Buttons -->
+    <h3 class="h3" style="margin-top: 32px;">Button</h3>
+    <p class="body">5 variantes × 3 tamaños. <span class="mono">size="md"</span> = 44px (touch target mínimo WCAG).</p>
+    <div class="example">
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+        <button class="btn btn-primary btn-md">Primary</button>
+        <button class="btn btn-accent btn-md">Accent</button>
+        <button class="btn btn-secondary btn-md">Secondary</button>
+        <button class="btn btn-ghost btn-md">Ghost</button>
+        <button class="btn btn-danger btn-md">Danger</button>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+        <button class="btn btn-primary btn-sm">Small</button>
+        <button class="btn btn-primary btn-md">Medium</button>
+        <button class="btn btn-primary btn-lg">Large</button>
+        <button class="btn btn-primary btn-md" disabled style="opacity:0.4;">Disabled</button>
+      </div>
+      <div class="code"><span class="k">import</span> { Button } <span class="k">from</span> <span class="s">"@/components/ui"</span>;
+
+&lt;Button <span class="k">variant</span>=<span class="s">"accent"</span> <span class="k">size</span>=<span class="s">"lg"</span> <span class="k">icon</span>={&lt;Sparkles /&gt;}&gt;
+  Generar look
+&lt;/Button&gt;</div>
+    </div>
+
+    <!-- Input -->
+    <h3 class="h3" style="margin-top: 40px;">Input · Textarea</h3>
+    <p class="body">Underline-style. Soporta label, hint, error, prefix/suffix y el badge <span class="badge badge-ai">✦ IA</span> cuando el valor lo completó la IA.</p>
+    <div class="example">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 640px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <span class="eyebrow">Email</span>
+          </div>
+          <div class="input">sofia@gmail.com</div>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <span class="eyebrow">Nombre</span>
+            <span class="badge badge-ai">✦ IA</span>
+          </div>
+          <div class="input">Blusa de lino color crema</div>
+        </div>
+      </div>
+      <div class="code"><span class="k">import</span> { Input, Textarea } <span class="k">from</span> <span class="s">"@/components/ui"</span>;
+
+&lt;Input <span class="k">label</span>=<span class="s">"Nombre"</span> <span class="k">ai</span> <span class="k">value</span>={value} <span class="k">onChange</span>={…} /&gt;
+&lt;Input <span class="k">label</span>=<span class="s">"Contraseña"</span> <span class="k">type</span>=<span class="s">"password"</span> <span class="k">error</span>=<span class="s">"Mínimo 8 caracteres"</span> /&gt;</div>
+    </div>
+
+    <!-- Badge + Chip -->
+    <h3 class="h3" style="margin-top: 40px;">Badge · Chip</h3>
+    <p class="body"><strong>Badge</strong> es informativo y no interactivo; <strong>Chip</strong> es seleccionable.</p>
+    <div class="example">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
+        <span class="badge badge-ai">✦ IA</span>
+        <span class="badge badge-success">OK</span>
+        <span class="badge badge-warning">Pendiente</span>
+        <span class="badge badge-error">Error</span>
+        <span class="badge" style="background: var(--surface-2); color: var(--ink-2);">Default</span>
+      </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button class="chip">Blusas</button>
+        <button class="chip chip-active">Pantalones</button>
+        <button class="chip">Abrigos</button>
+        <button class="chip chip-active">Otoño</button>
+        <button class="chip">Invierno</button>
+        <button class="chip">Casual</button>
+      </div>
+      <div class="code">&lt;Badge <span class="k">variant</span>=<span class="s">"ai"</span> /&gt;
+&lt;Chip <span class="k">active</span>&gt;Pantalones&lt;/Chip&gt;
+&lt;Chip <span class="k">removable</span> <span class="k">onClick</span>={remove}&gt;Otoño&lt;/Chip&gt;</div>
+    </div>
+
+    <!-- GarmentCard -->
+    <h3 class="h3" style="margin-top: 40px;">GarmentCard</h3>
+    <p class="body">Card de prenda para la grilla. Foto 4:5, nombre en display, categoría en eyebrow, toggle favorito en sup-derecha, slot de badge en sup-izquierda.</p>
+    <div class="example">
+      <div class="grid-4" style="gap: 10px; max-width: 720px;">
+        <div class="gcard">
+          <div class="gcard-img">
+            <button style="position: absolute; right: 8px; top: 8px; width: 28px; height: 28px; border-radius: 999px; background: rgba(255,255,255,0.85); border: none; backdrop-filter: blur(4px); cursor: pointer; display: grid; place-items: center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#b85c3a" stroke="#b85c3a" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="gcard-meta">
+            <div class="gcard-name">Blusa lino crema</div>
+            <div class="gcard-cat">Blusas</div>
+          </div>
+        </div>
+        <div class="gcard">
+          <div class="gcard-img" style="background-image: repeating-linear-gradient(45deg, #8a9aa8 0 6px, #647383 6px 12px);">
+            <span class="badge badge-ai" style="position: absolute; left: 8px; top: 8px;">✦ IA</span>
+            <button style="position: absolute; right: 8px; top: 8px; width: 28px; height: 28px; border-radius: 999px; background: rgba(255,255,255,0.85); border: none; cursor: pointer; display: grid; place-items: center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            </button>
+          </div>
+          <div class="gcard-meta">
+            <div class="gcard-name">Jean wide azul</div>
+            <div class="gcard-cat">Pantalones</div>
+          </div>
+        </div>
+        <div class="gcard">
+          <div class="gcard-img" style="background-image: repeating-linear-gradient(45deg, #c2a079 0 6px, #a78458 6px 12px);"></div>
+          <div class="gcard-meta">
+            <div class="gcard-name">Abrigo camel</div>
+            <div class="gcard-cat">Abrigos</div>
+          </div>
+        </div>
+        <div class="gcard">
+          <div class="gcard-img" style="background-image: repeating-linear-gradient(45deg, #5e4a39 0 6px, #3f3024 6px 12px);"></div>
+          <div class="gcard-meta">
+            <div class="gcard-name">Botas chocolate</div>
+            <div class="gcard-cat">Calzado</div>
+          </div>
+        </div>
+      </div>
+      <div class="code">&lt;GarmentCard
+  <span class="k">garment</span>={{ <span class="k">id</span>: <span class="s">"g1"</span>, <span class="k">name</span>: <span class="s">"Blusa lino crema"</span>, <span class="k">category</span>: <span class="s">"Blusas"</span>,
+            <span class="k">imageUrl</span>: <span class="s">"/u/g1.jpg"</span>, <span class="k">favorite</span>: <span class="k">true</span> }}
+  <span class="k">href</span>={<span class="s">`/prenda/${"g1"}`</span>}
+  <span class="k">onToggleFavorite</span>={toggle}
+/&gt;</div>
+    </div>
+
+    <!-- LookCard -->
+    <h3 class="h3" style="margin-top: 40px;">LookCard</h3>
+    <p class="body">Card de look guardado: collage 2×2 + nombre + meta. Variantes <span class="mono">row</span> (lista) y <span class="mono">tile</span> (grilla).</p>
+    <div class="example">
+      <div style="max-width: 480px;">
+        <div style="display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line-2);">
+          <div style="width: 88px; height: 88px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px; background: var(--surface-2); flex-shrink: 0;">
+            <div style="background: repeating-linear-gradient(45deg, #f3efe5 0 6px, #e5dfd0 6px 12px);"></div>
+            <div style="background: repeating-linear-gradient(45deg, #c9c8b0 0 6px, #a8a78a 6px 12px);"></div>
+            <div style="background: repeating-linear-gradient(45deg, #c2a079 0 6px, #a78458 6px 12px);"></div>
+            <div style="background: repeating-linear-gradient(45deg, #5e4a39 0 6px, #3f3024 6px 12px);"></div>
+          </div>
+          <div style="flex: 1; padding-top: 4px;">
+            <div style="font-family: var(--font-display); font-weight: 600; font-size: 17px; text-transform: uppercase; letter-spacing: 0.02em;">Sastre &amp; camel</div>
+            <div class="mono" style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">ÚLTIMO USO · 20·MAY·26</div>
+            <div style="margin-top: 8px;"><button class="chip" style="font-size: 11px; padding: 5px 9px;">3 usos</button></div>
+          </div>
+          <div style="align-self: center; color: var(--ink-3);">›</div>
+        </div>
+      </div>
+      <div class="code">&lt;LookCard
+  <span class="k">look</span>={{ <span class="k">id</span>, <span class="k">name</span>: <span class="s">"Sastre &amp; camel"</span>, <span class="k">lastUsed</span>: <span class="s">"20·MAY·26"</span>,
+          <span class="k">usageCount</span>: <span class="s">3</span>, <span class="k">garmentImages</span>: […4 urls] }}
+  <span class="k">variant</span>=<span class="s">"row"</span>
+  <span class="k">href</span>={<span class="s">`/looks/${id}`</span>}
+/&gt;</div>
+    </div>
+
+    <!-- Toast -->
+    <h3 class="h3" style="margin-top: 40px;">Toast / Snackbar</h3>
+    <p class="body">Sistema con hook <span class="mono">useToast()</span>. Provider en <span class="mono">layout.tsx</span>; auto-dismiss a 3.5s.</p>
+    <div class="example">
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <div class="toast toast-success">
+          <span style="font-size: 14px;">✓</span> Prenda guardada
+        </div>
+        <div class="toast toast-error">
+          <span style="font-size: 14px;">×</span> No se pudo conectar
+        </div>
+        <div class="toast toast-warn">
+          <span style="font-size: 14px;">!</span> Análisis incompleto
+        </div>
+      </div>
+      <div class="code"><span class="k">const</span> { toast } = useToast();
+
+toast.<span class="k">success</span>(<span class="s">"Prenda guardada"</span>);
+toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>);</div>
+    </div>
+
+    <!-- Skeleton -->
+    <h3 class="h3" style="margin-top: 40px;">Skeleton</h3>
+    <p class="body">Bloque pulsante con tres formas (rect · circle · text). Composables expuestos: <span class="mono">GarmentGridSkeleton</span>, <span class="mono">LookListSkeleton</span>.</p>
+    <div class="example">
+      <div class="grid-4" style="gap: 10px; max-width: 720px;">
+        <div class="gcard">
+          <div class="gcard-img" style="background: var(--surface-2); animation: pulse 1.6s infinite;"></div>
+          <div class="gcard-meta">
+            <div style="height: 12px; background: var(--surface-2); width: 75%; animation: pulse 1.6s infinite;"></div>
+            <div style="height: 8px; background: var(--surface-2); width: 33%; margin-top: 6px; animation: pulse 1.6s infinite;"></div>
+          </div>
+        </div>
+        <div class="gcard">
+          <div class="gcard-img" style="background: var(--surface-2); animation: pulse 1.6s infinite;"></div>
+          <div class="gcard-meta">
+            <div style="height: 12px; background: var(--surface-2); width: 60%; animation: pulse 1.6s infinite;"></div>
+            <div style="height: 8px; background: var(--surface-2); width: 40%; margin-top: 6px; animation: pulse 1.6s infinite;"></div>
+          </div>
+        </div>
+        <div class="gcard">
+          <div class="gcard-img" style="background: var(--surface-2); animation: pulse 1.6s infinite;"></div>
+          <div class="gcard-meta">
+            <div style="height: 12px; background: var(--surface-2); width: 70%; animation: pulse 1.6s infinite;"></div>
+            <div style="height: 8px; background: var(--surface-2); width: 30%; margin-top: 6px; animation: pulse 1.6s infinite;"></div>
+          </div>
+        </div>
+        <div class="gcard">
+          <div class="gcard-img" style="background: var(--surface-2); animation: pulse 1.6s infinite;"></div>
+          <div class="gcard-meta">
+            <div style="height: 12px; background: var(--surface-2); width: 80%; animation: pulse 1.6s infinite;"></div>
+            <div style="height: 8px; background: var(--surface-2); width: 35%; margin-top: 6px; animation: pulse 1.6s infinite;"></div>
+          </div>
+        </div>
+      </div>
+      <style>
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      </style>
+      <div class="code"><span class="k">import</span> { GarmentGridSkeleton } <span class="k">from</span> <span class="s">"@/components/ui"</span>;
+
+{ <span class="k">isLoading</span> ? &lt;GarmentGridSkeleton <span class="k">count</span>={<span class="s">8</span>} /&gt; : … }</div>
+    </div>
+
+    <!-- BottomNav -->
+    <h3 class="h3" style="margin-top: 40px;">Bottom Navigation <span class="eyebrow" style="font-size: 9px; margin-left: 6px;">MOBILE</span></h3>
+    <p class="body">Fija en mobile (<span class="mono">&lt; md</span>), oculta en desktop. 4 items, touch ≥ 44px, safe-area inset bottom.</p>
+    <div class="example">
+      <div class="nav-preview" style="max-width: 380px;">
+        <div class="nav-item on">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a2 2 0 100 4 2 2 0 002-2v1c0 1-1 2-2 3-1 1-9 6-9 8 0 1 .8 2 2 2h14c1.2 0 2-1 2-2 0-2-8-7-9-8"/></svg>
+          Guardarropa
+        </div>
+        <div class="nav-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/></svg>
+          Generador
+        </div>
+        <div class="nav-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M2 13l10 5 10-5"/></svg>
+          Looks
+        </div>
+        <div class="nav-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.4 4-7 9-7s9 2.6 9 7"/></svg>
+          Perfil
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <h3 class="h3" style="margin-top: 40px;">Sidebar <span class="eyebrow" style="font-size: 9px; margin-left: 6px;">DESKTOP</span></h3>
+    <p class="body">Fija en desktop (<span class="mono">md+</span>), 240px ancho. Wordmark arriba, CTA "Agregar prenda", nav, perfil al pie.</p>
+    <div class="example">
+      <div style="width: 240px; padding: 28px 20px; background: var(--bg); border: 1px solid var(--line-2); border-radius: 4px;">
+        <div style="font-family: var(--font-display); font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 28px;">
+          LookSi<span style="color: var(--accent);">.</span>
+        </div>
+        <button class="btn btn-accent btn-md" style="width: 100%; margin-bottom: 24px;">+ Agregar prenda</button>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--surface); border-radius: 6px; font-size: 13px; font-weight: 500;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a2 2 0 100 4 2 2 0 002-2v1c0 1-1 2-2 3-1 1-9 6-9 8 0 1 .8 2 2 2h14c1.2 0 2-1 2-2 0-2-8-7-9-8"/></svg>
+            Guardarropa
+            <span style="margin-left: auto; width: 6px; height: 6px; border-radius: 999px; background: var(--accent);"></span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; font-size: 13px; color: var(--ink-2);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z"/></svg>
+            Generador
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; font-size: 13px; color: var(--ink-2);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8l10 5 10-5-10-5z"/></svg>
+            Looks
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; font-size: 13px; color: var(--ink-2);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M3 21c0-4.4 4-7 9-7s9 2.6 9 7"/></svg>
+            Perfil
+          </div>
+        </div>
+        <div style="margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line-2); display: flex; gap: 10px; align-items: center;">
+          <div style="width: 32px; height: 32px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-family: var(--font-display); font-weight: 600; font-size: 12px;">SM</div>
+          <div style="min-width: 0;">
+            <div style="font-size: 12px; font-weight: 500;">Sofía Marini</div>
+            <div style="font-size: 10px; color: var(--ink-3);">sofia@gmail.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENS -->
+  <section id="pantallas">
+    <div class="eyebrow">05</div>
+    <h2 class="h2" style="margin-top: 6px;">Pantallas</h2>
+    <p class="body" style="max-width: 640px;">
+      Especificación de implementación pantalla por pantalla. Cada bloque indica layout
+      mobile (referencia 390×844) y desktop (<span class="mono">md+</span>, 768px), estados
+      (vacío · carga · error) y notas de detalle. Las reglas globales viven al final.
+    </p>
+
+    <div class="screens-toc">
+      <a href="#screen-welcome"><span class="n">01</span><span class="t">Bienvenida</span></a>
+      <a href="#screen-login"><span class="n">02</span><span class="t">Login</span></a>
+      <a href="#screen-signup"><span class="n">03</span><span class="t">Registro</span></a>
+      <a href="#screen-forgot"><span class="n">04</span><span class="t">Recuperar</span></a>
+      <a href="#screen-wardrobe"><span class="n">05</span><span class="t">Guardarropa</span></a>
+      <a href="#screen-empty"><span class="n">06</span><span class="t">Vacío</span></a>
+      <a href="#screen-filters"><span class="n">07</span><span class="t">Filtros</span></a>
+      <a href="#screen-capture"><span class="n">08</span><span class="t">Captura</span></a>
+      <a href="#screen-analyzing"><span class="n">09</span><span class="t">Analizando IA</span></a>
+      <a href="#screen-form"><span class="n">10</span><span class="t">Formulario</span></a>
+      <a href="#screen-detail"><span class="n">11</span><span class="t">Detalle</span></a>
+      <a href="#screen-gen-config"><span class="n">12</span><span class="t">Generador · config</span></a>
+      <a href="#screen-gen-result"><span class="n">13</span><span class="t">Generador · result</span></a>
+      <a href="#screen-save"><span class="n">14</span><span class="t">Guardar look</span></a>
+      <a href="#screen-history"><span class="n">15</span><span class="t">Historial</span></a>
+      <a href="#screen-settings"><span class="n">16</span><span class="t">Perfil</span></a>
+    </div>
+
+    <!-- 01 WELCOME -->
+    <article class="spec" id="screen-welcome">
+      <div class="spec-head">
+        <div><div class="num">01</div><h3>Bienvenida</h3></div>
+        <span class="spec-route">/</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li><strong>Top:</strong> eyebrow <span class="mono">BETA · v0.4 · BUENOS AIRES</span>, padding <span class="mono">82/28px</span>.</li>
+            <li><strong>Medio:</strong> H1 display 72px en 3 líneas, palabra <span class="mono">guardarropa,</span> en accent. Sub Inter 14px, 280px max.</li>
+            <li>Dos <span class="mono">&lt;GarmentImage /&gt;</span> absolutos rotados (+6° / -8°) como decoración.</li>
+            <li><strong>Bottom:</strong> stack vertical: <span class="mono">&lt;Button kind="primary" size="lg" full&gt;</span> + ghost + nota legal 11px.</li>
+            <li>Sin scroll: la pantalla cabe completa.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Card centrada <span class="mono">max-w-[420px] mx-auto</span> sobre fondo bg.</li>
+            <li>Alternativa: split <span class="mono">grid-cols-[1fr_1.2fr]</span> con mosaico de prendas a la derecha.</li>
+            <li>Las decoraciones rotadas se mueven a la mitad derecha.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">N/A — es el primer pintado.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Wordmark + spinner pequeño centrados mientras se chequea sesión.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Si falla el check de sesión, mostrar la pantalla igual — no bloquear.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>H1: <span class="mono">var(--font-display) 72px / 0.88 / -0.01em / uppercase</span>.</li>
+          <li>Las decoraciones absolutas viven <span class="mono">z-0</span>, textos <span class="mono">z-10</span>.</li>
+          <li>Tap CTAs: <span class="mono">transform: scale(0.985)</span> 120ms.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 02 LOGIN -->
+    <article class="spec" id="screen-login">
+      <div class="spec-head">
+        <div><div class="num">02</div><h3>Login</h3></div>
+        <span class="spec-route">/login</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li><strong>Top bar:</strong> back + wordmark centrado + spacer (padding-top 70px).</li>
+            <li><strong>Hero:</strong> H1 42px "Bienvenida / de vuelta." + sub 13px.</li>
+            <li><strong>Form:</strong> stack gap 24px — <span class="mono">&lt;Input label="Email" /&gt;</span> + password con <span class="mono">suffix={&lt;EyeIcon/&gt;}</span>.</li>
+            <li>Link "Olvidé mi contraseña" right-aligned, underline offset 3.</li>
+            <li>CTA primary lg full "Ingresar" + divider "O" + OAuth Google (rounded-full 54px).</li>
+            <li>Footer pegado abajo: "¿No tenés cuenta? <strong>Registrate</strong>".</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Form en card <span class="mono">max-w-[420px]</span> centrada. Footer fuera del card.</li>
+            <li>Opcional: split-screen con imagen full-bleed a la izquierda.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Inputs con placeholder en <span class="mono">--color-ink-3</span>.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">CTA → "Ingresando…" + spinner inline 14px, disabled.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Inline 12px <span class="mono">--color-danger</span> bajo el input. 401 → toast <span class="mono">error</span>.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Espaciados: hero→form <span class="mono">mb-9</span>, form→CTA <span class="mono">mb-7</span>, CTA→divider <span class="mono">my-6</span>.</li>
+          <li>Input es <strong>underline-style</strong> (border-bottom 1px), nunca outlined.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 03 SIGNUP -->
+    <article class="spec" id="screen-signup">
+      <div class="spec-head">
+        <div><div class="num">03</div><h3>Registro</h3></div>
+        <span class="spec-route">/signup</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Top bar: back + eyebrow <span class="mono">PASO 1 / 1</span> + spacer.</li>
+            <li>H1 42px "Empecemos." + sub 13px.</li>
+            <li>Form gap 24px: Nombre, Email, Contraseña (con <span class="mono">hint</span> + <span class="mono">suffix eyeOff</span>).</li>
+            <li>CTA primary lg full "Crear cuenta" + legal 11px 2 líneas centrado.</li>
+            <li>Footer: "¿Ya tenés cuenta? <strong>Iniciar sesión</strong>".</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Igual al login — card <span class="mono">max-w-[420px]</span> centrada.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Placeholders por defecto.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">CTA disabled + "Creando cuenta…".</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Validación inline por campo (email mal, pwd &lt; 8). Email duplicado → toast + foco.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li><span class="mono">&lt;Input hint="Usá mayúsculas, números y un símbolo." /&gt;</span> bajo contraseña, 11px ink-3.</li>
+          <li>Submit exitoso → redirect a <span class="mono">/guardarropas</span> con onboarding overlay.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 04 FORGOT -->
+    <article class="spec" id="screen-forgot">
+      <div class="spec-head">
+        <div><div class="num">04</div><h3>Recuperar contraseña</h3></div>
+        <span class="spec-route">/recuperar</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Top: solo back button.</li>
+            <li>H1 42px "Recuperar / acceso." + sub 13px sobre el flujo.</li>
+            <li>1 input email + CTA primary lg full "Enviar link".</li>
+            <li>Info box con <span class="mono">border: 1px dashed --color-line</span> + eyebrow "NOTA" + texto sobre spam.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Card centrada <span class="mono">max-w-[420px]</span>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">N/A.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">CTA → "Enviando…". Éxito reemplaza el contenido por confirmación grande + check.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Si el email no existe, <strong>no revelar</strong>: mostrar siempre éxito (anti-enumeración).</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Caja de nota: dashed border <strong>sin background</strong> — diferenciarla de cards reales.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 05 WARDROBE -->
+    <article class="spec" id="screen-wardrobe">
+      <div class="spec-head">
+        <div><div class="num">05</div><h3>Guardarropa · grilla</h3></div>
+        <span class="spec-route">/guardarropas</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li><strong>Header sticky:</strong> row 1 wordmark + search/bell; row 2 H1 36px "Guardarropa" + contador <span class="mono">47 / prendas</span> mono.</li>
+            <li><strong>Chips:</strong> scroll horizontal sin scrollbar, 6 chips size-sm. Primero "Todas" active.</li>
+            <li><strong>Sub-bar:</strong> ícono filter + "3 filtros · otoño · casual" / toggle grid-list.</li>
+            <li><strong>Grilla:</strong> <span class="mono">grid-cols-2 gap-[10px] px-5</span> de <span class="mono">&lt;GarmentCard /&gt;</span>.</li>
+            <li><strong>FAB:</strong> 56px <span class="mono">--color-accent</span>, <span class="mono">right:20 bottom:108</span>, <span class="mono">shadow-fab</span>.</li>
+            <li><strong>BottomNav</strong> activo <span class="mono">guardarropas</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li><span class="mono">&lt;Sidebar /&gt;</span> 240px fija; <span class="mono">&lt;main&gt;</span> con padding-left 240px.</li>
+            <li>Header pierde íconos (search en sidebar). H1 a 56px.</li>
+            <li>Grilla: <span class="mono">md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5</span>.</li>
+            <li>FAB reemplazado por el CTA "+ Agregar prenda" del sidebar. BottomNav oculto.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Renderizar la pantalla <a href="#screen-empty">06 · Vacío</a>.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc"><span class="mono">&lt;GarmentGridSkeleton count={8} /&gt;</span>. Chips y header visibles.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Banner inline arriba de la grilla: dashed border <span class="mono">--color-danger</span> + "Reintentar" ghost.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Chips mantienen scroll position al volver de un detalle (<span class="mono">sessionStorage</span>).</li>
+          <li>Última fila con <span class="mono">pb-20</span> para que el FAB no oculte cards.</li>
+          <li>Tap card → push <span class="mono">/prenda/[id]</span> con view transition nativo de Next 16.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 06 EMPTY -->
+    <article class="spec" id="screen-empty">
+      <div class="spec-head">
+        <div><div class="num">06</div><h3>Guardarropa · estado vacío</h3></div>
+        <span class="spec-route">/guardarropas <span style="color:var(--ink-3);">· empty</span></span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Header igual al main pero <strong>sin chips ni sub-bar</strong> (sin contador).</li>
+            <li>Centro: ilustración compuesta de 3 <span class="mono">&lt;GarmentImage /&gt;</span> apiladas/rotadas en wrapper 200×200.</li>
+            <li>H2 display 32px "Tu armario / está esperando." centrado.</li>
+            <li>Body 14px / 280px max-width + CTA <span class="mono">&lt;Button kind="accent" icon="plus"&gt;</span>.</li>
+            <li>Tip footer 11px centrado con líneas 16px — "tip · 8 prendas mínimo".</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Mismo layout centrado dentro de <span class="mono">&lt;main&gt;</span> con sidebar.</li>
+            <li>CTA puede crecer a <span class="mono">max-w-[360px]</span>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Es el propio empty state.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Skeleton main → transiciona a empty si confirma 0 prendas.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Banner inline arriba del centro.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Posiciones absolutas en el wrapper 200×200: <span class="mono">{left:0,top:20,rot:-8°}</span>, <span class="mono">{right:0,top:0,rot:6°}</span>, <span class="mono">{left:55,top:65,rot:-2°}</span>.</li>
+          <li>Tras agregar la primera prenda: fade 200ms al grid.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 07 FILTERS -->
+    <article class="spec" id="screen-filters">
+      <div class="spec-head">
+        <div><div class="num">07</div><h3>Filtros · bottom sheet</h3></div>
+        <span class="spec-route">/guardarropas <span style="color:var(--ink-3);">· state</span></span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Backdrop <span class="mono">rgba(0,0,0,0.4)</span> tap-out cierra.</li>
+            <li>Sheet <span class="mono">absolute bottom:0</span>, <span class="mono">border-radius: 20px 20px 0 0</span>, <span class="mono">max-h: 78vh</span>, scroll interno, <span class="mono">shadow-modal</span>.</li>
+            <li>Drag handle pill 36×4 ink-line centrada arriba.</li>
+            <li>H2 24px "Filtros" + link "Limpiar todo" accent.</li>
+            <li>3 secciones (Categoría/Temporada/Ocasión) con eyebrow + chips wrap multi.</li>
+            <li>Toggle "Solo favoritos" 38×22 iOS-style.</li>
+            <li>CTA primary lg full <strong>con contador</strong>: "Aplicar · 14 prendas".</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Pasa a <strong>drawer derecho</strong> (right-0, 380px ancho, altura full).</li>
+            <li>Alternativa: popover bajo el chip "Filtros" del header.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">N/A.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Opciones client-side desde tu lista — sin skeleton.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">N/A (no hay fetch).</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Contador "14 prendas" se recalcula client-side <strong>sin debounce</strong> — feedback instantáneo.</li>
+          <li>Cerrar sin "Aplicar" → revertir cambios (estado pendiente local, commit en tap).</li>
+          <li>Animación: <span class="mono">translateY(100%) → 0</span> 280ms <span class="mono">cubic-bezier(0.32, 0.72, 0, 1)</span>.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 08 CAPTURE -->
+    <article class="spec" id="screen-capture">
+      <div class="spec-head">
+        <div><div class="num">08</div><h3>Agregar · captura</h3></div>
+        <span class="spec-route">/agregar</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Top: close (×) + eyebrow <span class="mono">PASO 1 / 2</span> + spacer.</li>
+            <li>H1 36px "Agregar / prenda." + sub 13px.</li>
+            <li>Drop zone aspect <span class="mono">1/1.1</span>, border dashed 1.5px, fondo surface-2. 4 corner-brackets absolutos (L-shape 20×20).</li>
+            <li>Ícono cámara 36px centrado + label uppercase 12px.</li>
+            <li>CTAs stack: primary lg "Usar cámara" + ghost lg "Elegir de galería".</li>
+            <li>Tip 11px al pie.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Card central <span class="mono">max-w-[480px]</span>.</li>
+            <li>Drop zone también acepta <strong>drag &amp; drop</strong> (highlight border en hover).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Estado por defecto.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Al seleccionar, push inmediato a <span class="mono">/agregar/analizar</span>.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Archivo &gt; 10MB o no-imagen → toast <span class="mono">error</span>.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li><span class="mono">&lt;input type="file" accept="image/*" capture="environment"&gt;</span> abre cámara trasera en iOS Safari.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 09 ANALYZING -->
+    <article class="spec" id="screen-analyzing">
+      <div class="spec-head">
+        <div><div class="num">09</div><h3>Agregar · analizando IA</h3></div>
+        <span class="spec-route">/agregar/analizar</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Top: close gris suave + eyebrow <span class="mono">PASO 2 / 2 · ANALIZANDO</span>.</li>
+            <li>Foto aspect 1/1.1 con la imagen subida.</li>
+            <li>Overlay scan: línea horizontal 2px accent + <span class="mono">box-shadow: 0 0 18px var(--accent)</span> animada top→bottom (loop 2.5s).</li>
+            <li>4 puntos SVG accent en anclas fijas (fake IA).</li>
+            <li>Pill top-right: bg <span class="mono">rgba(0,0,0,0.7)</span> + dot pulse + "✦ Analizando con IA".</li>
+            <li>Bloque info: H2 28px "Identificando / tu prenda…" + 4 pasos (done/active/pending).</li>
+            <li><strong>Sin CTAs</strong> — auto-avanza a <span class="mono">/agregar/form</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Card centrada <span class="mono">max-w-[480px]</span>. Igual al mobile.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">N/A.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Es el propio estado de carga.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Pasos pendientes con ⚠️ rojo + CTA "Reintentar / Completar manualmente". <strong>No</strong> auto-redirigir.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Keyframes: <span class="mono">spin</span>, <span class="mono">pulse (50%: 0.3)</span>, <span class="mono">scan (top 0→100%)</span>.</li>
+          <li>Pasos atados a eventos reales del backend (WS o polling). Mínimo 2s por estética.</li>
+          <li>API &gt; 15s → mostrar "Continuar sin IA".</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 10 FORM -->
+    <article class="spec" id="screen-form">
+      <div class="spec-head">
+        <div><div class="num">10</div><h3>Agregar · formulario</h3></div>
+        <span class="spec-route">/agregar/form</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Top: back + eyebrow "REVISAR · GUARDAR" + link "Saltar" accent.</li>
+            <li>Preview row: thumb 110px + H2 22px "Análisis / completo." + link underline "Reintentar análisis" 11px.</li>
+            <li>Form gap 22px — <span class="mono">&lt;Input ai value="…" /&gt;</span>, secciones de chips con eyebrow + AIBadge:
+              <strong>Categoría</strong> (single), <strong>Color</strong> (swatch+link), <strong>Temporada</strong>, <strong>Ocasión</strong>, <strong>Estilo</strong> (multi), <strong>Notas</strong> (textarea 64px).</li>
+            <li>Sticky bottom: <span class="mono">&lt;Button kind="primary" size="lg" full&gt;Guardar prenda&lt;/Button&gt;</span> sobre <span class="mono">border-top --color-line-2</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Two-column: preview 320px sticky izq / form scroll der.</li>
+            <li>CTA sale del sticky y va al fin del form.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Pre-llenado por IA. Sin detección → campo vacío con placeholder (sin badge IA).</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">CTA disabled + "Guardando…" → toast <span class="mono">success</span> + push <span class="mono">/prenda/[id]</span>.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Validación inline. Nombre vacío al guardar → input rojo + focus.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>El badge IA <strong>desaparece al editar</strong> el valor — señala que ya no es IA, es manual.</li>
+          <li>"Saltar" guarda con los valores actuales, no descarta.</li>
+          <li>Tap en swatch de color abre mini-popover con 12 colores.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 11 DETAIL -->
+    <article class="spec" id="screen-detail">
+      <div class="spec-head">
+        <div><div class="num">11</div><h3>Detalle de prenda</h3></div>
+        <span class="spec-route">/prenda/[id]</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Hero photo full-width aspect <span class="mono">1/1.15</span>, sin padding lateral.</li>
+            <li>Top bar flotante (<span class="mono">absolute top:56</span>) sobre la foto: back + heart filled (danger) + edit, todos en círculos glass 38px (<span class="mono">backdrop-filter: blur(8px)</span>).</li>
+            <li>3 dots de paginación en bottom de la foto (carrusel multi-foto).</li>
+            <li>Content <span class="mono">px-22</span>: eyebrow categoría · color, H1 32px nombre.</li>
+            <li><strong>Descripción IA:</strong> caja accent-tint padding 14px + AIBadge size-lg + texto italic entre comillas 13px.</li>
+            <li>Atributos read-only: Temporada / Ocasión / Estilo (chips active).</li>
+            <li>Bloque "Usado en 7 looks": H3 + link "Ver todos →" + scroll horizontal de thumbs 80px.</li>
+            <li>Meta row 2 columnas mono: Agregada / Último uso.</li>
+            <li>Danger CTA outlined full-width "Eliminar prenda".</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Two-column: foto izq 50% sticky <span class="mono">top:24</span>, content der scroll.</li>
+            <li>Dots se mueven al pie de la foto.</li>
+            <li>Top bar deja de flotar — se incrusta arriba como breadcrumb.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">N/A (sin prenda → 404).</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Skeleton hero + 3 líneas + chips. Back siempre funcional.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">404 → "Prenda no encontrada / Volver". Eliminar → confirm dialog modal.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Heart toggle es <strong>optimistic</strong>: cambia antes de confirmar; revierte si falla con toast.</li>
+          <li>La descripción IA se genera al crear la prenda y se cachea.</li>
+          <li>Tap en thumb de look → push <span class="mono">/looks/[id]</span>.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 12 GEN CONFIG -->
+    <article class="spec" id="screen-gen-config">
+      <div class="spec-head">
+        <div><div class="num">12</div><h3>Generador · configurar</h3></div>
+        <span class="spec-route">/generador</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Header: wordmark + eyebrow "PASO 1 / 2".</li>
+            <li>H1 36px "Armemos / tu look." + sub.</li>
+            <li><strong>Weather widget</strong> surface + shadow-card: ícono cloud accent en círculo 44px accent-tint, "18°" mono 24px + min/max, "Parcialmente nublado · Buenos Aires", toggle 38×22.</li>
+            <li>Sección Ocasión: 6 chips single-select.</li>
+            <li>Contexto (opcional): textarea min-h 70px con placeholder de ejemplo.</li>
+            <li>Empezar desde: 2 tiles (<span class="mono">grid-cols-2 gap-2</span>): "Desde cero" (active, bg ink) y "Con base" (border line).</li>
+            <li>Sticky CTA accent lg full "Generar look" sobre <span class="mono">linear-gradient(0deg, --bg 60%, transparent)</span>.</li>
+            <li>BottomNav activo <span class="mono">generador</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Form en columna central <span class="mono">max-w-[640px]</span>. Sidebar en vez de BottomNav.</li>
+            <li>Las 2 tiles "Desde cero / Con base" quedan en <span class="mono">grid-cols-2</span> igual.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Weather default "—°" hasta tener geo; chips sin selección obligatoria.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Clima: spinner inline. CTA: "Generando…" + spinner; push a result al terminar.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Clima: widget colapsa a "Clima no disponible" sin romper layout.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Tap "Con base" → bottom sheet de selección de prenda. La tile muestra mini-thumb al elegir.</li>
+          <li>Gradient mask evita corte hard sobre el CTA sticky.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 13 GEN RESULT -->
+    <article class="spec" id="screen-gen-result">
+      <div class="spec-head">
+        <div><div class="num">13</div><h3>Generador · resultado</h3></div>
+        <span class="spec-route">/generador/resultado</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Top: back + eyebrow "LOOK · v3 / 5" + refresh.</li>
+            <li>Title: AIBadge lg + meta "· trabajo · 18° · 4 piezas" + H1 32px + sub italic entre comillas (justificación IA).</li>
+            <li><strong>Version stepper:</strong> prev arrow + 5 bars (active ink, rest line) + next arrow. Tap salta de versión.</li>
+            <li>Grid <span class="mono">grid-cols-2 gap-2 px-5</span>: foto aspect 4/5 + botón swap 30px glass top-right + footer eyebrow categoría + nombre 12px truncate.</li>
+            <li>Hint strip: card surface + ícono sparkles + texto.</li>
+            <li>Sticky actions: ghost "Otro" (flex 1) + primary "Guardar look" (flex 1.4).</li>
+            <li>BottomNav activo <span class="mono">generador</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Grid <span class="mono">md:grid-cols-4</span> — todos visibles en una fila.</li>
+            <li>Bottom actions dejan de ser sticky.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Si no hay base, redirigir a <span class="mono">/generador</span>.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">"Otro" → fade-out + spinner overlay → fade-in nuevo look. Swap por pieza: skeleton solo en esa tile.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Card "No pudimos generar este look · Reintentar" reemplaza el grid.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Versiones cachadas client-side — stepper sin refetch.</li>
+          <li>"Otro" consume cuota IA; swap por pieza no.</li>
+          <li>Tap pieza → detalle prenda con back que vuelve a la misma versión.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 14 SAVE LOOK -->
+    <article class="spec" id="screen-save">
+      <div class="spec-head">
+        <div><div class="num">14</div><h3>Guardar look · sheet</h3></div>
+        <span class="spec-route">/generador/resultado <span style="color:var(--ink-3);">· state</span></span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Backdrop <span class="mono">rgba(0,0,0,0.45)</span>.</li>
+            <li>Sheet con drag handle pill + H2 24px "Guardar look" + close (×).</li>
+            <li>Collage: 4 thumbs side-by-side aspect 3/4 gap 6.</li>
+            <li>Input "Nombre del look" pre-lleno (la IA propone).</li>
+            <li>Fecha de uso: eyebrow + row con ícono calendar + fecha mono "22 · MAY · 2026" + sub "Hoy" (tap → date picker nativo).</li>
+            <li>CTA primary lg full "Confirmar".</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Dialog centrado <span class="mono">max-w-[440px]</span>, no es bottom sheet.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">Valores pre-llenos.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">CTA → "Guardando…" → toast success + cierra sheet + queda en el resultado.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Nombre vacío: inline error. Falla de red: toast <span class="mono">error</span>.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Fecha futura → look queda como "planificado"; el contador de usos no incrementa hasta esa fecha.</li>
+          <li>No auto-redirigir al historial tras guardar — quedarse en resultado para seguir explorando.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 15 HISTORY -->
+    <article class="spec" id="screen-history">
+      <div class="spec-head">
+        <div><div class="num">15</div><h3>Historial de looks</h3></div>
+        <span class="spec-route">/looks</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Header: wordmark + search. Row 2: H1 36px "Looks" + contador <span class="mono">23 / guardados</span> mono.</li>
+            <li>Filter row: 3 chips sm — "Recientes" (active) / "Más usados" / "Por ocasión".</li>
+            <li>Lista de <span class="mono">&lt;LookCard variant="row" /&gt;</span>: collage 2×2 88×88 izq + H3 17px display + meta mono "ÚLTIMO USO · 20·MAY·26" + chip "3 usos" + chevron der.</li>
+            <li>Divider 1px line-2 entre rows (no en la primera).</li>
+            <li>BottomNav activo <span class="mono">looks</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li><span class="mono">variant="tile"</span> en grid <span class="mono">md:grid-cols-3 lg:grid-cols-4</span>. Collage más grande, meta debajo.</li>
+            <li>Sidebar reemplaza BottomNav.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">"Todavía no guardaste looks · Generá tu primer look →" + ilustración 4 prendas + CTA al generador.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc"><span class="mono">&lt;LookListSkeleton count={5} /&gt;</span> — rows con collage y texto pulsantes.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Banner inline + "Reintentar".</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Collage 2×2: <span class="mono">grid-template-columns:1fr 1fr</span> + <span class="mono">gap:1px</span> + <span class="mono">background:--surface-2</span> para la línea entre fotos.</li>
+          <li>Look con &lt; 4 prendas → completar celdas con <span class="mono">--surface-2</span>.</li>
+          <li>Pull-to-refresh en mobile.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 16 SETTINGS -->
+    <article class="spec" id="screen-settings">
+      <div class="spec-head">
+        <div><div class="num">16</div><h3>Configuración · perfil</h3></div>
+        <span class="spec-route">/perfil</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Header: solo wordmark (sin H1 — el bloque perfil hace de hero).</li>
+            <li>Perfil head: avatar 68px iniciales accent + H2 24px nombre + email 12px ink-3 + stats mono "47 / prendas" + "23 / looks".</li>
+            <li>Secciones con eyebrow + lista:
+              <strong>Ubicación</strong> · <strong>Estilo</strong> (chips multi) · <strong>App</strong> (Tema con value+chevron, Clima toggle on, Notificaciones toggle off) · <strong>Cuenta</strong> (Cerrar sesión, Eliminar cuenta danger).</li>
+            <li>Footer eyebrow 10px centrado "LookSi · v0.4.2 · BETA".</li>
+            <li>BottomNav activo <span class="mono">perfil</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Sidebar persistente. Perfil-head en card top-left, secciones en columna <span class="mono">max-w-[680px]</span>.</li>
+            <li>Tema puede ser segmented control inline (Claro / Oscuro / Sistema) en desktop.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">N/A — siempre hay usuario logueado.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Skeleton avatar + 2 líneas + 4 rows. Toggles: optimistic update; revertir + toast si falla.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Por sección: row con inline error + retry.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>"Eliminar cuenta" → dialog full con confirmación tipeando el email (destrucción irreversible).</li>
+          <li>Tap Tema → mini-action-sheet con 3 opciones (Claro / Oscuro / Sistema).</li>
+          <li>Avatar: iniciales en accent si no hay foto; reemplaza si hay foto subida.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- GLOBAL RULES -->
+    <div class="global-rules">
+      <h3>Sistema · reglas globales</h3>
+      <div class="grid">
+        <div>
+          <div class="eyebrow" style="margin-bottom: 8px;">Espaciados base · 4px scale</div>
+          <ul style="font-size: 12.5px; line-height: 1.6; color: var(--ink-2); padding-left: 14px; margin: 0;">
+            <li>Padding pantalla mobile: <span class="mono">px-5</span> general; <span class="mono">px-6</span> editorial.</li>
+            <li>Padding desktop: <span class="mono">px-10</span>, <span class="mono">max-w-[1180px]</span> shells.</li>
+            <li>Gap vertical entre secciones: <span class="mono">mb-5</span> a <span class="mono">mb-7</span>.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 8px;">Interacciones</div>
+          <ul style="font-size: 12.5px; line-height: 1.6; color: var(--ink-2); padding-left: 14px; margin: 0;">
+            <li>Tap: <span class="mono">active:scale-[0.985]</span> + <span class="mono">transition-transform 120ms</span>.</li>
+            <li>Hover (desktop): <span class="mono">hover:bg-[--color-line-2]</span> en list rows.</li>
+            <li>Focus: outline 2px <span class="mono">--color-accent</span> offset 2px en focusables (a11y).</li>
+            <li>View transitions: Next 16 nativo entre pantallas.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 8px;">Animaciones</div>
+          <ul style="font-size: 12.5px; line-height: 1.6; color: var(--ink-2); padding-left: 14px; margin: 0;">
+            <li>Bottom sheets: <span class="mono">translateY(100%) → 0</span> 280ms <span class="mono">cubic-bezier(0.32, 0.72, 0, 1)</span>.</li>
+            <li>Backdrops: opacity 0 → target en 200ms.</li>
+            <li>Toast: slide-up bottom + fade, autodismiss 3.5s.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom: 8px;">A11y mínimo</div>
+          <ul style="font-size: 12.5px; line-height: 1.6; color: var(--ink-2); padding-left: 14px; margin: 0;">
+            <li>Touch targets ≥ 44px.</li>
+            <li>Contraste AA (garantizado por tokens).</li>
+            <li>Íconos clickeables con <span class="mono">aria-label</span>.</li>
+            <li><span class="mono">prefers-reduced-motion: reduce</span> desactiva todas las transiciones excepto opacity.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MANIFEST -->
+  <section>
+    <div class="eyebrow">06</div>
+    <h2 class="h2" style="margin-top: 6px;">Web App Manifest</h2>
+    <p class="body" style="max-width: 620px;">PWA installable en mobile y desktop. <span class="mono">manifest.json</span> + iconos en <span class="mono">public/</span>. Vincular desde <span class="mono">layout.tsx</span> con <span class="mono">metadata.manifest</span>.</p>
+
+    <div class="grid-2" style="gap: 40px; align-items: start;">
+      <div>
+        <h3 class="h3">Iconos generados</h3>
+        <div style="display: flex; gap: 24px; align-items: flex-end; flex-wrap: wrap;">
+          <div style="text-align: center;">
+            <img src="handoff/public/icons/icon-512.png" width="120" height="120" style="border-radius: 22px; box-shadow: var(--shadow-card);" />
+            <div class="mono" style="font-size: 10px; color: var(--ink-3); margin-top: 8px;">512 · any</div>
+          </div>
+          <div style="text-align: center;">
+            <img src="handoff/public/icons/icon-192.png" width="64" height="64" style="border-radius: 14px; box-shadow: var(--shadow-card);" />
+            <div class="mono" style="font-size: 10px; color: var(--ink-3); margin-top: 8px;">192 · any</div>
+          </div>
+          <div style="text-align: center;">
+            <img src="handoff/public/icons/icon-maskable-512.png" width="64" height="64" style="border-radius: 14px; box-shadow: var(--shadow-card);" />
+            <div class="mono" style="font-size: 10px; color: var(--ink-3); margin-top: 8px;">512 · maskable</div>
+          </div>
+          <div style="text-align: center;">
+            <img src="handoff/public/icons/icon-maskable-192.png" width="64" height="64" style="border-radius: 14px; box-shadow: var(--shadow-card);" />
+            <div class="mono" style="font-size: 10px; color: var(--ink-3); margin-top: 8px;">192 · maskable</div>
+          </div>
+        </div>
+        <p class="body" style="margin-top: 20px; font-size: 12px;">
+          Maskable icons usan safe-area de 80% para que Android los recorte sin perder el glyph.
+          Hay también <span class="mono">icon.svg</span> como fallback vectorial.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="h3">Campos clave</h3>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td class="mono">name</td><td>LookSi — Tu guardarropa, digital</td></tr>
+          <tr><td class="mono">short_name</td><td>LookSi</td></tr>
+          <tr><td class="mono">lang</td><td class="mono">es-AR</td></tr>
+          <tr><td class="mono">display</td><td class="mono">standalone</td></tr>
+          <tr><td class="mono">orientation</td><td class="mono">portrait</td></tr>
+          <tr><td class="mono">theme_color</td><td><span style="display: inline-block; width: 14px; height: 14px; vertical-align: -3px; background: #6b7563; border-radius: 3px; margin-right: 6px;"></span><span class="mono">#6B7563</span></td></tr>
+          <tr><td class="mono">background_color</td><td><span style="display: inline-block; width: 14px; height: 14px; vertical-align: -3px; background: #f7f5ef; border-radius: 3px; margin-right: 6px; border: 1px solid var(--line);"></span><span class="mono">#F7F5EF</span></td></tr>
+          <tr><td class="mono">start_url</td><td class="mono">/</td></tr>
+          <tr><td class="mono">scope</td><td class="mono">/</td></tr>
+          <tr><td class="mono">shortcuts</td><td>Agregar prenda · Generar look</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px;">
+      <span class="filebar">📄 app/layout.tsx</span>
+      <div class="code"><span class="k">export const</span> metadata = {
+  <span class="k">title</span>: <span class="s">"LookSi"</span>,
+  <span class="k">description</span>: <span class="s">"Tu guardarropa, digital y con IA."</span>,
+  <span class="k">manifest</span>: <span class="s">"/manifest.json"</span>,
+  <span class="k">themeColor</span>: <span class="s">"#6b7563"</span>,
+  <span class="k">appleWebApp</span>: { <span class="k">capable</span>: <span class="k">true</span>, <span class="k">title</span>: <span class="s">"LookSi"</span> },
+};</div>
+    </div>
+  </section>
+
+  <!-- WHATS NEXT -->
+  <section>
+    <div class="eyebrow">07</div>
+    <h2 class="h2" style="margin-top: 6px;">Pasos para integrar</h2>
+
+    <ol style="font-size: 14px; line-height: 1.7; color: var(--ink-2); padding-left: 20px; max-width: 720px;">
+      <li>Copiar <span class="mono">handoff/app/globals.css</span> → <span class="mono">app/globals.css</span> e importarlo en <span class="mono">layout.tsx</span>.</li>
+      <li>Copiar <span class="mono">handoff/components/ui/</span> → <span class="mono">components/ui/</span>; copiar <span class="mono">handoff/lib/cn.ts</span> → <span class="mono">lib/cn.ts</span>.</li>
+      <li>Instalar dependencias: <span class="mono">pnpm add lucide-react next-themes</span>.</li>
+      <li>Cargar las fuentes con <span class="mono">next/font</span> en <span class="mono">layout.tsx</span> (Inter + Archivo Narrow + JetBrains Mono).</li>
+      <li>Copiar <span class="mono">handoff/public/</span> a <span class="mono">public/</span> (manifest + icons).</li>
+      <li>Envolver <span class="mono">{children}</span> con <span class="mono">&lt;ToastProvider&gt;</span> y <span class="mono">&lt;ThemeProvider attribute="data-theme"&gt;</span>.</li>
+      <li>Construir las pantallas sobre estos componentes — los frames del prototipo (LookSi.html) son la referencia visual.</li>
+    </ol>
+
+    <div style="margin-top: 32px; padding: 20px 24px; background: var(--accent-tint); color: var(--ink); border-radius: 4px;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+        <span class="badge badge-ai">✦ IA</span>
+        <span class="eyebrow" style="color: var(--accent);">NOTA</span>
+      </div>
+      <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+        El badge <span class="mono">"✦ IA"</span> debe llevar <span class="mono">aria-label="Sugerido por IA"</span> en contextos donde no haya texto adyacente (ej. en una foto). Ya está implementado en <span class="mono">Input.tsx</span> (etiqueta del campo) y <span class="mono">GarmentCard.tsx</span> (esquina de la foto).
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const html = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  const lbl = document.getElementById('theme-label');
+  function setTheme(t) {
+    html.setAttribute('data-theme', t);
+    lbl.textContent = t === 'dark' ? 'Oscuro' : 'Claro';
+    try { localStorage.setItem('handoff-theme', t); } catch {}
+  }
+  const saved = (() => { try { return localStorage.getItem('handoff-theme'); } catch { return null; } })();
+  if (saved) setTheme(saved);
+  btn.addEventListener('click', () => setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+</script>
+
+</body>
+</html>
