@@ -4,12 +4,18 @@
  * Generados manualmente en base a la migración inicial.
  * Una vez el proyecto Supabase esté creado, reemplazar con:
  *   npx supabase gen types typescript --project-id <id> > lib/database.types.ts
+ *
+ * Nota: cada tabla necesita `Relationships: []` para que supabase-js infiera
+ * los tipos de Row/Insert/Update correctamente (GenericTable constraint).
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
 export interface Database {
   public: {
+    // Views y Functions son requeridos por GenericSchema de supabase-js
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
     Tables: {
       profiles: {
         Row: {
@@ -56,6 +62,7 @@ export interface Database {
           ocasiones_frecuentes?: string[];
           updated_at?: string;
         };
+        Relationships: [];
       };
       categories: {
         Row: {
@@ -71,6 +78,7 @@ export interface Database {
           nombre?: string;
           slug?: string;
         };
+        Relationships: [];
       };
       subcategories: {
         Row: {
@@ -89,6 +97,7 @@ export interface Database {
           nombre?: string;
           slug?: string;
         };
+        Relationships: [];
       };
       prendas: {
         Row: {
@@ -148,6 +157,7 @@ export interface Database {
           ia_descripcion?: string | null;
           deleted_at?: string | null;
         };
+        Relationships: [];
       };
       looks: {
         Row: {
@@ -171,6 +181,7 @@ export interface Database {
           descripcion_ia?: string | null;
           parametros_generacion?: Json;
         };
+        Relationships: [];
       };
       look_prendas: {
         Row: {
@@ -192,6 +203,7 @@ export interface Database {
           es_prenda_base?: boolean;
           prenda_eliminada?: boolean;
         };
+        Relationships: [];
       };
       look_usos: {
         Row: {
@@ -206,6 +218,7 @@ export interface Database {
           fecha_uso: string;
         };
         Update: never;
+        Relationships: [];
       };
       ai_usage: {
         Row: {
@@ -224,6 +237,7 @@ export interface Database {
           costo_estimado?: number | null;
         };
         Update: never;
+        Relationships: [];
       };
     };
   };

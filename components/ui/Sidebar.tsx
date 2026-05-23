@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Shirt, Sparkles, Layers, User, Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { Button } from "./Button";
 
 /* ─────────────────────────────────────────────────────────────────────────
    Sidebar — fija en desktop (md+).
@@ -16,10 +15,10 @@ import { Button } from "./Button";
    ───────────────────────────────────────────────────────────────────────── */
 
 const NAV_ITEMS = [
-  { href: "/guardarropa", label: "Guardarropa", icon: Shirt },
-  { href: "/generador",   label: "Generador",   icon: Sparkles },
-  { href: "/looks",       label: "Looks",       icon: Layers },
-  { href: "/perfil",      label: "Perfil",      icon: User },
+  { href: "/guardarropas", label: "Guardarropas", icon: Shirt },
+  { href: "/generador",    label: "Generador",    icon: Sparkles },
+  { href: "/looks",        label: "Looks",        icon: Layers },
+  { href: "/perfil",       label: "Perfil",       icon: User },
 ] as const;
 
 export function Sidebar() {
@@ -43,9 +42,19 @@ export function Sidebar() {
       </Link>
 
       {/* primary CTA */}
-      <Button variant="accent" size="md" fullWidth icon={<Plus />} className="mb-8">
+      <Link
+        href="/guardarropas/nueva"
+        className={cn(
+          "mb-8 inline-flex w-full items-center justify-center gap-2",
+          "rounded-button font-sans font-medium uppercase tracking-wide text-sm h-11 px-5",
+          "bg-accent text-accent-ink hover:bg-sage-700 dark:hover:bg-sage-300",
+          "transition-[transform,background-color,opacity] duration-150 ease-out-soft",
+          "active:scale-[0.985]",
+        )}
+      >
+        <Plus className="size-4" aria-hidden />
         Agregar prenda
-      </Button>
+      </Link>
 
       {/* nav */}
       <ul className="space-y-0.5">

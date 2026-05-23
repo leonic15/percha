@@ -15,10 +15,10 @@ import { cn } from "@/lib/cn";
    ───────────────────────────────────────────────────────────────────────── */
 
 const NAV_ITEMS = [
-  { href: "/guardarropa", label: "Guardarropa", icon: Shirt },
-  { href: "/generador",   label: "Generador",   icon: Sparkles },
-  { href: "/looks",       label: "Looks",       icon: Layers },
-  { href: "/perfil",      label: "Perfil",      icon: User },
+  { href: "/guardarropas", label: "Guardarropas", icon: Shirt },
+  { href: "/generador",    label: "Generador",    icon: Sparkles },
+  { href: "/looks",        label: "Looks",        icon: Layers },
+  { href: "/perfil",       label: "Perfil",       icon: User },
 ] as const;
 
 export function BottomNav() {

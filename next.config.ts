@@ -22,6 +22,21 @@ const nextConfig: NextConfig = {
   // Declarar Turbopack explícitamente evita que Next lo trate como un error.
   turbopack: {},
 
+  // Permitir imágenes desde Supabase Storage (URLs firmadas) y avatares de Google
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+    ],
+  },
+
   // ── Cabeceras de seguridad HTTP (LOOKSI-029) ─────────────────────────────
   async headers() {
     // Content-Security-Policy
