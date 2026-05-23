@@ -11,7 +11,7 @@ const authPaths = ["/login", "/registro", "/recuperar-password"];
 
 const intlMiddleware = createMiddleware(routing);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Actualizar la sesión de Supabase en cada request
   let response = NextResponse.next({ request });
 

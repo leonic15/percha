@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import { Check, X, AlertTriangle, Info } from "lucide-react";
 import { cn } from "@/lib/cn";
 
