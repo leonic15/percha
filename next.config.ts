@@ -1,17 +1,21 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
+import createNextIntlPlugin from "next-intl/plugin";
 
+/* ── PWA ── */
 const withPWA = withPWAInit({
   dest: "public",
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
-  // Deshabilitar PWA en desarrollo para no interferir con hot reload
   disable: process.env.NODE_ENV === "development",
   workboxOptions: {
     disableDevLogs: true,
   },
 });
+
+/* ── next-intl: le dice a Next.js dónde está el archivo de config ── */
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
   // Next 16 usa Turbopack por defecto; el plugin PWA agrega config webpack.
@@ -44,11 +48,11 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          // CSP se configurará en LOOKSI-029 con los dominios de Supabase/Gemini/Posthog/Sentry
         ],
       },
     ];
   },
 };
 
-export default withPWA(nextConfig);
+// Composición: next-intl envuelve PWA que envuelve la config base
+export default withNextIntl(withPWA(nextConfig));
