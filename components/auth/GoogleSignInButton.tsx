@@ -1,59 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+/**
+ * LOOKSI-003: Botón de autenticación con Google.
+ *
+ * Renderiza un <a href="/api/auth/google"> en vez de un <button onClick=...>.
+ * El inicio del flujo OAuth ocurre en la API Route server-side, lo que garantiza
+ * que funcione en dispositivos físicos aunque los chunks JS de Turbopack no carguen.
+ *
+ * "use client" se mantiene porque este componente se importa desde páginas
+ * "use client" (registro, login). No usa useState ni efectos propios.
+ */
 
 interface GoogleSignInButtonProps {
   label?: string;
 }
 
-/**
- * LOOKSI-003: Botón de autenticación con Google.
- * Inicia el flujo PKCE de OAuth — debe ser Client Component porque
- * supabase.auth.signInWithOAuth() requiere el browser para la redirección.
- */
 export function GoogleSignInButton({ label = "Continuar con Google" }: GoogleSignInButtonProps) {
-  const [loading, setLoading] = useState(false);
-
-  async function handleGoogleSignIn() {
-    setLoading(true);
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        scopes: "email profile",
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    });
-    // No resetear loading: la página se redirige a Google
-  }
-
   return (
-    <button
-      type="button"
-      onClick={handleGoogleSignIn}
-      disabled={loading}
+    <a
+      href="/api/auth/google"
       className="
         w-full flex items-center justify-center gap-3
         border border-stone-300 rounded-full
         px-4 py-2.5 text-sm font-medium text-ink
         bg-bg hover:bg-stone-50 active:bg-stone-100
         transition-colors duration-150
-        disabled:opacity-60 disabled:cursor-not-allowed
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent
       "
     >
-      {loading ? (
-        <span className="w-5 h-5 border-2 border-stone-300 border-t-ink rounded-full animate-spin" />
-      ) : (
-        <GoogleIcon />
-      )}
+      <GoogleIcon />
       <span>{label}</span>
-    </button>
+    </a>
   );
 }
 

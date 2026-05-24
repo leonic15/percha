@@ -18,8 +18,14 @@ const withPWA = withPWAInit({
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  // Next 16 usa Turbopack por defecto; el plugin PWA agrega config webpack.
-  // Declarar Turbopack explícitamente evita que Next lo trate como un error.
+  // Permitir acceso desde dispositivos físicos en la red local (LAN dev)
+  allowedDevOrigins: ["192.168.1.111"],
+
+  // Next.js 16 usa Turbopack por defecto (dev + build). El plugin PWA agrega
+  // config webpack; declarar turbopack: {} explícitamente evita que Next trate
+  // esa mezcla como un error. Nota: con Turbopack el CSS de Tailwind se bundlea
+  // en JS y se inyecta via innerHTML — el <style> crítico en layout.tsx
+  // compensa el FOUC en redes lentas antes de que ese chunk cargue.
   turbopack: {},
 
   // Permitir imágenes desde Supabase Storage (URLs firmadas) y avatares de Google
@@ -58,7 +64,10 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      "upgrade-insecure-requests",
+      // Solo en producción: en dev sobre LAN (http://192.168.x.x) este header
+      // hace que el browser intente subir los recursos a https:// — que no existe
+      // en el dev server — y las imágenes/fonts fallan en silencio en iOS Safari.
+      ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
     ].join("; ");
 
     return [

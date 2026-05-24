@@ -9,6 +9,20 @@ const protectedPaths = ["/guardarropas", "/generador", "/looks", "/perfil", "/co
 // Rutas solo para usuarios NO autenticados
 const authPaths = ["/login", "/registro", "/recuperar-password"];
 
+/**
+ * Deriva el origin correcto para los redirects del middleware.
+ * request.url en Next.js dev siempre devuelve localhost internamente —
+ * usar la env var o el Host header para obtener la IP/dominio real.
+ */
+function getRedirectOrigin(request: NextRequest): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  }
+  const host  = request.headers.get("host") ?? request.nextUrl.host;
+  const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+  return `${proto}://${host}`;
+}
+
 const intlMiddleware = createMiddleware(routing);
 
 export async function proxy(request: NextRequest) {
@@ -48,13 +62,17 @@ export async function proxy(request: NextRequest) {
   const isAuthPath   = authPaths.some((p)   => pathnameWithoutLocale.startsWith(p));
 
   if (isProtected && !user) {
-    const loginUrl = new URL("/login", request.url);
+    // IMPORTANTE: no usar request.url — Next.js dev siempre lo resuelve como localhost.
+    // Usar getRedirectOrigin() para obtener la IP/dominio real del cliente.
+    const origin   = getRedirectOrigin(request);
+    const loginUrl = new URL(`${origin}/login`);
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   if (isAuthPath && user) {
-    return NextResponse.redirect(new URL("/guardarropas", request.url));
+    const origin = getRedirectOrigin(request);
+    return NextResponse.redirect(new URL(`${origin}/guardarropas`));
   }
 
   return intlMiddleware(request);
@@ -62,7 +80,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Excluir: api, assets estáticos, PWA artifacts, y /auth/* (callback OAuth + reset-password)
-    "/((?!api|_next/static|_next/image|favicon.ico|icons|sw.js|workbox-.*|manifest.json|auth/).*)",
+    // Excluir: api, assets estáticos, PWA artifacts, imágenes locales y /auth/*
+    "/((?!api|_next/static|_next/image|favicon.ico|icons|images|sw.js|workbox-.*|manifest.json|auth/).*)",
   ],
 };

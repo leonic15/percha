@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 // LOOKSI-001: Registro con email y contraseña
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, nombre } = await request.json();
 
     // Validación server-side
     if (!email || !password) {
@@ -20,7 +20,8 @@ export async function POST(request: Request) {
       email: email.trim().toLowerCase(),
       password,
       options: {
-        // El trigger handle_new_user crea el perfil automáticamente
+        // full_name en metadata para que el trigger handle_new_user lo use al crear el perfil
+        data: nombre ? { full_name: (nombre as string).trim() } : undefined,
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(request.url).origin : ""}/auth/callback`,
       },
     });
