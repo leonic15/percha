@@ -8,8 +8,11 @@ import { NextResponse } from "next/server";
 // Solo expone archivos explícitamente listados (no traversal de directorios).
 
 const ALLOWED: Record<string, string> = {
-  "jean-azul.png":       "image/png",
-  "camisa-caramel.png":  "image/png",
+  "jean-azul.png":        "image/png",
+  "camisa-caramel.png":   "image/png",
+  "blazer-azul.png":      "image/png",
+  "cartera-roja.png":     "image/png",
+  "pantalon-mostaza.png": "image/png",
 };
 
 export async function GET(

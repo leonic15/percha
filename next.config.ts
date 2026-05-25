@@ -55,11 +55,15 @@ const nextConfig: NextConfig = {
     //   /ingest/* proxeado a PostHog vía vercel.json rewrites → 'self' suficiente
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      // 'wasm-unsafe-eval': requerido por @imgly/background-removal (ONNX Runtime WASM)
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.ingest.sentry.io",
+      // blob: requerido para Web Workers que crea @imgly/background-removal
+      "worker-src 'self' blob:",
+      // staticimgly.com: CDN de modelos ONNX de @imgly/background-removal
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.ingest.sentry.io https://staticimgly.com",
       "frame-src 'none'",
       "object-src 'none'",
       "base-uri 'self'",

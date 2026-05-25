@@ -3,52 +3,66 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Search, SlidersHorizontal, X, Heart, Plus } from "lucide-react";
-import { GarmentCard, GarmentCardSkeleton, Chip } from "@/components/ui";
+import {
+  Search, Bell, SlidersHorizontal, LayoutGrid, List,
+  Heart, Plus,
+} from "lucide-react";
+import { GarmentCard, GarmentCardSkeleton, Chip, GarmentImage } from "@/components/ui";
 import type { Prenda, Category } from "@/lib/database.types";
 import { cn } from "@/lib/cn";
 
-// ── Tipos ────────────────────────────────────────────────────────────────────
+// ── Tipos ─────────────────────────────────────────────────────────────────────
 
-type GarmentWithUrl = Prenda & {
-  signedUrl: string | null;
-};
+type GarmentWithUrl = Prenda & { signedUrl: string | null };
 
 interface Filters {
-  q: string;
-  category: string; // slug
-  season: string;
-  occasion: string;
+  q:         string;
+  category:  string;
+  season:    string;
+  occasion:  string;
   favorites: boolean;
 }
 
 interface WardrobeClientProps {
   initialGarments: GarmentWithUrl[];
-  categories: Category[];
-  total: number;
-  pageSize: number;
-  filters: Filters;
+  categories:      Category[];
+  total:           number;
+  pageSize:        number;
+  filters:         Filters;
 }
 
-// ── Constantes de filtros ────────────────────────────────────────────────────
+// ── Constantes ────────────────────────────────────────────────────────────────
 
 const SEASONS = [
-  { value: "primavera", label: "Primavera" },
-  { value: "verano",    label: "Verano" },
-  { value: "otoño",     label: "Otoño" },
-  { value: "invierno",  label: "Invierno" },
+  { value: "primavera",   label: "Primavera" },
+  { value: "verano",      label: "Verano"    },
+  { value: "otoño",       label: "Otoño"     },
+  { value: "invierno",    label: "Invierno"  },
   { value: "todo_el_año", label: "Todo el año" },
 ] as const;
 
 const OCCASIONS = [
-  { value: "casual",   label: "Casual" },
-  { value: "trabajo",  label: "Trabajo" },
-  { value: "formal",   label: "Formal" },
-  { value: "deporte",  label: "Deporte" },
-  { value: "salida",   label: "Salida" },
+  { value: "casual",  label: "Casual"  },
+  { value: "trabajo", label: "Trabajo" },
+  { value: "formal",  label: "Formal"  },
+  { value: "deporte", label: "Deporte" },
+  { value: "salida",  label: "Salida"  },
 ] as const;
 
-// ── Componente ───────────────────────────────────────────────────────────────
+// ── Wordmark inline ────────────────────────────────────────────────────────────
+
+function Wordmark() {
+  return (
+    <span
+      className="font-display font-bold uppercase text-ink leading-none"
+      style={{ fontSize: 16, letterSpacing: "0.08em" }}
+    >
+      LookSi
+    </span>
+  );
+}
+
+// ── Componente principal ───────────────────────────────────────────────────────
 
 export function WardrobeClient({
   initialGarments,
@@ -60,33 +74,38 @@ export function WardrobeClient({
   const router   = useRouter();
   const pathname = usePathname();
 
-  // ── Estado de filtros (sincronizado con URL) ─────────────────────────────
+  // ── Filtros activos (sincronizados con URL) ──────────────────────────────
   const [q, setQ]               = useState(serverFilters.q);
   const [category, setCategory] = useState(serverFilters.category);
   const [season, setSeason]     = useState(serverFilters.season);
   const [occasion, setOccasion] = useState(serverFilters.occasion);
   const [favorites, setFavorites] = useState(serverFilters.favorites);
-  const [showFilters, setShowFilters] = useState(false);
 
-  // ── Estado de la grilla ──────────────────────────────────────────────────
-  const [garments, setGarments] = useState(initialGarments);
-  const [page, setPage]         = useState(1);
-  const [loadingMore, setLoadingMore] = useState(false);
+  // ── UI state ─────────────────────────────────────────────────────────────
+  const [showSearch, setShowSearch] = useState(Boolean(serverFilters.q));
+  const [showSheet, setShowSheet]   = useState(false);
+  const [viewMode, setViewMode]     = useState<"grid" | "list">("grid");
+
+  // ── Filtros pendientes (bottom sheet — se confirman al "Aplicar") ────────
+  const [pQ, setPQ]               = useState(serverFilters.q);
+  const [pCategory, setPCategory] = useState(serverFilters.category);
+  const [pSeason, setPSeason]     = useState(serverFilters.season);
+  const [pOccasion, setPOccasion] = useState(serverFilters.occasion);
+  const [pFavorites, setPFavorites] = useState(serverFilters.favorites);
+
+  // ── Datos de la grilla ────────────────────────────────────────────────────
+  const [garments, setGarments]         = useState(initialGarments);
+  const [page, setPage]                 = useState(1);
+  const [loadingMore, setLoadingMore]   = useState(false);
   const hasMore = garments.length < total;
 
-  // Mapa de categorías para lookup rápido por id
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
-  // ── Debounce de búsqueda ─────────────────────────────────────────────────
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function handleSearchChange(value: string) {
-    setQ(value);
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => {
-      pushFilters({ q: value, category, season, occasion, favorites });
-    }, 400);
-  }
+  // ── Bloquear scroll del body cuando el sheet está abierto ────────────────
+  useEffect(() => {
+    document.body.style.overflow = showSheet ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [showSheet]);
 
   // ── Actualizar URL ────────────────────────────────────────────────────────
   function pushFilters(f: Filters) {
@@ -100,64 +119,79 @@ export function WardrobeClient({
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
+  // ── Debounce búsqueda ─────────────────────────────────────────────────────
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function handleSearchChange(value: string) {
+    setQ(value);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      pushFilters({ q: value, category, season, occasion, favorites });
+    }, 400);
+  }
+
+  // ── Toggle categoría (chips rápidos) ─────────────────────────────────────
   function toggleCategory(slug: string) {
     const next = category === slug ? "" : slug;
     setCategory(next);
     pushFilters({ q, category: next, season, occasion, favorites });
   }
 
-  function toggleSeason(value: string) {
-    const next = season === value ? "" : value;
-    setSeason(next);
-    pushFilters({ q, category, season: next, occasion, favorites });
-  }
-
-  function toggleOccasion(value: string) {
-    const next = occasion === value ? "" : value;
-    setOccasion(next);
-    pushFilters({ q, category, season, occasion: next, favorites });
-  }
-
-  function toggleFavorites() {
-    const next = !favorites;
-    setFavorites(next);
-    pushFilters({ q, category, season, occasion, favorites: next });
-  }
-
+  // ── Limpiar todos los filtros ─────────────────────────────────────────────
   function clearAllFilters() {
-    setQ("");
-    setCategory("");
-    setSeason("");
-    setOccasion("");
-    setFavorites(false);
+    setQ(""); setCategory(""); setSeason(""); setOccasion(""); setFavorites(false);
     router.replace(pathname, { scroll: false });
   }
 
+  // ── Bottom sheet: abrir / cerrar / aplicar ────────────────────────────────
+  function openSheet() {
+    setPQ(q); setPCategory(category); setPSeason(season);
+    setPOccasion(occasion); setPFavorites(favorites);
+    setShowSheet(true);
+  }
+
+  function closeSheet() {
+    setShowSheet(false);
+  }
+
+  function applySheet() {
+    setQ(pQ); setCategory(pCategory); setSeason(pSeason);
+    setOccasion(pOccasion); setFavorites(pFavorites);
+    pushFilters({ q: pQ, category: pCategory, season: pSeason, occasion: pOccasion, favorites: pFavorites });
+    setShowSheet(false);
+  }
+
+  function clearSheet() {
+    setPQ(""); setPCategory(""); setPSeason(""); setPOccasion(""); setPFavorites(false);
+  }
+
+  // ── Contadores de filtros activos ─────────────────────────────────────────
   const activeFilterCount = [
-    Boolean(category),
-    Boolean(season),
-    Boolean(occasion),
-    favorites,
+    Boolean(category), Boolean(season), Boolean(occasion), favorites,
   ].filter(Boolean).length;
 
-  // ── Toggle favorito individual (optimista) ───────────────────────────────
+  // Texto resumen del sub-bar: "2 filtros · otoño · casual"
+  const filterSummaryParts: string[] = [];
+  if (season)   filterSummaryParts.push(SEASONS.find((s) => s.value === season)?.label  ?? season);
+  if (occasion) filterSummaryParts.push(OCCASIONS.find((o) => o.value === occasion)?.label ?? occasion);
+  if (favorites) filterSummaryParts.push("favoritos");
+  const filterSummary = activeFilterCount > 0
+    ? `${activeFilterCount} filtro${activeFilterCount > 1 ? "s" : ""} · ${filterSummaryParts.join(" · ")}`
+    : "Filtros";
+
+  // ── Toggle favorito (optimista) ───────────────────────────────────────────
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   async function handleToggleFavorite(id: string) {
     if (togglingId) return;
     const target = garments.find((g) => g.id === id);
     if (!target) return;
-
-    // Actualización optimista
     setTogglingId(id);
     setGarments((prev) =>
       prev.map((g) => (g.id === id ? { ...g, is_favorite: !g.is_favorite } : g))
     );
-
     try {
       await fetch(`/api/garments/${id}/favorite`, { method: "POST" });
     } catch {
-      // revert on error
       setGarments((prev) =>
         prev.map((g) => (g.id === id ? { ...g, is_favorite: target.is_favorite } : g))
       );
@@ -166,13 +200,12 @@ export function WardrobeClient({
     }
   }
 
-  // ── Infinite scroll ──────────────────────────────────────────────────────
+  // ── Infinite scroll ───────────────────────────────────────────────────────
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
-
     const nextPage = page + 1;
     const params = new URLSearchParams();
     if (q)        params.set("q", q);
@@ -180,9 +213,8 @@ export function WardrobeClient({
     if (season)   params.set("season", season);
     if (occasion) params.set("occasion", occasion);
     if (favorites) params.set("favorites", "1");
-    params.set("page", String(nextPage));
+    params.set("page",  String(nextPage));
     params.set("limit", String(pageSize));
-
     try {
       const res = await fetch(`/api/garments?${params.toString()}`);
       if (res.ok) {
@@ -198,7 +230,6 @@ export function WardrobeClient({
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
-
     const observer = new IntersectionObserver(
       (entries) => { if (entries[0].isIntersecting) loadMore(); },
       { rootMargin: "200px" }
@@ -207,266 +238,403 @@ export function WardrobeClient({
     return () => observer.disconnect();
   }, [loadMore]);
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="px-4 pt-5 pb-6 md:px-6 md:pt-8 max-w-5xl mx-auto">
-      {/* ── Encabezado ──────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="font-display font-semibold text-xl text-ink">Mi guardarropas</h1>
-        <Link
-          href="/guardarropas/nueva"
-          aria-label="Agregar prenda"
-          className={cn(
-            "md:hidden grid place-items-center size-9 rounded-full",
-            "bg-accent text-accent-ink hover:bg-sage-700 transition-colors",
-          )}
-        >
-          <Plus className="size-4.5" aria-hidden />
-        </Link>
-      </div>
+    <div>
+      {/* ═══════════════ HEADER STICKY ════════════════════════════════════ */}
+      <header className="sticky top-0 z-20 bg-bg">
 
-      {/* ── Barra de búsqueda + toggle filtros ──────────────────────────── */}
-      <div className="flex gap-2 mb-3">
-        <div className="relative flex-1">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-ink-3 pointer-events-none"
-            aria-hidden
-          />
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Buscar prendas..."
-            aria-label="Buscar prendas"
-            className={cn(
-              "w-full h-10 pl-9 pr-4 rounded-lg text-sm",
-              "bg-surface border border-line",
-              "placeholder:text-ink-3 text-ink",
-              "focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent",
-            )}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowFilters((v) => !v)}
-          aria-expanded={showFilters}
-          aria-label={`Filtros${activeFilterCount ? ` (${activeFilterCount} activos)` : ""}`}
-          className={cn(
-            "flex items-center gap-1.5 h-10 px-3.5 rounded-lg text-sm font-medium border transition-colors",
-            showFilters || activeFilterCount > 0
-              ? "bg-ink text-bg border-ink"
-              : "bg-surface text-ink-2 border-line hover:bg-surface-2 hover:text-ink",
-          )}
-        >
-          <SlidersHorizontal className="size-4" aria-hidden />
-          <span className="hidden sm:inline">Filtros</span>
-          {activeFilterCount > 0 && (
-            <span className="inline-flex items-center justify-center size-4.5 rounded-full bg-accent text-accent-ink text-[10px] font-semibold">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* ── Panel de filtros ────────────────────────────────────────────── */}
-      {showFilters && (
-        <div className="mb-4 space-y-3 p-4 bg-surface rounded-xl border border-line-2">
-          {/* Categorías */}
-          <div>
-            <p className="text-xs font-medium text-ink-3 uppercase tracking-wider mb-2">Categoría</p>
-            <div className="flex flex-wrap gap-1.5">
-              <Chip
-                size="sm"
-                active={!category}
-                onClick={() => { setCategory(""); pushFilters({ q, category: "", season, occasion, favorites }); }}
-              >
-                Todas
-              </Chip>
-              {categories.map((cat) => (
-                <Chip
-                  key={cat.id}
-                  size="sm"
-                  active={category === cat.slug}
-                  onClick={() => toggleCategory(cat.slug)}
-                >
-                  {cat.nombre}
-                </Chip>
-              ))}
-            </div>
-          </div>
-
-          {/* Estación */}
-          <div>
-            <p className="text-xs font-medium text-ink-3 uppercase tracking-wider mb-2">Estación</p>
-            <div className="flex flex-wrap gap-1.5">
-              {SEASONS.map((s) => (
-                <Chip
-                  key={s.value}
-                  size="sm"
-                  active={season === s.value}
-                  onClick={() => toggleSeason(s.value)}
-                >
-                  {s.label}
-                </Chip>
-              ))}
-            </div>
-          </div>
-
-          {/* Ocasión */}
-          <div>
-            <p className="text-xs font-medium text-ink-3 uppercase tracking-wider mb-2">Ocasión</p>
-            <div className="flex flex-wrap gap-1.5">
-              {OCCASIONS.map((o) => (
-                <Chip
-                  key={o.value}
-                  size="sm"
-                  active={occasion === o.value}
-                  onClick={() => toggleOccasion(o.value)}
-                >
-                  {o.label}
-                </Chip>
-              ))}
-            </div>
-          </div>
-
-          {/* Favoritos */}
-          <div className="flex items-center justify-between">
-            <Chip
-              size="sm"
-              active={favorites}
-              onClick={toggleFavorites}
-              icon={<Heart className={cn("size-3.5", favorites && "fill-current")} />}
+        {/* Fila 1: wordmark + iconos */}
+        <div className="px-5 pt-3 pb-1 flex items-center justify-between">
+          <Wordmark />
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              aria-label="Buscar"
+              onClick={() => {
+                setShowSearch((v) => !v);
+                if (showSearch) { setQ(""); pushFilters({ q: "", category, season, occasion, favorites }); }
+              }}
+              className={cn("transition-colors", showSearch ? "text-ink" : "text-ink-2 hover:text-ink")}
             >
-              Solo favoritos
-            </Chip>
+              <Search className="size-5" aria-hidden />
+            </button>
+            <button type="button" aria-label="Notificaciones" className="text-ink-2 hover:text-ink transition-colors">
+              <Bell className="size-5" aria-hidden />
+            </button>
+          </div>
+        </div>
 
-            {activeFilterCount > 0 && (
+        {/* Búsqueda expandible */}
+        {showSearch && (
+          <div className="px-5 pb-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink-3 pointer-events-none" aria-hidden />
+              <input
+                autoFocus
+                type="search"
+                value={q}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Buscar prendas..."
+                aria-label="Buscar prendas"
+                className={cn(
+                  "w-full h-9 pl-9 pr-4 text-sm",
+                  "bg-surface-2 rounded-lg",
+                  "placeholder:text-ink-3 text-ink",
+                  "outline-none focus:ring-2 focus:ring-accent",
+                )}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Fila 2: H1 + contador */}
+        <div className="px-5 pb-2 flex items-end justify-between">
+          <h1
+            className="font-display font-semibold uppercase text-ink leading-none"
+            style={{ fontSize: 36, letterSpacing: "-0.01em" }}
+          >
+            Guardarropa
+          </h1>
+          {total > 0 && (
+            <div className="text-right leading-none pb-0.5">
+              <div className="font-mono font-semibold text-ink" style={{ fontSize: 22, lineHeight: 1 }}>
+                {total}
+              </div>
+              <div className="eyebrow" style={{ fontSize: 9 }}>prendas</div>
+            </div>
+          )}
+        </div>
+
+        {/* Chips categorías — scroll horizontal sin scrollbar */}
+        <div
+          className="px-5 pb-2 flex gap-1.5 overflow-x-auto [-webkit-overflow-scrolling:touch]"
+          style={{ scrollbarWidth: "none" }}
+        >
+          <Chip
+            size="sm"
+            active={!category}
+            onClick={() => { setCategory(""); pushFilters({ q, category: "", season, occasion, favorites }); }}
+          >
+            Todas
+          </Chip>
+          {categories.map((cat) => (
+            <Chip
+              key={cat.id}
+              size="sm"
+              active={category === cat.slug}
+              onClick={() => toggleCategory(cat.slug)}
+            >
+              {cat.nombre}
+            </Chip>
+          ))}
+        </div>
+
+        {/* Sub-bar: resumen filtros + toggle vista */}
+        <div className="px-5 pb-3 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={openSheet}
+            className={cn(
+              "flex items-center gap-1.5 text-xs transition-colors",
+              activeFilterCount > 0 ? "text-ink font-medium" : "text-ink-3 hover:text-ink-2",
+            )}
+          >
+            <SlidersHorizontal className="size-3.5" aria-hidden />
+            {filterSummary}
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Vista en grilla"
+              onClick={() => setViewMode("grid")}
+              className={cn("transition-colors", viewMode === "grid" ? "text-ink" : "text-ink-3 hover:text-ink-2")}
+            >
+              <LayoutGrid className="size-3.5" aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-label="Vista en lista"
+              onClick={() => setViewMode("list")}
+              className={cn("transition-colors", viewMode === "list" ? "text-ink" : "text-ink-3 hover:text-ink-2")}
+            >
+              <List className="size-3.5" aria-hidden />
+            </button>
+          </div>
+        </div>
+
+        <div className="h-px bg-line-2" />
+      </header>
+
+      {/* ═══════════════ CONTENIDO ════════════════════════════════════════ */}
+      <div className="px-5 pt-4 pb-6">
+        {garments.length === 0 ? (
+          <EmptyState hasFilters={Boolean(q || activeFilterCount)} onClear={clearAllFilters} />
+        ) : (
+          <>
+            {viewMode === "grid" ? (
+              <div className="grid grid-cols-2 gap-[10px] md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {garments.map((g) => (
+                  <GarmentCard
+                    key={g.id}
+                    garment={{
+                      id:       g.id,
+                      name:     g.nombre,
+                      category: (g.category_id ? categoryMap.get(g.category_id)?.nombre : null) ?? "",
+                      imageUrl: g.signedUrl ?? "/icons/placeholder-garment.png",
+                      favorite: g.is_favorite,
+                    }}
+                    href={`/guardarropas/${g.id}`}
+                    onToggleFavorite={handleToggleFavorite}
+                    showAIBadge={g.ia_analizada}
+                  />
+                ))}
+                {loadingMore && Array.from({ length: 4 }).map((_, i) => (
+                  <GarmentCardSkeleton key={`sk-${i}`} />
+                ))}
+              </div>
+            ) : (
+              /* Vista lista */
+              <div className="flex flex-col gap-2">
+                {garments.map((g) => (
+                  <GarmentListItem
+                    key={g.id}
+                    garment={{
+                      id:       g.id,
+                      name:     g.nombre,
+                      category: (g.category_id ? categoryMap.get(g.category_id)?.nombre : null) ?? "",
+                      imageUrl: g.signedUrl ?? "/icons/placeholder-garment.png",
+                      favorite: g.is_favorite,
+                    }}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ))}
+              </div>
+            )}
+
+            {hasMore && <div ref={sentinelRef} className="h-8 mt-4" aria-hidden />}
+
+            {!hasMore && garments.length > 0 && (
+              <p className="mt-6 text-center text-xs text-ink-3">
+                {garments.length === 1
+                  ? "1 prenda en tu guardarropas"
+                  : `${garments.length} prendas en tu guardarropas`}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ═══════════════ FAB (mobile) ═════════════════════════════════════ */}
+      <Link
+        href="/guardarropas/nueva"
+        aria-label="Agregar prenda"
+        className={cn(
+          "fixed right-5 bottom-[108px] z-30 md:hidden",
+          "flex items-center justify-center size-14 rounded-full",
+          "bg-accent text-accent-ink",
+          "shadow-[0_8px_24px_rgba(0,0,0,0.15)]",
+          "hover:bg-sage-700 active:scale-95 transition-all",
+        )}
+      >
+        <Plus className="size-6" strokeWidth={1.8} aria-hidden />
+      </Link>
+
+      {/* ═══════════════ BOTTOM SHEET — FILTROS ══════════════════════════ */}
+      {showSheet && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40"
+            aria-hidden
+            onClick={closeSheet}
+          />
+
+          {/* Sheet */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filtros"
+            className={cn(
+              "fixed inset-x-0 bottom-0 z-50",
+              "bg-bg rounded-t-[20px] max-h-[78vh] overflow-y-auto",
+              "shadow-[0_-8px_30px_rgba(0,0,0,0.2)]",
+              "[animation:sheet-up_280ms_cubic-bezier(0.32,0.72,0,1)_both]",
+            )}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-9 h-1 rounded-full bg-line" />
+            </div>
+
+            <div className="px-5 pb-[max(env(safe-area-inset-bottom),28px)]">
+              {/* Encabezado sheet */}
+              <div className="flex items-center justify-between py-4">
+                <h2
+                  className="font-display font-semibold uppercase text-ink"
+                  style={{ fontSize: 24, letterSpacing: "-0.01em" }}
+                >
+                  Filtros
+                </h2>
+                <button
+                  type="button"
+                  onClick={clearSheet}
+                  className="text-sm text-accent hover:underline"
+                >
+                  Limpiar todo
+                </button>
+              </div>
+
+              {/* Categoría */}
+              <div className="mb-5">
+                <p className="eyebrow mb-2.5">Categoría</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {categories.map((cat) => (
+                    <Chip
+                      key={cat.id}
+                      size="sm"
+                      active={pCategory === cat.slug}
+                      onClick={() => setPCategory(pCategory === cat.slug ? "" : cat.slug)}
+                    >
+                      {cat.nombre}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              {/* Temporada */}
+              <div className="mb-5">
+                <p className="eyebrow mb-2.5">Temporada</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {SEASONS.map((s) => (
+                    <Chip
+                      key={s.value}
+                      size="sm"
+                      active={pSeason === s.value}
+                      onClick={() => setPSeason(pSeason === s.value ? "" : s.value)}
+                    >
+                      {s.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              {/* Ocasión */}
+              <div className="mb-5">
+                <p className="eyebrow mb-2.5">Ocasión</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {OCCASIONS.map((o) => (
+                    <Chip
+                      key={o.value}
+                      size="sm"
+                      active={pOccasion === o.value}
+                      onClick={() => setPOccasion(pOccasion === o.value ? "" : o.value)}
+                    >
+                      {o.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+
+              {/* Solo favoritos — toggle iOS-style */}
+              <div className="flex items-center justify-between py-3 border-t border-line mb-5">
+                <span className="text-sm text-ink">Solo favoritos</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={pFavorites}
+                  aria-label="Solo favoritos"
+                  onClick={() => setPFavorites((v) => !v)}
+                  className={cn(
+                    "relative inline-flex items-center h-6 w-10 rounded-full transition-colors duration-200",
+                    pFavorites ? "bg-ink" : "bg-stone-300",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "absolute inline-block size-[18px] rounded-full bg-bg shadow transition-transform duration-200",
+                      pFavorites ? "translate-x-[22px]" : "translate-x-[2px]",
+                    )}
+                  />
+                </button>
+              </div>
+
+              {/* CTA aplicar */}
               <button
                 type="button"
-                onClick={clearAllFilters}
-                className="text-xs text-ink-3 hover:text-danger flex items-center gap-1 transition-colors"
+                onClick={applySheet}
+                className={cn(
+                  "w-full h-13 rounded-button",
+                  "text-sm font-medium uppercase tracking-wide",
+                  "bg-ink text-bg",
+                  "hover:bg-stone-800 active:scale-[0.985] transition-all",
+                )}
               >
-                <X className="size-3" aria-hidden />
-                Limpiar filtros
+                Aplicar filtros
               </button>
-            )}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* ── Filtros activos como chips removibles ────────────────────────── */}
-      {activeFilterCount > 0 && !showFilters && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {category && (
-            <Chip
-              size="sm"
-              active
-              removable
-              onClick={() => { setCategory(""); pushFilters({ q, category: "", season, occasion, favorites }); }}
-            >
-              {categories.find((c) => c.slug === category)?.nombre ?? category}
-            </Chip>
-          )}
-          {season && (
-            <Chip
-              size="sm"
-              active
-              removable
-              onClick={() => { setSeason(""); pushFilters({ q, category, season: "", occasion, favorites }); }}
-            >
-              {SEASONS.find((s) => s.value === season)?.label ?? season}
-            </Chip>
-          )}
-          {occasion && (
-            <Chip
-              size="sm"
-              active
-              removable
-              onClick={() => { setOccasion(""); pushFilters({ q, category, season, occasion: "", favorites }); }}
-            >
-              {OCCASIONS.find((o) => o.value === occasion)?.label ?? occasion}
-            </Chip>
-          )}
-          {favorites && (
-            <Chip size="sm" active removable onClick={toggleFavorites}>
-              Favoritos
-            </Chip>
-          )}
-        </div>
-      )}
-
-      {/* ── Grilla ──────────────────────────────────────────────────────── */}
-      {garments.length === 0 ? (
-        <EmptyState hasFilters={Boolean(q || activeFilterCount)} onClear={clearAllFilters} />
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
-            {garments.map((g) => (
-              <GarmentCard
-                key={g.id}
-                garment={{
-                  id: g.id,
-                  name: g.nombre,
-                  category: (g.category_id ? categoryMap.get(g.category_id)?.nombre : null) ?? "",
-                  imageUrl: g.signedUrl ?? "/icons/placeholder-garment.png",
-                  favorite: g.is_favorite,
-                }}
-                href={`/guardarropas/${g.id}`}
-                onToggleFavorite={handleToggleFavorite}
-                showAIBadge={g.ia_analizada}
-              />
-            ))}
-            {/* Skeletons mientras carga la siguiente página */}
-            {loadingMore &&
-              Array.from({ length: 4 }).map((_, i) => (
-                <GarmentCardSkeleton key={`sk-${i}`} />
-              ))}
-          </div>
-
-          {/* Sentinel para infinite scroll */}
-          {hasMore && (
-            <div ref={sentinelRef} className="h-8 mt-4" aria-hidden />
-          )}
-
-          {/* Contador */}
-          {!hasMore && garments.length > 0 && (
-            <p className="mt-6 text-center text-xs text-ink-3">
-              {garments.length === 1
-                ? "1 prenda en tu guardarropas"
-                : `${garments.length} prendas en tu guardarropas`}
-            </p>
-          )}
         </>
       )}
     </div>
   );
 }
 
-// ── Estado vacío ─────────────────────────────────────────────────────────────
+// ── Vista lista — item ────────────────────────────────────────────────────────
 
-function EmptyState({
-  hasFilters,
-  onClear,
+function GarmentListItem({
+  garment,
+  onToggleFavorite,
 }: {
-  hasFilters: boolean;
-  onClear: () => void;
+  garment: { id: string; name: string; category: string; imageUrl: string; favorite?: boolean };
+  onToggleFavorite?: (id: string) => void;
 }) {
+  return (
+    <Link href={`/guardarropas/${garment.id}`}>
+      <article className="flex items-center gap-3 bg-surface rounded-card shadow-card p-2.5 hover:-translate-y-px transition-transform">
+        <div className="relative size-14 rounded-sm overflow-hidden bg-surface-2 shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={garment.imageUrl} alt={garment.name} className="size-full object-cover" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-display font-semibold text-sm uppercase tracking-tight text-ink truncate">
+            {garment.name}
+          </p>
+          <p className="eyebrow mt-0.5">{garment.category}</p>
+        </div>
+        {onToggleFavorite && (
+          <button
+            type="button"
+            aria-label={garment.favorite ? "Quitar de favoritos" : "Marcar como favorito"}
+            onClick={(e) => { e.preventDefault(); onToggleFavorite(garment.id); }}
+            className="shrink-0 p-1.5"
+          >
+            <Heart
+              className={cn("size-4", garment.favorite ? "fill-danger text-danger" : "text-ink-3")}
+              strokeWidth={1.8}
+            />
+          </button>
+        )}
+      </article>
+    </Link>
+  );
+}
+
+// ── Estado vacío ──────────────────────────────────────────────────────────────
+
+function EmptyState({ hasFilters, onClear }: { hasFilters: boolean; onClear: () => void }) {
   if (hasFilters) {
     return (
-      <div className="mt-16 flex flex-col items-center gap-4 text-center px-4">
+      <div className="mt-20 flex flex-col items-center gap-4 text-center px-4">
         <div className="w-14 h-14 rounded-full bg-surface-2 flex items-center justify-center">
-          <Search className="size-6 text-ink-3" />
+          <Search className="size-6 text-ink-3" aria-hidden />
         </div>
         <div>
-          <p className="font-medium text-ink">Sin resultados</p>
-          <p className="text-sm text-ink-3 mt-1">Ninguna prenda coincide con los filtros aplicados.</p>
+          <p className="font-display font-semibold text-base text-ink uppercase tracking-tight">Sin resultados</p>
+          <p className="text-sm text-ink-2 mt-1 leading-relaxed max-w-xs">Ninguna prenda coincide con los filtros aplicados.</p>
         </div>
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-sm text-accent hover:underline font-medium"
-        >
+        <button type="button" onClick={onClear} className="text-sm text-accent hover:underline font-medium">
           Limpiar filtros
         </button>
       </div>
@@ -474,27 +642,41 @@ function EmptyState({
   }
 
   return (
-    <div className="mt-16 flex flex-col items-center gap-5 text-center px-4">
-      <div className="w-16 h-16 rounded-full bg-surface-2 flex items-center justify-center">
-        <span className="text-3xl" role="img" aria-label="Guardarropas vacío">👗</span>
+    <div className="mt-10 flex flex-col items-center text-center px-4">
+      {/* Ilustración 3 prendas apiladas */}
+      <div aria-hidden style={{ position: "relative", width: 200, height: 200, marginBottom: 32 }}>
+        <GarmentImage color="terra"  src="/api/img/cartera-roja.png"    label="cartera"   style={{ position: "absolute", left: 0,  top: 20, width: 90, height: 130, transform: "rotate(-8deg)" }} />
+        <GarmentImage color="denim"  src="/api/img/blazer-azul.png"     label="blazer"    style={{ position: "absolute", right: 0, top: 0,  width: 90, height: 130, transform: "rotate(6deg)"  }} />
+        <GarmentImage color="sand"   src="/api/img/pantalon-mostaza.png" label="pantalón" style={{ position: "absolute", left: 55, top: 65, width: 90, height: 130, transform: "rotate(-2deg)" }} />
       </div>
-      <div>
-        <p className="font-display font-semibold text-lg text-ink">Todavía no tenés prendas</p>
-        <p className="text-sm text-ink-3 mt-1 leading-relaxed">
-          Empezá a armar tu guardarropas digital.<br />¡Agregá tu primera prenda!
-        </p>
-      </div>
+
+      <h2
+        className="font-display font-semibold uppercase text-ink"
+        style={{ fontSize: 32, letterSpacing: "-0.01em", lineHeight: 1.05, margin: "0 0 12px" }}
+      >
+        Tu armario<br />está esperando.
+      </h2>
+      <p className="text-sm text-ink-2 leading-relaxed mb-7 max-w-[280px]">
+        Subí la primera prenda. Nuestra IA la va a analizar y completar los datos por vos.
+      </p>
+
       <Link
         href="/guardarropas/nueva"
         className={cn(
-          "inline-flex items-center gap-2 h-11 px-5 rounded-button text-sm font-medium uppercase tracking-wide",
-          "bg-accent text-accent-ink hover:bg-sage-700 transition-colors",
-          "active:scale-[0.985]",
+          "inline-flex items-center gap-2 h-13 px-6 rounded-button",
+          "text-sm font-medium uppercase tracking-wide",
+          "bg-accent text-accent-ink hover:bg-sage-700 transition-colors active:scale-[0.985]",
         )}
       >
         <Plus className="size-4" aria-hidden />
-        Agregar prenda
+        Agregar primera prenda
       </Link>
+
+      <p className="mt-9 text-xs text-ink-3 flex items-center gap-1.5">
+        <span className="inline-block w-4 h-px bg-line" />
+        tip · 8 prendas mínimo para generar looks
+        <span className="inline-block w-4 h-px bg-line" />
+      </p>
     </div>
   );
 }

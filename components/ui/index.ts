@@ -24,3 +24,6 @@ export { Sidebar } from "./Sidebar";
 export { ToastProvider, useToast } from "./Toast";
 
 export { Skeleton, GarmentGridSkeleton, LookListSkeleton } from "./Skeleton";
+
+export { GarmentImage } from "./GarmentImage";
+export type { GarmentImageProps } from "./GarmentImage";

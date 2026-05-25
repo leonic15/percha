@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
 
 /**
@@ -101,7 +101,6 @@ export async function POST(req: NextRequest) {
   }
 
   const nombre         = (formData.get("nombre") as string | null)?.trim() ?? "";
-  const category_id    = formData.get("category_id") ? Number(formData.get("category_id")) : null;
   const subcategory_id = formData.get("subcategory_id") ? Number(formData.get("subcategory_id")) : null;
   const color_principal = (formData.get("color_principal") as string | null)?.trim() || null;
   const estadoRaw      = (formData.get("estado") as string | null) || null;
@@ -114,13 +113,63 @@ export async function POST(req: NextRequest) {
   const estilos:    string[] = parseJsonArray(formData.get("estilos")    as string | null);
   const ocasiones:  string[] = parseJsonArray(formData.get("ocasiones")  as string | null);
 
-  // Validaciones
-  if (!nombre)     return NextResponse.json({ error: "nombre_requerido" }, { status: 400 });
-  if (!category_id) return NextResponse.json({ error: "categoria_requerida" }, { status: 400 });
+  const ia_analizada  = formData.get("ia_analizada") === "true";
+  const ia_descripcion = (formData.get("ia_descripcion") as string | null)?.trim() || null;
+
+  // Resolver category_id: acepta tanto category_id numérico como category_slug string
+  let category_id: number | null = formData.get("category_id")
+    ? Number(formData.get("category_id"))
+    : null;
+
+  const category_slug = (formData.get("category_slug") as string | null)?.trim() || null;
+  if (!category_id && category_slug) {
+    // 1. Lookup normal con el cliente de usuario (respeta RLS de lectura pública)
+    const { data: catRow } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("slug", category_slug)
+      .single();
+    category_id = (catRow as { id: number } | null)?.id ?? null;
+
+    // 2. Si no encontró nada, la tabla categories está vacía (seed no ejecutado).
+    //    Usamos el service role (bypasa RLS) para hacer el seed idempotente de las 8 categorías
+    //    y luego releer el ID real — solo ocurre una vez por proyecto.
+    if (!category_id) {
+      const svc = createServiceClient();
+      const { error: upsertErr } = await svc.from("categories").upsert([
+        { slug: "tops",                    nombre: "Tops"                    },
+        { slug: "pantalones-y-shorts",     nombre: "Pantalones y Shorts"     },
+        { slug: "vestidos-y-faldas",       nombre: "Vestidos y Faldas"       },
+        { slug: "calzado",                 nombre: "Calzado"                 },
+        { slug: "abrigos-y-chaquetas",     nombre: "Abrigos y Chaquetas"     },
+        { slug: "ropa-interior-y-pijamas", nombre: "Ropa Interior y Pijamas" },
+        { slug: "accesorios",              nombre: "Accesorios"              },
+        { slug: "otros",                   nombre: "Otros"                   },
+      ], { onConflict: "slug" });
+      if (upsertErr) console.error("[garments/POST] upsert categories error:", upsertErr.message);
+
+      // Re-leer con service client (tabla ya tiene datos)
+      const { data: catRow2, error: catErr2 } = await svc
+        .from("categories")
+        .select("id")
+        .eq("slug", category_slug)
+        .single();
+      if (catErr2) console.error("[garments/POST] re-read category error:", catErr2.message);
+      category_id = (catRow2 as { id: number } | null)?.id ?? null;
+      console.log("[garments/POST] after seed — category_id:", category_id, "for slug:", category_slug);
+    }
+  }
+
+  // Validaciones — el client ya valida nombre y categoría; acá solo bloqueamos sin imagen
+  if (!nombre) return NextResponse.json({ error: "nombre_requerido" }, { status: 400 });
+  // category_id es nullable en DB — si no se pudo resolver, se guarda null
   if (!imagen || imagen.size === 0) return NextResponse.json({ error: "imagen_requerida" }, { status: 400 });
 
-  const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif"];
-  if (!allowed.includes(imagen.type)) {
+  // Normalizar tipos no-estándar: vacío/"image/jpg" → "image/jpeg"
+  const normalizedType = (!imagen.type || imagen.type === "image/jpg")
+    ? "image/jpeg"
+    : imagen.type;
+  if (!normalizedType.startsWith("image/")) {
     return NextResponse.json({ error: "tipo_imagen_invalido" }, { status: 400 });
   }
 
@@ -138,25 +187,28 @@ export async function POST(req: NextRequest) {
       ocasiones,
       estado,
       notas,
+      ia_analizada,
+      ia_descripcion,
     })
     .select("*")
     .single();
 
   if (insertError || !prendaData) {
+    console.error("[garments/POST] db_insert_error:", insertError?.message);
     return NextResponse.json({ error: "db_insert_error" }, { status: 500 });
   }
 
   const prenda = prendaData as Prenda;
 
   // 2. Subir imagen a Storage: prendas/{user_id}/{prenda_id}.{ext}
-  const ext  = imagen.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const ext  = normalizedType === "image/png" ? "png" : "jpg";
   const path = `${user.id}/${prenda.id}.${ext}`;
   const bytes = await imagen.arrayBuffer();
 
   const { error: uploadError } = await supabase.storage
     .from("prendas")
     .upload(path, bytes, {
-      contentType: imagen.type,
+      contentType: normalizedType,
       upsert: false,
     });
 

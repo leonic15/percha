@@ -60,12 +60,10 @@ const CRITICAL_CSS = String.raw`
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0;overflow-x:hidden;background:#f7f5ef;color:#1a1a1a;font-family:var(--font-inter,"Inter"),ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 a{color:inherit;text-decoration:none}
-/* Preflight: reset de elementos nativos (reemplaza el normalize de Tailwind
-   que viene en globals.css — sin esto iOS Safari muestra bordes y
-   appearance propios en <input> y <button>) */
-button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;font-weight:inherit;line-height:inherit;color:inherit;margin:0;padding:0}
-button,select{text-transform:none}
-input,button{border:0;background:transparent;-webkit-appearance:none;appearance:none}
+/* Preflight: dentro de @layer base para NO ganar sobre @layer utilities de Tailwind.
+   Sin el @layer, estas reglas unlayered sobreescriben cualquier utilidad (px-*, pl-*, etc.)
+   porque el CSS unlayered tiene prioridad absoluta sobre cualquier capa nombrada. */
+@layer base{button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;font-weight:inherit;line-height:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}input,button{border:0;background:transparent;-webkit-appearance:none;appearance:none}}
 .antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .hidden{display:none}
 @media(min-width:48rem){.md\:grid{display:grid}.md\:hidden{display:none}.md\:flex{display:flex}}

@@ -42,15 +42,39 @@
 - Rutas: `/login`, `/registro`, `/recuperar-password` — route group `app/[locale]/(auth)/`
 
 ### ⚠️ EP-02 — Guardarropas — PARCIAL
-- ✅ LOOKSI-008 Listado grilla + filtros + búsqueda + infinite scroll → `app/[locale]/(app)/guardarropas/`
-- ✅ LOOKSI-009 Agregar prenda (foto + compresión client-side + metadatos) → `app/[locale]/(app)/guardarropas/nueva/`
+- ✅ LOOKSI-008 Listado grilla — Handoff 05 implementado:
+  - Header sticky (wordmark + iconos, H1 36px "Guardarropa" + contador)
+  - Category chips scroll horizontal sin scrollbar
+  - Sub-bar: filtros activos + toggle grid/list
+  - FAB 56px, right:20 bottom:108
+  - Filtros como bottom sheet (slide-up 280ms, pending state, commit/discard)
+  - Grilla 2/3/4/5 cols (mobile/md/lg/xl)
+  → `components/features/wardrobe/WardrobeClient.tsx`
+- ✅ LOOKSI-009 Agregar prenda — flujo 3 pasos con IA:
+  - **Paso 1** `/guardarropas/nueva` — captura: dropzone + corner brackets + cámara/galería + sessionStorage
+  - **Paso 2** `/guardarropas/nueva/analizar` — scan overlay animado + progress steps + Gemini 2.5 Flash-Lite
+  - **Paso 3** `/guardarropas/nueva/formulario` — form con AI prefill + badges desaparecen al editar + color picker 12 colores
+  - API `/api/prendas/analizar` — Gemini REST, devuelve nombre/categoría/color/estaciones/ocasiones/estilos/descripción
+  - `/api/garments` POST actualizado — acepta `ia_analizada` + `ia_descripcion`
 - ✅ LOOKSI-013 Toggle favorito → `app/api/garments/[id]/favorite/route.ts`
-- ❌ LOOKSI-010 Ver detalle prenda
+- ✅ LOOKSI-010 Ver detalle prenda — Handoff 11 implementado:
+  - Hero full-width aspect 1/1.15 + floating top bar (back/heart/edit, glass 38px, blur 8px)
+  - Dots de paginación · eyebrow categoría+color · H1 32px
+  - AI description box (accent-tint + AIBadge + italic entre comillas)
+  - Chips read-only: Temporada / Ocasión / Estilo (active)
+  - Bloque "Usado en looks" (placeholder hasta EP-04)
+  - Meta row: Agregada / Último uso (mono, DD·MMM·YY)
+  - Danger CTA "Eliminar prenda" → confirm bottom sheet → soft-delete → redirect
+  - Heart toggle optimistic con revert en error
+  - Desktop: sidebar + breadcrumb + two-column (foto sticky left 50%)
+  → `app/[locale]/(app)/guardarropas/[id]/page.tsx` + `components/features/wardrobe/GarmentDetailClient.tsx`
+  → API: `app/api/garments/[id]/route.ts` (GET prenda+categoría+signedURL · DELETE soft)
 - ❌ LOOKSI-011 Editar prenda
-- ❌ LOOKSI-012 Eliminar prenda
+- ❌ LOOKSI-012 Eliminar prenda (interfaz — la lógica está en LOOKSI-010)
 
-API: `app/api/garments/route.ts` (GET paginado + POST crear)
+API: `app/api/garments/route.ts` (GET paginado + POST crear con ia fields)
 Storage: bucket `prendas`, path `{user_id}/{prenda_id}.{ext}`, signed URLs 1h
+SessionStorage keys: `looksi_nueva_imagen` (base64), `looksi_nueva_tipo` (MIME), `looksi_nueva_ia` (JSON análisis), `looksi_generar_result` (JSON look generado), `looksi_generar_params` (JSON params para regenerar)
 
 ### ✅ Handoff 01 — Bienvenida — IMPLEMENTADA
 - Ruta `/` → `app/[locale]/page.tsx`
@@ -60,7 +84,24 @@ Storage: bucket `prendas`, path `{user_id}/{prenda_id}.{ext}`, signed URLs 1h
 - Loading: `app/[locale]/loading.tsx` — wordmark + spinner
 
 ### ❌ EP-03 — Análisis IA — NO IMPLEMENTADA
-### ❌ EP-04 — Generación de looks — NO IMPLEMENTADA
+
+### ⚠️ EP-04 — Generación de looks — PARCIAL
+- ✅ LOOKSI-017 Generar look desde cero — Handoffs 12 + 13 implementados:
+  - **Config** `/generador` — Handoff 12: wordmark + "PASO 1/2" eyebrow, H1 "Armemos tu look", weather widget (geo → `/api/clima` → Open-Meteo), chips ocasión single-select, textarea contexto, tiles "Desde cero"/"Con base", sticky CTA accent
+  - **Con base**: bottom sheet picker de prendas con búsqueda (slide-up 280ms)
+  - **Resultado** `/generador/resultado` — Handoff 13: AIBadge + meta + H1 nombre + descripción italic, version stepper, grid 2-col (md:4-col) prendas con swap decorativo, prendas faltantes, acciones "Otro" (regenera) + "Guardar look" (disabled pending LOOKSI-020)
+  - **API clima**: `GET /api/clima?lat=&lon=` — proxy a Open-Meteo, cache 30min
+  - **API generación**: `POST /api/looks/generar` — Gemini 2.5 Flash-Lite, metadatos sin imágenes, signed URLs resultado, logging ai_usage, timeout 20s
+  - SessionStorage: `looksi_generar_result` + `looksi_generar_params`
+  → `app/[locale]/(app)/generador/page.tsx`
+  → `app/[locale]/(app)/generador/resultado/page.tsx`
+  → `components/features/generator/GeneratorConfigClient.tsx`
+  → `components/features/generator/GeneratorResultClient.tsx`
+  → `app/api/clima/route.ts`
+  → `app/api/looks/generar/route.ts`
+- ❌ LOOKSI-018 Generar desde prenda base (flujo parcial en LOOKSI-017 — tile "Con base" funcional)
+- ❌ LOOKSI-019 Revisar y ajustar look (swap por pieza, UI de botón swap implementado pero deshabilitado)
+- ❌ LOOKSI-020 Guardar look (botón visible pero disabled)
 ### ❌ EP-05 — Clima — NO IMPLEMENTADA
 ### ❌ EP-06 — Preferencias/configuración — NO IMPLEMENTADA
 ### ❌ EP-07 — Infraestructura (CI/CD, observabilidad) — NO IMPLEMENTADA
@@ -68,9 +109,9 @@ Storage: bucket `prendas`, path `{user_id}/{prenda_id}.{ext}`, signed URLs 1h
 ## Componentes UI existentes
 - `components/ui/BottomNav.tsx` — nav mobile fija (guardarropas / generador / looks / perfil)
 - `components/ui/Sidebar.tsx` — nav desktop 240px fija + CTA agregar prenda
-- `components/ui/ToastProvider.tsx` — toasts globales
-- `components/features/wardrobe/WardrobeClient.tsx` — filtros, infinite scroll, optimistic favorite
-- `components/features/wardrobe/AddGarmentForm.tsx` — nueva prenda con imagen y categorías
+- `components/ui/Toast.tsx` — toasts globales (API: `toast.success/error/warning/info("msg")`)
+- `components/features/wardrobe/WardrobeClient.tsx` — grilla redesign: header sticky, bottom sheet filtros, FAB, grid/list
+- `components/features/wardrobe/AddGarmentForm.tsx` — LEGACY (reemplazado por flujo 3 pasos, mantener por si acaso)
 
 ## Herramientas de desarrollo
 - Dev server: `npm run dev` → puerto 3000
@@ -79,7 +120,7 @@ Storage: bucket `prendas`, path `{user_id}/{prenda_id}.{ext}`, signed URLs 1h
 - Build: `npx next build`
 
 ## Próximos pasos
-1. Completar EP-02: LOOKSI-010 (detalle), LOOKSI-011 (editar), LOOKSI-012 (eliminar)
+1. Completar EP-02: LOOKSI-010 (detalle prenda — Handoff 11), LOOKSI-011 (editar), LOOKSI-012 (eliminar)
 2. Revisar pantallas auth (Handoff 02-04) vs prototipo
 3. Ajuste desktop Handoff 01
 4. Push a GitHub (repo solo local, sin remote)
