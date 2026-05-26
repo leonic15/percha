@@ -86,7 +86,7 @@ export function Sidebar() {
 
       {/* footer / settings */}
       <Link
-        href="/configuracion"
+        href="/perfil"
         className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-ink-2 hover:bg-surface hover:text-ink"
       >
         <Settings className="size-4.5" strokeWidth={1.4} aria-hidden />

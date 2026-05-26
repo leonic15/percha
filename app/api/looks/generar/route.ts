@@ -32,10 +32,13 @@ const TIMEOUT_MS   = 20_000;
 // ── Tipos públicos (reutilizados por el cliente) ───────────────────────────────
 
 export interface ClimaData {
-  temperatura:     number;
-  temperatura_max?: number;
-  temperatura_min?: number;
-  condicion:       string;
+  temperatura:       number;
+  temperatura_max?:  number;
+  temperatura_min?:  number;
+  sensacion_termica?: number;
+  condicion:         string;
+  weathercode?:      number;
+  franjas?:          { mañana: number; tarde: number; noche: number };
 }
 
 export interface GenerarLookBody {

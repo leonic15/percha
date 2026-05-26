@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useTransition, useCallback } from "react";
+import { useState, useTransition, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { Heart, ArrowLeft, Pencil, Trash2, Sparkles, RefreshCw } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { Sidebar } from "@/components/ui/Sidebar";
 import { useToast } from "@/components/ui/Toast";
 import { GarmentImage } from "@/components/ui/GarmentImage";
 import type { Prenda, Category } from "@/lib/database.types";
+import type { GarmentAnalysis } from "@/app/api/prendas/analizar/route";
 import { cn } from "@/lib/cn";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
@@ -210,6 +211,169 @@ function ConfirmDeleteDialog({
   );
 }
 
+// ── Inline scan overlay (LOOKSI-016) ─────────────────────────────────────────
+
+const SCAN_STEPS = [
+  "Detectando contornos",
+  "Identificando colores",
+  "Clasificando estilo",
+  "Generando sugerencias",
+] as const;
+
+interface InlineScanOverlayProps {
+  /** null = analizando · string = error · false = no se muestra */
+  error:       string | null;
+  doneSteps:   boolean[];
+  activeStep:  number;
+  onRetry:     () => void;
+}
+
+function InlineScanOverlay({
+  error,
+  doneSteps,
+  activeStep,
+  onRetry,
+}: InlineScanOverlayProps) {
+  return (
+    <div
+      style={{
+        padding: "18px 16px",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-line-2)",
+        borderRadius: 4,
+        marginBottom: 24,
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 16,
+        }}
+      >
+        {/* Spinner / check */}
+        {!error ? (
+          <span
+            aria-hidden
+            style={{
+              display: "inline-block",
+              width: 16,
+              height: 16,
+              borderRadius: 999,
+              border: "2px solid var(--color-accent)",
+              borderTopColor: "transparent",
+              animation: "spin 0.9s linear infinite",
+            }}
+          />
+        ) : (
+          <RefreshCw size={15} style={{ color: "var(--color-danger)" }} />
+        )}
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: error ? "var(--color-danger)" : "var(--color-accent)",
+          }}
+        >
+          {error ? "Error en el análisis" : "✦ Analizando con IA"}
+        </span>
+      </div>
+
+      {/* Steps */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {SCAN_STEPS.map((label, i) => {
+          const done   = doneSteps[i];
+          const active = !done && i === activeStep;
+          return (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              {/* Indicador */}
+              <div
+                style={{
+                  position: "relative",
+                  width: 16,
+                  height: 16,
+                  borderRadius: 999,
+                  flexShrink: 0,
+                  background: done ? "var(--color-accent)" : "transparent",
+                  border: done
+                    ? "none"
+                    : `1.5px solid ${active ? "transparent" : "var(--color-line)"}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {done && (
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+                    <path
+                      d="M1.5 5L4 7.5L8.5 2.5"
+                      stroke="white"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+                {active && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      inset: -2,
+                      borderRadius: 999,
+                      border: "2px solid var(--color-accent)",
+                      borderTopColor: "transparent",
+                      animation: "spin 1s linear infinite",
+                    }}
+                  />
+                )}
+              </div>
+              <span
+                style={{
+                  fontSize: 12,
+                  color: done || active ? "var(--color-ink)" : "var(--color-ink-3)",
+                  fontWeight: active ? 500 : 400,
+                }}
+              >
+                {label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Error message + retry */}
+      {error && (
+        <div style={{ marginTop: 16 }}>
+          <p style={{ fontSize: 12, color: "var(--color-danger)", margin: "0 0 10px" }}>
+            {error}
+          </p>
+          <button
+            type="button"
+            onClick={onRetry}
+            style={{
+              fontSize: 12,
+              color: "var(--color-accent)",
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              textDecoration: "underline",
+              textUnderlineOffset: 2,
+            }}
+          >
+            Reintentar análisis →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Skeleton de carga (usado por Suspense boundary superior) ─────────────────
 
 export function GarmentDetailSkeleton() {
@@ -257,6 +421,15 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [, startDelete] = useTransition();
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // LOOKSI-016 — Análisis IA inline
+  const [iaDescripcion, setIaDescripcion] = useState(garment.ia_descripcion);
+  const [iaAnalizada,   setIaAnalizada]   = useState(garment.ia_analizada);
+  const [analyzing,     setAnalyzing]     = useState(false);
+  const [analyzeError,  setAnalyzeError]  = useState<string | null>(null);
+  const [doneSteps,     setDoneSteps]     = useState<boolean[]>([false, false, false, false]);
+  const [activeStep,    setActiveStep]    = useState(0);
+  const analyzeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Nombres de categoría
   const categoryName  = garment.category?.nombre ?? "";
@@ -309,6 +482,66 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
     // LOOKSI-011 (próximo): por ahora navega a la ruta de edición
     router.push(`/guardarropas/${garment.id}/editar`);
   }, [garment.id, router]);
+
+  /** LOOKSI-016 — Lanza análisis IA desde el detalle */
+  const handleAnalyze = useCallback(async () => {
+    if (analyzing) return;
+
+    // Reset
+    setAnalyzing(true);
+    setAnalyzeError(null);
+    setDoneSteps([false, false, false, false]);
+    setActiveStep(0);
+
+    // Animación de pasos mientras esperamos la API
+    const STEP_MS = [900, 800, 700];
+    const advanceSteps = async () => {
+      for (let i = 0; i < 3; i++) {
+        await new Promise<void>((r) => {
+          analyzeTimerRef.current = setTimeout(r, STEP_MS[i]);
+        });
+        setDoneSteps((prev) => prev.map((v, idx) => idx <= i ? true : v));
+        setActiveStep(i + 1);
+      }
+    };
+
+    const stepsPromise = advanceSteps();
+
+    try {
+      const res = await fetch(`/api/garments/${garment.id}/analizar`, { method: "POST" });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string; message?: string };
+        const msg = data.error === "sin_imagen"
+          ? "Esta prenda no tiene imagen. Agregá una foto primero."
+          : data.error === "ai_timeout"
+          ? "El análisis tardó demasiado. Intentá de nuevo."
+          : "No se pudo analizar la prenda. Intentá de nuevo.";
+        throw new Error(msg);
+      }
+
+      const analysis: GarmentAnalysis = await res.json();
+
+      // Esperar que terminen los steps visuales antes de marcar completo
+      await stepsPromise;
+      setDoneSteps([true, true, true, true]);
+      setActiveStep(4);
+
+      // Actualizar estado local
+      setIaDescripcion(analysis.descripcion ?? null);
+      setIaAnalizada(true);
+
+      await new Promise<void>((r) => setTimeout(r, 400));
+      setAnalyzing(false);
+      toast.success("Análisis completado");
+
+    } catch (err: unknown) {
+      if (analyzeTimerRef.current) clearTimeout(analyzeTimerRef.current);
+      const msg = err instanceof Error ? err.message : "No se pudo analizar la prenda.";
+      setAnalyzeError(msg);
+      setAnalyzing(false);
+    }
+  }, [analyzing, garment.id, toast]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -495,28 +728,103 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
                 {garment.nombre}
               </h1>
 
-              {/* Descripción IA */}
-              {garment.ia_descripcion && (
+              {/* Descripción IA + botón analizar (LOOKSI-016) */}
+
+              {/* Overlay de scan — activo durante el análisis */}
+              {analyzing && (
+                <InlineScanOverlay
+                  error={null}
+                  doneSteps={doneSteps}
+                  activeStep={activeStep}
+                  onRetry={handleAnalyze}
+                />
+              )}
+
+              {/* Error del análisis (sin overlay activo) */}
+              {!analyzing && analyzeError && (
+                <InlineScanOverlay
+                  error={analyzeError}
+                  doneSteps={doneSteps}
+                  activeStep={activeStep}
+                  onRetry={handleAnalyze}
+                />
+              )}
+
+              {/* Caja de descripción IA */}
+              {!analyzing && iaDescripcion && (
                 <div
                   style={{
                     padding: 14,
                     background: "var(--color-accent-tint)",
                     color: "var(--color-ink-2)",
                     position: "relative",
-                    marginBottom: 24,
+                    marginBottom: 10,
                     borderRadius: 4,
                   }}
                 >
                   {/* AIBadge */}
-                  <div
-                    style={{ position: "absolute", top: 14, right: 12 }}
-                    aria-hidden
-                  >
+                  <div style={{ position: "absolute", top: 14, right: 12 }} aria-hidden>
                     <span className="ai-badge">IA</span>
                   </div>
                   <p style={{ fontSize: 13, lineHeight: 1.55, fontStyle: "italic", paddingRight: 48, margin: 0 }}>
-                    &ldquo;{garment.ia_descripcion}&rdquo;
+                    &ldquo;{iaDescripcion}&rdquo;
                   </p>
+                </div>
+              )}
+
+              {/* Botón principal "Analizar con IA" — prenda sin análisis */}
+              {!analyzing && !iaAnalizada && !analyzeError && garment.imagen_url && (
+                <button
+                  type="button"
+                  onClick={handleAnalyze}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 7,
+                    padding: "10px 16px",
+                    border: "1px solid var(--color-accent)",
+                    borderRadius: 4,
+                    background: "var(--color-accent-tint)",
+                    color: "var(--color-accent)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                    marginBottom: 24,
+                  }}
+                >
+                  <Sparkles size={14} aria-hidden />
+                  Analizar con IA
+                </button>
+              )}
+
+              {/* Botón secundario "Re-analizar" — prenda ya analizada */}
+              {!analyzing && iaAnalizada && !analyzeError && garment.imagen_url && (
+                <div style={{ marginBottom: 20 }}>
+                  <button
+                    type="button"
+                    onClick={handleAnalyze}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "6px 10px",
+                      border: "none",
+                      background: "none",
+                      color: "var(--color-ink-3)",
+                      fontSize: 11,
+                      fontWeight: 500,
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                      textUnderlineOffset: 3,
+                    }}
+                  >
+                    <RefreshCw size={11} aria-hidden />
+                    Re-analizar con IA
+                  </button>
                 </div>
               )}
 

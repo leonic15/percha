@@ -8,7 +8,7 @@ import { GeneratorConfigClient } from "@/components/features/generator/Generator
  *
  * Server Component:
  * - Verifica sesión
- * - Lee la ciudad configurada del perfil (para el widget de clima)
+ * - Lee ciudad + coordenadas del perfil (para fallback clima — LOOKSI-022)
  * - Pasa al client
  */
 export default async function GeneradorPage() {
@@ -19,19 +19,30 @@ export default async function GeneradorPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Leer ciudad del perfil para mostrarla en el widget de clima
+  // Leer ciudad + preferencias del perfil
   const { data: profile } = await supabase
     .from("profiles")
-    .select("ciudad_nombre")
+    .select("ciudad_nombre, ciudad_latitud, ciudad_longitud, ocasiones_frecuentes")
     .eq("id", user.id)
     .single();
 
-  const ciudadNombre = profile?.ciudad_nombre ?? null;
+  const ciudadNombre   = profile?.ciudad_nombre   ?? null;
+  const ciudadLatitud  = profile?.ciudad_latitud  ?? null;
+  const ciudadLongitud = profile?.ciudad_longitud ?? null;
+
+  // LOOKSI-024: primera ocasión frecuente como pre-selección en el generador
+  const ocasiones      = (profile?.ocasiones_frecuentes ?? []) as string[];
+  const defaultOcasion = ocasiones[0] ?? null;
 
   return (
     // Desktop: columna central max-w-[640px]
     <div className="md:max-w-[640px] md:mx-auto md:w-full relative">
-      <GeneratorConfigClient ciudadNombre={ciudadNombre} />
+      <GeneratorConfigClient
+        ciudadNombre={ciudadNombre}
+        ciudadLatitud={ciudadLatitud}
+        ciudadLongitud={ciudadLongitud}
+        defaultOcasion={defaultOcasion}
+      />
     </div>
   );
 }

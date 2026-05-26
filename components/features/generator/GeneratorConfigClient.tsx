@@ -5,11 +5,13 @@
  * Ruta: /generador
  *
  * Paso 1 de 2 del flujo de generación.
- * - Weather widget (geolocalización → /api/clima)
+ * - Weather widget (geolocalización → /api/clima; fallback ciudad guardada)
  * - Chips de ocasión (single-select)
  * - Textarea de contexto (opcional)
- * - Tiles "Desde cero" / "Con base" + bottom sheet picker de prenda
+ * - Tiles "Desde cero"/"Con base" + bottom sheet picker de prenda
  * - CTA sticky "Generar look" → POST /api/looks/generar → sessionStorage → /generador/resultado
+ *
+ * LOOKSI-022 (LSI-33) — EP-05 Integración de clima
  */
 
 import {
@@ -24,10 +26,11 @@ import {
   Cloud,
   Sparkles,
   Shirt,
-  ChevronDown,
   Search,
   X,
   Check,
+  MapPin,
+  Settings,
 } from "lucide-react";
 import { Button, Chip, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -47,13 +50,17 @@ const OCASIONES = [
   "Cena",
 ] as const;
 
+/** Tiempo de cache del clima en el cliente (30 min en ms) */
+const WEATHER_CACHE_MS = 30 * 60 * 1000;
+
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 interface WeatherState {
-  status: "idle" | "loading" | "ok" | "error";
-  data?: ClimaData;
-  ciudad?: string;
-  incluir: boolean;
+  status: "idle" | "loading" | "ok" | "error" | "no_city";
+  data?:    ClimaData;
+  /** Nombre de la ciudad/ubicación mostrando el clima */
+  origen?:  "geolocalizacion" | "ciudad_guardada";
+  incluir:  boolean;
 }
 
 interface GarmentPickItem {
@@ -68,16 +75,26 @@ interface GarmentPickItem {
 
 export function GeneratorConfigClient({
   ciudadNombre,
+  ciudadLatitud,
+  ciudadLongitud,
+  defaultOcasion,
 }: {
-  ciudadNombre?: string | null;
+  ciudadNombre?:   string | null;
+  ciudadLatitud?:  number | null;
+  ciudadLongitud?: number | null;
+  /** Primera ocasión frecuente del perfil. Pre-selecciona el chip. */
+  defaultOcasion?: string | null;
 }) {
-  const router       = useRouter();
-  const { toast }    = useToast();
+  const router    = useRouter();
+  const { toast } = useToast();
 
   // ── Form state ──────────────────────────────────────────────────────────────
-  const [ocasion,  setOcasion]  = useState<string>("");
-  const [contexto, setContexto] = useState("");
-  const [modo, setModo]         = useState<"desde_cero" | "con_base">("desde_cero");
+  const _initOcasion = defaultOcasion
+    ? defaultOcasion.charAt(0).toUpperCase() + defaultOcasion.slice(1).toLowerCase()
+    : "";
+  const [ocasion,   setOcasion]   = useState<string>(_initOcasion);
+  const [contexto,  setContexto]  = useState("");
+  const [modo,      setModo]      = useState<"desde_cero" | "con_base">("desde_cero");
   const [prendaBase, setPrendaBase] = useState<GarmentPickItem | null>(null);
 
   // ── Weather state ───────────────────────────────────────────────────────────
@@ -85,52 +102,80 @@ export function GeneratorConfigClient({
     status:  "idle",
     incluir: true,
   });
+  const weatherLoadedAt = useRef<number | null>(null);
 
   // ── Bottom sheet (picker de prenda base) ────────────────────────────────────
-  const [sheetOpen,   setSheetOpen]   = useState(false);
-  const [garments,    setGarments]    = useState<GarmentPickItem[]>([]);
-  const [gLoading,    setGLoading]    = useState(false);
-  const [gSearch,     setGSearch]     = useState("");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [garments,  setGarments]  = useState<GarmentPickItem[]>([]);
+  const [gLoading,  setGLoading]  = useState(false);
+  const [gSearch,   setGSearch]   = useState("");
   const sheetRef = useRef<HTMLDivElement>(null);
 
   // ── Generando ───────────────────────────────────────────────────────────────
   const [generating, setGenerating] = useState(false);
 
+  // ── Función de fetch del clima ─────────────────────────────────────────────
+  const fetchClima = useCallback(async (lat: number, lon: number, origen: WeatherState["origen"]) => {
+    try {
+      const res = await fetch(`/api/clima?lat=${lat}&lon=${lon}`);
+      if (!res.ok) throw new Error("clima_error");
+      const data: ClimaData = await res.json();
+      weatherLoadedAt.current = Date.now();
+      setWeather((w) => ({
+        ...w,
+        status:  "ok",
+        data,
+        origen,
+        incluir: true,
+      }));
+    } catch {
+      setWeather((w) => ({ ...w, status: "error" }));
+    }
+  }, []);
+
   // ── Geolocalización + clima ────────────────────────────────────────────────
   useEffect(() => {
+    // Si ya hay datos recientes (< 30 min), no re-fetcha
+    if (
+      weather.status === "ok" &&
+      weatherLoadedAt.current &&
+      Date.now() - weatherLoadedAt.current < WEATHER_CACHE_MS
+    ) return;
+
     if (!navigator.geolocation) {
-      setWeather((w) => ({ ...w, status: "error" }));
+      // Sin geolocalización: fallback a ciudad guardada si existe
+      if (ciudadLatitud != null && ciudadLongitud != null) {
+        setWeather((w) => ({ ...w, status: "loading" }));
+        fetchClima(ciudadLatitud, ciudadLongitud, "ciudad_guardada");
+      } else {
+        setWeather((w) => ({ ...w, status: "no_city" }));
+      }
       return;
     }
+
     setWeather((w) => ({ ...w, status: "loading" }));
+
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
-        try {
-          const res = await fetch(
-            `/api/clima?lat=${coords.latitude}&lon=${coords.longitude}`
-          );
-          if (!res.ok) throw new Error("clima_error");
-          const data: ClimaData = await res.json();
-          setWeather({
-            status:  "ok",
-            data,
-            ciudad:  ciudadNombre ?? undefined,
-            incluir: true,
-          });
-        } catch {
-          setWeather((w) => ({ ...w, status: "error" }));
-        }
+        await fetchClima(coords.latitude, coords.longitude, "geolocalizacion");
       },
       () => {
-        setWeather((w) => ({ ...w, status: "error" }));
+        // Geo denegada: intentar con ciudad guardada
+        if (ciudadLatitud != null && ciudadLongitud != null) {
+          fetchClima(ciudadLatitud, ciudadLongitud, "ciudad_guardada");
+        } else {
+          setWeather((w) => ({ ...w, status: "no_city" }));
+        }
       },
-      { timeout: 8000 }
+      { timeout: 8_000 }
     );
-  }, [ciudadNombre]);
+  // Solo en mount (y si cambian las coordenadas de ciudad)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ciudadLatitud, ciudadLongitud, fetchClima]);
 
   // ── Fetch garments para el picker ──────────────────────────────────────────
   const fetchGarments = useCallback(async () => {
-    if (garments.length > 0) return; // ya cargados
+    if (garments.length > 0) return;
     setGLoading(true);
     try {
       const res  = await fetch("/api/garments?limit=100");
@@ -157,7 +202,7 @@ export function GeneratorConfigClient({
     fetchGarments();
   };
 
-  // Cerrar sheet al hacer click fuera
+  // Cerrar sheet con Escape
   useEffect(() => {
     if (!sheetOpen) return;
     const handleKey = (e: KeyboardEvent) => {
@@ -193,12 +238,18 @@ export function GeneratorConfigClient({
     try {
       const body = {
         ocasion,
-        contexto:        contexto.trim() || undefined,
+        contexto:       contexto.trim() || undefined,
         modo,
-        prenda_base_id:  modo === "con_base" ? prendaBase?.id : undefined,
-        clima:           weather.status === "ok" && weather.incluir && weather.data
-          ? { temperatura: weather.data.temperatura, condicion: weather.data.condicion }
-          : undefined,
+        prenda_base_id: modo === "con_base" ? prendaBase?.id : undefined,
+        clima:
+          weather.status === "ok" && weather.incluir && weather.data
+            ? {
+                temperatura:      weather.data.temperatura,
+                sensacion_termica: weather.data.sensacion_termica,
+                condicion:        weather.data.condicion,
+                franjas:          weather.data.franjas,
+              }
+            : undefined,
       };
 
       const res = await fetch("/api/looks/generar", {
@@ -230,7 +281,6 @@ export function GeneratorConfigClient({
 
       const result: GenerarLookResult = await res.json();
 
-      // Persistir en sessionStorage para que la página de resultado lo lea
       sessionStorage.setItem(SS_RESULT_KEY, JSON.stringify(result));
       sessionStorage.setItem(SS_PARAMS_KEY, JSON.stringify(body));
 
@@ -250,7 +300,6 @@ export function GeneratorConfigClient({
         className="flex flex-col min-h-dvh bg-bg"
       >
         {/* ── Scrollable content ─────────────────────────────────────────── */}
-        {/* pb reserva espacio para el sticky CTA: botón (68px) + BottomNav (60px) + safe-area (~34px) + gap */}
         <div className="flex-1 overflow-y-auto pb-[calc(60px+max(env(safe-area-inset-bottom),16px)+80px)] md:pb-4">
 
           {/* Header */}
@@ -278,7 +327,7 @@ export function GeneratorConfigClient({
           <div className="px-5 pb-5">
             <WeatherWidget
               weather={weather}
-              ciudad={ciudadNombre}
+              ciudadNombre={ciudadNombre}
               onToggle={() =>
                 setWeather((w) => ({ ...w, incluir: !w.incluir }))
               }
@@ -331,14 +380,12 @@ export function GeneratorConfigClient({
                 onClick={() => { setModo("desde_cero"); setPrendaBase(null); }}
                 disabled={generating}
                 className={cn(
-                  // block w-full para que el contenido fluya en columna
                   "block w-full text-left py-3.5 px-3 transition-colors",
                   modo === "desde_cero"
                     ? "border-[1.5px] border-ink bg-ink text-bg"
                     : "border-[1.5px] border-line text-ink-2 hover:border-ink-3",
                 )}
               >
-                {/* Icono como bloque independiente */}
                 <span className="block">
                   <Sparkles className="size-[18px]" strokeWidth={1.6} aria-hidden />
                 </span>
@@ -367,7 +414,6 @@ export function GeneratorConfigClient({
                     : "border-[1.5px] border-line text-ink-2 hover:border-ink-3",
                 )}
               >
-                {/* Icono / mini-thumb */}
                 <span className="block">
                   {prendaBase && modo === "con_base" ? (
                     <span className="inline-block size-[18px] rounded-sm overflow-hidden align-top bg-white/20">
@@ -406,11 +452,9 @@ export function GeneratorConfigClient({
         {/* ── Sticky CTA ──────────────────────────────────────────────────── */}
         <div
           className={cn(
-            // Mobile: fixed, anclado al bottom, sobre el BottomNav (60px + safe-area)
             "fixed inset-x-0 z-20",
             "bottom-[calc(60px+max(env(safe-area-inset-bottom),16px))]",
             "px-5 py-3 bg-bg border-t border-line-2",
-            // Desktop: vuelve al flujo normal (el sidebar reemplaza al BottomNav)
             "md:static md:border-t-0 md:px-[22px] md:pb-8 md:pt-2",
           )}
         >
@@ -454,15 +498,16 @@ export function GeneratorConfigClient({
 
 function WeatherWidget({
   weather,
-  ciudad,
+  ciudadNombre,
   onToggle,
 }: {
-  weather:  WeatherState;
-  ciudad?:  string | null;
-  onToggle: () => void;
+  weather:      WeatherState;
+  ciudadNombre?: string | null;
+  onToggle:     () => void;
 }) {
   if (weather.status === "idle") return null;
 
+  // Cargando
   if (weather.status === "loading") {
     return (
       <div className="flex items-center gap-3 px-4 py-3 bg-surface border border-line-2 shadow-card">
@@ -482,59 +527,134 @@ function WeatherWidget({
     );
   }
 
+  // Error de API
   if (weather.status === "error") {
     return (
       <div className="flex items-center gap-3 px-4 py-3 bg-surface border border-line-2 text-ink-3 text-sm">
         <Cloud className="size-4 shrink-0" strokeWidth={1.4} />
-        <span>Clima no disponible</span>
+        <span className="flex-1">No se pudo obtener el clima. El look se generará sin datos climáticos.</span>
       </div>
     );
   }
 
-  const d = weather.data!;
-  const loc = ciudad ? ` · ${ciudad}` : "";
+  // Sin ciudad configurada y sin geo
+  if (weather.status === "no_city") {
+    return (
+      <div className="flex items-start gap-3 px-4 py-3 bg-surface border border-line-2">
+        <Cloud className="size-4 shrink-0 mt-0.5 text-ink-3" strokeWidth={1.4} />
+        <div className="flex-1">
+          <p className="text-sm text-ink-2">Clima no disponible.</p>
+          <p className="text-xs text-ink-3 mt-0.5">
+            Permitir ubicación o{" "}
+            <a href="/perfil" className="underline text-accent">
+              configurar una ciudad
+            </a>
+            {" "}en ajustes.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // OK
+  const d    = weather.data!;
+  const locLabel =
+    weather.origen === "ciudad_guardada" && ciudadNombre
+      ? ciudadNombre
+      : null;
 
   return (
-    <div className="flex items-center gap-3.5 px-4 py-3.5 bg-surface border border-line-2 shadow-card">
-      {/* Icon */}
-      <div className="size-11 rounded-full bg-accent-tint grid place-items-center shrink-0">
-        <Cloud className="size-[22px] text-accent" strokeWidth={1.5} />
-      </div>
-
-      {/* Data */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2">
-          <span className="font-mono text-[24px] font-semibold text-ink leading-none">
-            {d.temperatura}°
-          </span>
-          <span className="text-[11px] text-ink-3">
-            · mín {d.temperatura_min}° / máx {d.temperatura_max}°
-          </span>
+    <div
+      className={cn(
+        "px-4 py-3.5 bg-surface border shadow-card transition-opacity",
+        weather.incluir ? "border-line-2 opacity-100" : "border-line opacity-60",
+      )}
+    >
+      <div className="flex items-center gap-3.5">
+        {/* Icon */}
+        <div className="size-11 rounded-full bg-accent-tint grid place-items-center shrink-0">
+          <Cloud className="size-[22px] text-accent" strokeWidth={1.5} />
         </div>
-        <div className="mt-0.5 text-[11px] text-ink-2 truncate">
-          {d.condicion}{loc}
-        </div>
-      </div>
 
-      {/* Toggle incluir clima */}
-      <button
-        type="button"
-        role="switch"
-        aria-checked={weather.incluir}
-        aria-label={weather.incluir ? "Excluir clima del look" : "Incluir clima en el look"}
-        onClick={onToggle}
-        className={cn(
-          "relative shrink-0 w-[38px] h-[22px] rounded-full p-0.5 transition-colors",
-          weather.incluir ? "bg-ink" : "bg-line",
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 size-[18px] rounded-full bg-bg transition-[left] duration-200",
-            weather.incluir ? "left-[18px]" : "left-0.5",
+        {/* Data */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2">
+            <span className="font-mono text-[24px] font-semibold text-ink leading-none">
+              {d.temperatura}°
+            </span>
+            {d.sensacion_termica !== undefined && d.sensacion_termica !== d.temperatura && (
+              <span className="text-[11px] text-ink-3">
+                sensación {d.sensacion_termica}°
+              </span>
+            )}
+          </div>
+          <div className="mt-0.5 text-[11px] text-ink-2">
+            {d.condicion}
+            {locLabel && (
+              <>
+                {" · "}
+                <MapPin className="inline size-[10px] -mt-px" strokeWidth={1.5} />
+                {" "}{locLabel}
+              </>
+            )}
+          </div>
+          {d.temperatura_min !== undefined && d.temperatura_max !== undefined && (
+            <div className="mt-0.5 text-[10px] text-ink-3">
+              mín {d.temperatura_min}° / máx {d.temperatura_max}°
+            </div>
           )}
-        />
-      </button>
+        </div>
+
+        {/* Toggle incluir clima */}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={weather.incluir}
+          aria-label={weather.incluir ? "Excluir clima del look" : "Incluir clima en el look"}
+          onClick={onToggle}
+          className={cn(
+            "relative shrink-0 w-[38px] h-[22px] rounded-full p-0.5 transition-colors",
+            weather.incluir ? "bg-ink" : "bg-line",
+          )}
+        >
+          <span
+            className={cn(
+              "absolute top-0.5 size-[18px] rounded-full bg-bg transition-[left] duration-200",
+              weather.incluir ? "left-[18px]" : "left-0.5",
+            )}
+          />
+        </button>
+      </div>
+
+      {/* Franjas del día */}
+      {weather.incluir && d.franjas && (
+        <div className="mt-3 pt-3 border-t border-line-2 grid grid-cols-3 gap-2 text-center">
+          {(
+            [
+              { key: "mañana", label: "Mañana" },
+              { key: "tarde",  label: "Tarde"  },
+              { key: "noche",  label: "Noche"  },
+            ] as const
+          ).map(({ key, label }) => (
+            <div key={key}>
+              <div className="text-[10px] text-ink-3 uppercase tracking-wide">{label}</div>
+              <div className="font-mono text-sm font-medium text-ink mt-0.5">
+                {d.franjas![key]}°
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Indicador ciudad guardada */}
+      {weather.origen === "ciudad_guardada" && (
+        <div className="mt-2 flex items-center gap-1 text-[10px] text-ink-3">
+          <Settings className="size-[10px]" strokeWidth={1.5} />
+          <span>Ciudad configurada ·{" "}
+            <a href="/perfil" className="underline">cambiar</a>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
