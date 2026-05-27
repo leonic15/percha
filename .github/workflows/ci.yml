@@ -1,0 +1,59 @@
+# =============================================================================
+# LookSi — CI Pipeline
+# LOOKSI-028: Typecheck, lint y build en cada Pull Request hacia main
+# =============================================================================
+#
+# Secrets requeridos en GitHub (Settings → Secrets → Actions):
+#   NEXT_PUBLIC_SUPABASE_URL      — URL pública del proyecto Supabase
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY — Anon key pública de Supabase
+#
+# Las keys sensibles (SERVICE_ROLE, GEMINI, SENTRY, POSTHOG) NO son necesarias
+# en CI porque no se usan en build time. Se configuran solo en Vercel.
+# =============================================================================
+
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+# Cancelar runs anteriores del mismo PR al forzar un nuevo push
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Typecheck · Lint · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          # Variables públicas necesarias para el build de Next.js
+          # Configurar en GitHub → Settings → Secrets → Actions
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # Silencia telemetría de Next.js en CI
+          NEXT_TELEMETRY_DISABLED: 1

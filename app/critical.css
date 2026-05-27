@@ -1,0 +1,98 @@
+/*
+  critical.css — LookSi
+  ─────────────────────────────────────────────────────────────────────────
+  CSS puro sin @import de Tailwind. Al no usar "@import tailwindcss",
+  Turbopack lo extrae como archivo estático (<link rel="stylesheet">) en lugar
+  de bundlearlo dentro de un chunk JS. Esto garantiza que los estilos críticos
+  carguen en el primer byte, sin esperar la ejecución de JavaScript.
+
+  Valores hardcodeados (no var()) para ser independiente del orden de carga
+  de las hojas de estilo y funcionar desde el primer render en cualquier red.
+  ─────────────────────────────────────────────────────────────────────────
+*/
+
+/* ── Reset full-bleed ────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+/* body { margin: 8px } es default en todos los browsers: sin esto el fondo
+   no llega a los bordes del dispositivo */
+html, body { margin: 0; padding: 0; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+html, body {
+  background: #f7f5ef;            /* --color-stone-50 */
+  color: #1a1a1a;                  /* --color-ink */
+  font-family: var(--font-sans, "Inter", ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.antialiased {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Layout show/hide ────────────────────────────────────────────────────── */
+.hidden   { display: none; }
+@media (min-width: 48rem) {
+  .md\:grid   { display: grid; }
+  .md\:hidden { display: none; }
+  .md\:flex   { display: flex; }
+}
+
+/* ── Positioning & overflow ──────────────────────────────────────────────── */
+.relative        { position: relative; }
+.absolute        { position: absolute; }
+.overflow-hidden { overflow: hidden; }
+.min-h-dvh       { min-height: 100dvh; }
+.w-full          { width: 100%; }
+.inset-0         { inset: 0; }
+
+/* ── Flexbox ─────────────────────────────────────────────────────────────── */
+.flex             { display: flex; }
+.flex-col         { flex-direction: column; }
+.items-center     { align-items: center; }
+.justify-center   { justify-content: center; }
+.justify-between  { justify-content: space-between; }
+
+/* ── Tipografía ──────────────────────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-archivo, "Archivo Narrow"), ui-sans-serif, sans-serif;
+}
+.font-sans    { font-family: var(--font-inter, "Inter"), ui-sans-serif, sans-serif; }
+.font-medium  { font-weight: 500; }
+.font-bold    { font-weight: 700; }
+.uppercase    { text-transform: uppercase; }
+.lowercase    { text-transform: lowercase; }
+.text-base    { font-size: 14px;  line-height: 1.5; }
+.text-sm      { font-size: 12px;  line-height: 1.45; }
+.underline          { text-decoration-line: underline; }
+.underline-offset-2 { text-underline-offset: 2px; }
+
+/* ── Colores de texto ────────────────────────────────────────────────────── */
+.text-ink    { color: #1a1a1a; }
+.text-ink-2  { color: #4a4a48; }
+.text-ink-3  { color: #8a877f; }
+.text-accent { color: #6b7563; }   /* sage-600 */
+.text-bg     { color: #f7f5ef; }   /* stone-50 */
+
+/* ── Fondos ──────────────────────────────────────────────────────────────── */
+.bg-bg          { background-color: #f7f5ef; }
+.bg-ink         { background-color: #1a1a1a; }
+.bg-surface-2   { background-color: #e5e0d2; }
+.bg-transparent { background-color: transparent; }
+
+/* ── Bordes ──────────────────────────────────────────────────────────────── */
+.border      { border-width: 1px; border-style: solid; }
+.border-line { border-color: rgba(26, 26, 26, 0.10); }
+
+/* ── Radius ──────────────────────────────────────────────────────────────── */
+.rounded-button { border-radius: 9999px; }
+
+/* ── Componentes ─────────────────────────────────────────────────────────── */
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a877f;
+  font-weight: 500;
+}
