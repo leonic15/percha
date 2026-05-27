@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 /**
  * POST /api/looks/generar
@@ -296,11 +297,23 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
   }));
 
   // ── 7. Registrar uso en ai_usage ──────────────────────────────────────────
+  const costoEstimado = tokensUsados ? tokensUsados * 0.000000075 : null;
   await supabase.from("ai_usage").insert({
     user_id:         user.id,
     tipo:            "generacion_look",
     tokens_usados:   tokensUsados,
-    costo_estimado:  tokensUsados ? tokensUsados * 0.000000075 : null,
+    costo_estimado:  costoEstimado,
+  });
+
+  // ── PostHog: look generado ────────────────────────────────────────────────
+  await captureServerEvent(user.id, "look_generado", {
+    modo:            body.modo,
+    con_clima:       !!body.clima,
+    ocasion:         body.ocasion,
+    prendas_count:   validatedIds.length,
+    faltantes_count: (aiResult.prendas_faltantes ?? []).length,
+    tokens_usados:   tokensUsados,
+    costo_estimado:  costoEstimado,
   });
 
   // ── 8. Responder ──────────────────────────────────────────────────────────

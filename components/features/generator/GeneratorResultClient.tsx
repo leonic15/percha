@@ -20,6 +20,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import posthog from "@/lib/posthog/client";
 import {
   ArrowLeft,
   RefreshCw,
@@ -505,6 +506,11 @@ export function GeneratorResultClient() {
       if (!res.ok) throw new Error("api_error");
       const result: GenerarLookResult = await res.json();
       pushVersion(result);
+      // ── PostHog: look regenerado ──────────────────────────────────────────
+      posthog.capture("look_regenerado", {
+        modo:    paramsRef.current?.modo,
+        ocasion: paramsRef.current?.ocasion,
+      });
     } catch {
       toast.error("No se pudo generar otro look. Intentá de nuevo.");
     } finally {
@@ -593,6 +599,11 @@ export function GeneratorResultClient() {
 
       setShowSaveSheet(false);
       toast.success("Look guardado");
+      // ── PostHog: look guardado ──────────────────────────────────────────────
+      posthog.capture("look_guardado", {
+        con_fecha_uso:   !!fechaUso,
+        prendas_count:   current?.prendas?.length ?? 0,
+      });
     } catch {
       toast.error("No se pudo guardar el look. Intentá de nuevo.");
     } finally {
