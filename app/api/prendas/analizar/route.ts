@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 /**
  * POST /api/prendas/analizar
@@ -7,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
  * Devuelve metadatos sugeridos: nombre, categoría, color, estaciones, ocasiones, estilos, descripción.
  *
  * Seguridad: GEMINI_API_KEY solo server-side, nunca con NEXT_PUBLIC_.
+ * Analytics: eventos ia_analisis_iniciado / ia_analisis_completado / ia_analisis_fallido → PostHog.
  */
 
 const GEMINI_MODEL = "gemini-2.5-flash-lite";
@@ -97,6 +99,12 @@ export async function POST(req: NextRequest) {
     },
   };
 
+  // ── PostHog: análisis iniciado ────────────────────────────────────────────
+  const inicioMs = Date.now();
+  await captureServerEvent(user.id, "ia_analisis_iniciado", {
+    mime_type: mimeType,
+  });
+
   try {
     const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method:  "POST",
@@ -107,6 +115,11 @@ export async function POST(req: NextRequest) {
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
       console.error("[prendas/analizar] Gemini HTTP error:", geminiRes.status, errText);
+      await captureServerEvent(user.id, "ia_analisis_fallido", {
+        motivo:       "gemini_http_error",
+        status_code:  geminiRes.status,
+        duracion_ms:  Date.now() - inicioMs,
+      });
       return NextResponse.json({ error: "ai_error" }, { status: 502 });
     }
 
@@ -118,14 +131,35 @@ export async function POST(req: NextRequest) {
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.error("[prendas/analizar] No JSON in Gemini response:", rawText);
+      await captureServerEvent(user.id, "ia_analisis_fallido", {
+        motivo:      "parse_error",
+        duracion_ms: Date.now() - inicioMs,
+      });
       return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
     }
 
     const analysis: GarmentAnalysis = JSON.parse(jsonMatch[0]);
+
+    // ── PostHog: análisis completado ───────────────────────────────────────
+    const tokensUsados: number | null =
+      geminiData?.usageMetadata?.totalTokenCount ?? null;
+    const costoEstimado = tokensUsados ? tokensUsados * 0.000000075 : null;
+
+    await captureServerEvent(user.id, "ia_analisis_completado", {
+      duracion_ms:     Date.now() - inicioMs,
+      tokens_usados:   tokensUsados,
+      costo_estimado:  costoEstimado,
+      categoria_slug:  analysis.categoria_slug,
+    });
+
     return NextResponse.json(analysis);
 
   } catch (err) {
     console.error("[prendas/analizar] Error:", err);
+    await captureServerEvent(user.id, "ia_analisis_fallido", {
+      motivo:      "exception",
+      duracion_ms: Date.now() - inicioMs,
+    });
     return NextResponse.json({ error: "ai_error" }, { status: 502 });
   }
 }

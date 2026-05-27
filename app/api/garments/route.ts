@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 /**
  * LOOKSI-008 / LOOKSI-009: API Routes de prendas.
@@ -230,8 +231,21 @@ export async function POST(req: NextRequest) {
 
   if (updateError) {
     console.error("[garments/POST] Error updating imagen_url:", updateError.message);
+    // Prenda guardada sin imagen — igual emitir evento
+    await captureServerEvent(user.id, "prenda_agregada", {
+      categoria_id: category_id,
+      con_ia:       ia_analizada,
+      con_imagen:   false,
+    });
     return NextResponse.json({ garment: prenda }, { status: 201 });
   }
+
+  // ── PostHog: prenda agregada ───────────────────────────────────────────────
+  await captureServerEvent(user.id, "prenda_agregada", {
+    categoria_id: category_id,
+    con_ia:       ia_analizada,
+    con_imagen:   true,
+  });
 
   return NextResponse.json({ garment: updatedData as Prenda }, { status: 201 });
 }

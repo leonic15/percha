@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Prenda, PrendaUpdate } from "@/lib/database.types";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -82,6 +83,9 @@ export async function DELETE(
   if (deleteError) {
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
+
+  // ── PostHog: prenda eliminada ─────────────────────────────────────────────
+  await captureServerEvent(user.id, "prenda_eliminada");
 
   return NextResponse.json({ ok: true });
 }
@@ -222,6 +226,12 @@ export async function PATCH(
     console.error("[garments/PATCH] db error:", updateErr);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
+
+  // ── PostHog: prenda editada ───────────────────────────────────────────────
+  await captureServerEvent(user.id, "prenda_editada", {
+    campos_editados: Object.keys(update),
+    con_nueva_imagen: !!update.imagen_url,
+  });
 
   return NextResponse.json({ ok: true, changed: true });
 }
