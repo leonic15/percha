@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /* ── PWA ── */
 const withPWA = withPWAInit({
@@ -90,5 +91,39 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Composición: next-intl envuelve PWA que envuelve la config base
-export default withNextIntl(withPWA(nextConfig));
+// Composición: Sentry → next-intl → PWA → config base
+// withSentryConfig maneja source maps en builds de producción y añade
+// el Sentry webpack plugin. En Turbopack dev no interfiere.
+export default withSentryConfig(
+  withNextIntl(withPWA(nextConfig)),
+  {
+    // Org y proyecto de Sentry (usados solo para source maps en CI/CD)
+    // Se leen desde env vars para no hardcodear slugs en el código.
+    // Vercel: Settings → Environment Variables → SENTRY_ORG / SENTRY_PROJECT
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+
+    // Source maps: subir a Sentry en builds de producción
+    // deleteSourcemapsAfterUpload evita exponer el código fuente en el bundle público
+    sourcemaps: {
+      deleteSourcemapsAfterUpload: true,
+    },
+
+    // Silenciar los logs del plugin de Sentry durante la build
+    silent: !process.env.CI,
+
+    // Deshabilitar el tunnel de Sentry (ya tenemos connect-src en CSP
+    // apuntando directamente a *.ingest.sentry.io)
+    tunnelRoute: undefined,
+
+    // Opciones específicas de webpack (no aplican en Turbopack dev)
+    webpack: {
+      // No wrappear las API Routes automáticamente — lo hacemos manualmente
+      // en las rutas que queremos para tener control del contexto de usuario
+      autoInstrumentServerFunctions: false,
+
+      // No wrappear el middleware automáticamente (tenemos proxy.ts personalizado)
+      autoInstrumentMiddleware: false,
+    },
+  }
+);
