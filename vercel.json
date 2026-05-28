@@ -8,6 +8,9 @@
   "functions": {
     "app/api/**": {
       "maxDuration": 30
+    },
+    "app/api/looks/generar-imagen/route.ts": {
+      "maxDuration": 60
     }
   },
 

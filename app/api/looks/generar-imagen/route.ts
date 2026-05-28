@@ -23,6 +23,8 @@ import { createHash } from "crypto";
  * Seguridad: GOOGLE_VERTEX_API_KEY nunca con NEXT_PUBLIC_
  */
 
+export const maxDuration = 60;
+
 const BUCKET_LOOK_IMAGES = "look-images";
 const BUCKET_BODY_PHOTOS  = "body-photos";
 const DAILY_LIMIT         = 3;
@@ -226,7 +228,7 @@ async function callGeminiImageGen(opts: {
   ];
 
   const controller = new AbortController();
-  const timeoutId  = setTimeout(() => controller.abort(), 60000);
+  const timeoutId  = setTimeout(() => controller.abort(), 45000);
 
   try {
     for (const { model, method, useImagen, supportsImages } of CANDIDATES) {
@@ -440,12 +442,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const prendasB64Results = await Promise.all(
-    prendasConImagen.map((p) => {
-      const url = prendasSignedUrls[p.imagen_url as string];
-      return url ? fetchImageAsB64(url, 5000) : Promise.resolve(null);
-    }),
-  );
+  // ── 6b. Paralelizar: descargar imágenes de prendas + descripción física ────
+  // Ambas operaciones solo dependen de bodyPhotoRef (ya disponible), así que
+  // corren en paralelo para ahorrar ~10s de latencia total.
+  const [prendasB64Results, appearance] = await Promise.all([
+    Promise.all(
+      prendasConImagen.map((p) => {
+        const url = prendasSignedUrls[p.imagen_url as string];
+        return url ? fetchImageAsB64(url, 5000) : Promise.resolve(null);
+      }),
+    ),
+    getPhysicalDescription(apiKey, bodyPhotoRef.b64, bodyPhotoRef.mime),
+  ]);
 
   // ── 7. Construir imágenes de referencia y prompts ─────────────────────────
   // refImages[0] = foto corporal, refImages[1..N] = fotos de prendas
@@ -461,10 +469,6 @@ export async function POST(req: NextRequest) {
   const ocasionFinal = ocasion || (params?.ocasion as string) || "casual";
 
   const numPrendasImages = refImages.length - 1; // excluye la foto corporal
-
-  // Descripción textual detallada — refuerza identidad en prompt multimodal
-  // y es el único recurso cuando caemos a Imagen 4 (solo texto)
-  const appearance = await getPhysicalDescription(apiKey, bodyPhotoRef.b64, bodyPhotoRef.mime);
 
   const promptFull = buildPromptWithImages({
     genero,
