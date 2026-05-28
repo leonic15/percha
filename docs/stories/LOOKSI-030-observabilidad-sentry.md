@@ -4,7 +4,7 @@
 **Épica:** EP-07 — Infraestructura y arquitectura base  
 **Prioridad:** Media  
 **Estimación:** 3 puntos  
-**Estado:** Pendiente
+**Estado:** Completada
 
 ---
 

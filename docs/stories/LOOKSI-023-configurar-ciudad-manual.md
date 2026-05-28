@@ -4,7 +4,7 @@
 **Épica:** EP-05 — Integración de clima  
 **Prioridad:** Media  
 **Estimación:** 2 puntos  
-**Estado:** Pendiente
+**Estado:** Completada
 
 ---
 

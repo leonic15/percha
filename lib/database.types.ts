@@ -31,6 +31,12 @@ export interface Database {
           ciudad_pais: string | null;
           estilos_favoritos: string[];
           ocasiones_frecuentes: string[];
+          // LOOKSI-033
+          genero: 'hombre' | 'mujer' | 'prefiero_no_decirlo' | null;
+          altura_cm: number | null;
+          peso_kg: number | null;
+          // LOOKSI-034
+          body_photo_url: string | null;
           updated_at: string;
         };
         Insert: {
@@ -46,6 +52,10 @@ export interface Database {
           ciudad_pais?: string | null;
           estilos_favoritos?: string[];
           ocasiones_frecuentes?: string[];
+          genero?: 'hombre' | 'mujer' | 'prefiero_no_decirlo' | null;
+          altura_cm?: number | null;
+          peso_kg?: number | null;
+          body_photo_url?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -60,6 +70,10 @@ export interface Database {
           ciudad_pais?: string | null;
           estilos_favoritos?: string[];
           ocasiones_frecuentes?: string[];
+          genero?: 'hombre' | 'mujer' | 'prefiero_no_decirlo' | null;
+          altura_cm?: number | null;
+          peso_kg?: number | null;
+          body_photo_url?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -166,6 +180,7 @@ export interface Database {
           nombre: string;
           descripcion_ia: string | null;
           parametros_generacion: Json;
+          vestir_imagen_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -175,11 +190,13 @@ export interface Database {
           nombre: string;
           descripcion_ia?: string | null;
           parametros_generacion?: Json;
+          vestir_imagen_url?: string | null;
         };
         Update: {
           nombre?: string;
           descripcion_ia?: string | null;
           parametros_generacion?: Json;
+          vestir_imagen_url?: string | null;
         };
         Relationships: [];
       };

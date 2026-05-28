@@ -18,6 +18,9 @@ import {
   RefreshCw,
   Sparkles,
   AlertCircle,
+  User,
+  X,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { LookCollage } from "@/components/ui/LookCard";
@@ -380,6 +383,188 @@ function DeleteDialog({ look, onCancel, onDeleted }: DeleteDialogProps) {
   );
 }
 
+// ── EscenarioSheet (Pantalla 23) ──────────────────────────────────────────────
+
+const ESCENARIO_PLACEHOLDERS = [
+  "Oficina moderna con luz natural",
+  "Café en el centro de la ciudad",
+  "Noche de salida urbana",
+  "Parque al aire libre",
+  "Reunión de negocios formal",
+];
+
+interface EscenarioSheetProps {
+  open:      boolean;
+  ocasion:   string;
+  onClose:   () => void;
+  onGenerar: (escenario: string) => void;
+  loading:   boolean;
+}
+
+function EscenarioSheet({ open, ocasion, onClose, onGenerar, loading }: EscenarioSheetProps) {
+  const [escenario, setEscenario] = useState("");
+  const placeholder = ESCENARIO_PLACEHOLDERS[Math.floor(Math.random() * ESCENARIO_PLACEHOLDERS.length)];
+
+  useEffect(() => {
+    if (open) setEscenario("");
+  }, [open]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/[0.45]" aria-hidden onClick={loading ? undefined : onClose} />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Configurar escenario"
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 bg-bg rounded-t-[20px]",
+          "shadow-[0_-8px_30px_rgba(0,0,0,0.2)]",
+          "[animation:sheet-up_280ms_cubic-bezier(0.32,0.72,0,1)_both]",
+          "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2",
+          "md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-[440px] md:rounded-[20px]",
+        )}
+      >
+        <div className="flex justify-center pt-3 pb-1 md:hidden">
+          <div className="w-9 h-1 rounded-full bg-line" />
+        </div>
+        <div className="px-[22px] pb-[max(env(safe-area-inset-bottom),28px)] md:pb-7">
+          <div className="flex items-center justify-between py-4 md:py-5">
+            <h2 className="font-display font-semibold uppercase text-ink" style={{ fontSize: 24, letterSpacing: "-0.01em" }}>
+              Configurar escenario
+            </h2>
+            <button type="button" onClick={onClose} disabled={loading} aria-label="Cerrar"
+              className="size-8 grid place-items-center text-ink-2 hover:text-ink disabled:opacity-40 transition-colors">
+              <X className="size-5" />
+            </button>
+          </div>
+          <div className="mb-5">
+            <p className="font-mono uppercase text-ink-3 mb-2" style={{ fontSize: 9, letterSpacing: "0.1em" }}>OCASIÓN</p>
+            <div className="flex items-center gap-2 px-3.5 py-3 border border-line bg-surface">
+              <Sparkles className="size-4 text-accent shrink-0" />
+              <span className="text-base text-ink capitalize">{ocasion || "Casual"}</span>
+            </div>
+          </div>
+          <div className="mb-6">
+            <p className="font-mono uppercase text-ink-3 mb-2" style={{ fontSize: 9, letterSpacing: "0.1em" }}>
+              DESCRIBÍ EL ESCENARIO <span className="text-ink-3 lowercase normal-case">(opcional)</span>
+            </p>
+            <textarea
+              value={escenario}
+              onChange={(e) => setEscenario(e.target.value)}
+              placeholder={placeholder}
+              disabled={loading}
+              rows={3}
+              className={cn(
+                "w-full px-3.5 py-3 border border-line bg-surface",
+                "text-base text-ink placeholder:text-ink-3",
+                "resize-none outline-none focus:border-ink transition-colors disabled:opacity-50",
+              )}
+            />
+            <p className="text-xs text-ink-3 mt-1.5">Ejemplo: "Terraza de un café en Palermo un domingo por la tarde"</p>
+          </div>
+          <Button
+            type="button"
+            variant="accent"
+            size="lg"
+            fullWidth
+            loading={loading}
+            icon={!loading ? <Sparkles className="size-4" /> : undefined}
+            onClick={() => onGenerar(escenario.trim())}
+            disabled={loading}
+          >
+            {loading ? "Generando…" : "Generar imagen"}
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── VestirGeneratingOverlay (Pantalla 24) ─────────────────────────────────────
+
+function VestirGeneratingOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center gap-8">
+      <div className="relative size-24">
+        <div className="absolute inset-0 rounded-full border-[3px] border-accent-tint" />
+        <div className="absolute inset-0 rounded-full border-[3px] border-accent border-r-transparent animate-spin" style={{ animationDuration: "1.2s" }} />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Sparkles className="size-9 text-accent" />
+        </div>
+      </div>
+      <div className="text-center px-8">
+        <p className="font-display font-semibold uppercase text-ink" style={{ fontSize: 24, letterSpacing: "-0.01em" }}>
+          Generando tu look…
+        </p>
+        <p className="text-sm text-ink-3 mt-2 leading-relaxed">
+          Estamos creando una imagen fotorrealista con tu outfit. Esto puede tardar hasta 30 segundos.
+        </p>
+      </div>
+      <div className="flex gap-2">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="size-2 rounded-full bg-accent"
+            style={{ animation: "pulse 1.4s ease-in-out infinite", animationDelay: `${i * 0.2}s` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── VestirResultScreen (Pantalla 25) ──────────────────────────────────────────
+
+interface VestirResultScreenProps {
+  imageUrl:     string;
+  onClose:      () => void;
+  onSave:       () => void;
+  onRegenerate: () => void;
+  saving:       boolean;
+  regenerating: boolean;
+}
+
+function VestirResultScreen({ imageUrl, onClose, onSave, onRegenerate, saving, regenerating }: VestirResultScreenProps) {
+  const isBusy = saving || regenerating;
+  return (
+    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+      <div className={cn(
+        "absolute top-0 inset-x-0 z-10 flex items-center justify-between px-4",
+        "pt-[max(env(safe-area-inset-top),16px)] pb-3",
+        "bg-gradient-to-b from-black/60 to-transparent",
+      )}>
+        <button type="button" onClick={onClose} aria-label="Cerrar" disabled={isBusy}
+          className="size-10 rounded-full bg-white/15 backdrop-blur-[6px] grid place-items-center text-white disabled:opacity-40">
+          <X className="size-5" />
+        </button>
+        <span className="font-mono uppercase text-white/70" style={{ fontSize: 10, letterSpacing: "0.08em" }}>VESTIR MI LOOK</span>
+        <div className="size-10" aria-hidden />
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imageUrl} alt="Look generado" className="w-full h-full object-cover" />
+      <div className={cn(
+        "absolute inset-x-0 bottom-0 z-10",
+        "pb-[max(env(safe-area-inset-bottom),20px)] pt-4 px-5",
+        "bg-gradient-to-t from-black/80 to-transparent flex flex-col gap-2.5",
+      )}>
+        <Button type="button" variant="accent" size="lg" fullWidth loading={saving}
+          icon={!saving ? <Download className="size-4" /> : undefined} onClick={onSave} disabled={isBusy}>
+          {saving ? "Guardando…" : "Guardar imagen"}
+        </Button>
+        <Button type="button" variant="ghost" size="md" fullWidth loading={regenerating}
+          icon={!regenerating ? <RefreshCw className="size-4" /> : undefined} onClick={onRegenerate} disabled={isBusy}
+          className="text-white border-white/30 hover:bg-white/10">
+          Generar otra versión
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function LookDetailSkeleton() {
@@ -413,6 +598,71 @@ export function LookDetailClient({ detail }: LookDetailClientProps) {
   const [data, setData] = useState<LookDetailData>(detail);
   const [showDelete, setShowDelete] = useState(false);
   const [loggingUso, setLoggingUso] = useState(false);
+
+  // Vestir mi look
+  const [profileReady, setProfileReady]               = useState<boolean | null>(null);
+  const [vestirPhase, setVestirPhase]                 = useState<"idle" | "escenario" | "generating" | "result">("idle");
+  const [vestirImageUrl, setVestirImageUrl]           = useState<string | null>(null);
+  const [vestirImagePath, setVestirImagePath]         = useState<string | null>(null);
+  const [vestirSaving, setVestirSaving]               = useState(false);
+  const [vestirRegenerating, setVestirRegenerating]   = useState(false);
+
+  useEffect(() => {
+    fetch("/api/perfil")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((perfil) => {
+        if (!perfil) { setProfileReady(false); return; }
+        setProfileReady(!!(perfil.body_photo_url && perfil.altura_cm && perfil.peso_kg));
+      })
+      .catch(() => setProfileReady(false));
+  }, []);
+
+  const handleVestirGenerar = useCallback(async (escenario: string) => {
+    setVestirPhase("generating");
+    try {
+      const res = await fetch("/api/looks/generar-imagen", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ look_id: data.id, escenario, ocasion: data.ocasion }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { message?: string };
+        toast.error(d.message ?? "No pudimos generar la imagen. Intentá de nuevo.");
+        setVestirPhase("escenario");
+        return;
+      }
+      const { imagen_url, path } = await res.json() as { imagen_url: string; path: string };
+      setVestirImageUrl(imagen_url);
+      setVestirImagePath(path);
+      setVestirPhase("result");
+    } catch {
+      toast.error("No pudimos generar la imagen. Intentá de nuevo.");
+      setVestirPhase("escenario");
+    }
+  }, [data.id, data.ocasion, toast]);
+
+  const handleVestirGuardar = useCallback(async () => {
+    if (!vestirImagePath) return;
+    setVestirSaving(true);
+    try {
+      const res = await fetch("/api/looks/guardar-imagen-vestir", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ look_id: data.id, vestir_imagen_path: vestirImagePath }),
+      });
+      if (!res.ok) { toast.error("No se pudo guardar la imagen. Intentá de nuevo."); return; }
+      toast.success("Imagen guardada con tu look");
+      setVestirPhase("idle");
+    } catch {
+      toast.error("No se pudo guardar la imagen. Intentá de nuevo.");
+    } finally {
+      setVestirSaving(false);
+    }
+  }, [data.id, vestirImagePath, toast]);
+
+  const handleVestirRegenerar = useCallback(() => {
+    setVestirPhase("escenario");
+  }, []);
 
   const handleUsarHoy = useCallback(async () => {
     setLoggingUso(true);
@@ -640,6 +890,23 @@ export function LookDetailClient({ detail }: LookDetailClientProps) {
               </Button>
             </div>
 
+            {/* Vestir mi look */}
+            <div
+              className="mt-3 px-[22px]"
+              title={profileReady === false ? "Completá tu foto y datos corporales en el perfil para usar esta función" : undefined}
+            >
+              <Button
+                variant="accent"
+                size="lg"
+                fullWidth
+                icon={<User size={16} />}
+                onClick={() => { if (profileReady === true) setVestirPhase("escenario"); }}
+                disabled={profileReady !== true}
+              >
+                {profileReady === null ? "Verificando perfil…" : "Vestir mi look"}
+              </Button>
+            </div>
+
             {/* Danger zone */}
             <div className="mt-8 px-[22px] flex flex-col items-center">
               <button
@@ -677,6 +944,30 @@ export function LookDetailClient({ detail }: LookDetailClientProps) {
           look={data}
           onCancel={() => setShowDelete(false)}
           onDeleted={handleDeleted}
+        />
+      )}
+
+      {/* ── Pantalla 23: EscenarioSheet ─────────────────────────────────────── */}
+      <EscenarioSheet
+        open={vestirPhase === "escenario"}
+        ocasion={data.ocasion}
+        onClose={() => setVestirPhase("idle")}
+        onGenerar={handleVestirGenerar}
+        loading={vestirPhase === "generating"}
+      />
+
+      {/* ── Pantalla 24: Generando ──────────────────────────────────────────── */}
+      {vestirPhase === "generating" && <VestirGeneratingOverlay />}
+
+      {/* ── Pantalla 25: Resultado imagen ──────────────────────────────────── */}
+      {vestirPhase === "result" && vestirImageUrl && (
+        <VestirResultScreen
+          imageUrl={vestirImageUrl}
+          onClose={() => setVestirPhase("idle")}
+          onSave={handleVestirGuardar}
+          onRegenerate={handleVestirRegenerar}
+          saving={vestirSaving}
+          regenerating={vestirRegenerating}
         />
       )}
     </>

@@ -51,6 +51,9 @@ export default async function PerfilPage() {
         ciudadPais={p?.ciudad_pais ?? null}
         estilosFavoritos={p?.estilos_favoritos ?? []}
         ocasionesFrecuentes={p?.ocasiones_frecuentes ?? []}
+        genero={p?.genero ?? null}
+        alturaCm={p?.altura_cm ?? null}
+        pesoKg={p?.peso_kg ?? null}
         prendasCount={prendasRes.count ?? 0}
         looksCount={looksRes.count ?? 0}
       />
