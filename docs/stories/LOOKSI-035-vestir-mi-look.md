@@ -4,7 +4,7 @@
 **Épica:** EP-04 — Generación de looks con IA  
 **Prioridad:** Alta  
 **Estimación:** 8 puntos  
-**Estado:** Pendiente
+**Estado:** Completada
 
 ---
 

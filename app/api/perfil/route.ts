@@ -29,6 +29,12 @@ export interface ProfileData {
   clima_habilitado: boolean;
   estilos_favoritos: string[];
   ocasiones_frecuentes: string[];
+  // LOOKSI-033
+  genero: 'hombre' | 'mujer' | 'prefiero_no_decirlo' | null;
+  altura_cm: number | null;
+  peso_kg: number | null;
+  // LOOKSI-034
+  body_photo_url: string | null;
   prendasCount: number;
   looksCount: number;
 }
@@ -69,6 +75,10 @@ export async function GET() {
     clima_habilitado:     p.clima_habilitado ?? true,
     estilos_favoritos:    p.estilos_favoritos ?? [],
     ocasiones_frecuentes: p.ocasiones_frecuentes ?? [],
+    genero:               p.genero ?? null,
+    altura_cm:            p.altura_cm ?? null,
+    peso_kg:              p.peso_kg ?? null,
+    body_photo_url:       p.body_photo_url ?? null,
     prendasCount:         prendasRes.count ?? 0,
     looksCount:           looksRes.count ?? 0,
   };
@@ -117,6 +127,12 @@ export async function PATCH(req: NextRequest) {
   if ("ciudad_latitud"       in body) update.ciudad_latitud       = body.ciudad_latitud       as number | null;
   if ("ciudad_longitud"      in body) update.ciudad_longitud      = body.ciudad_longitud      as number | null;
   if ("ciudad_pais"          in body) update.ciudad_pais          = body.ciudad_pais          as string | null;
+  // Campos corporales (LOOKSI-033)
+  if ("genero"               in body) update.genero               = body.genero               as 'hombre' | 'mujer' | 'prefiero_no_decirlo' | null;
+  if ("altura_cm"            in body) update.altura_cm            = body.altura_cm            as number | null;
+  if ("peso_kg"              in body) update.peso_kg              = body.peso_kg              as number | null;
+  // Foto corporal (LOOKSI-034) — el path en Storage; el upload/delete usa /api/perfil/foto-corporal
+  if ("body_photo_url"       in body) update.body_photo_url       = body.body_photo_url       as string | null;
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "no_fields" }, { status: 400 });

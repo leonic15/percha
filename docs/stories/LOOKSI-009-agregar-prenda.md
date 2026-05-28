@@ -4,7 +4,7 @@
 **Épica:** EP-02 — Gestión del guardarropas (CRUD de prendas)  
 **Prioridad:** Alta  
 **Estimación:** 5 puntos  
-**Estado:** Pendiente
+**Estado:** Completada
 
 ---
 

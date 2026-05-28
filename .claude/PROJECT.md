@@ -102,6 +102,21 @@ SessionStorage keys: `looksi_nueva_imagen` (base64), `looksi_nueva_tipo` (MIME),
 - ❌ LOOKSI-018 Generar desde prenda base (flujo parcial en LOOKSI-017 — tile "Con base" funcional)
 - ❌ LOOKSI-019 Revisar y ajustar look (swap por pieza, UI de botón swap implementado pero deshabilitado)
 - ❌ LOOKSI-020 Guardar look (botón visible pero disabled)
+- ✅ LOOKSI-035 Vestir mi look (pantallas 22-25):
+  - Pantalla 22: botón "Vestir mi look" en resultado del generador (activo/disabled según perfil)
+  - Pantalla 23: EscenarioSheet — ocasión pre-llenada + textarea escenario + "Generar imagen"
+  - Pantalla 24: VestirGeneratingOverlay — spinner + dots animados
+  - Pantalla 25: VestirResultScreen — imagen full-screen, "Guardar imagen" + "Generar otra versión"
+  - Auto-save del look antes de generar; rate limit 3/día
+  → `components/features/generator/GeneratorResultClient.tsx`
+  → `app/api/looks/generar-imagen/route.ts`
+  → `app/api/looks/guardar-imagen-vestir/route.ts`
+- ✅ LOOKSI-036 Validación imagen con IA:
+  - `POST /api/validar-imagen` — Gemini 2.5 Flash-Lite, tipo "prenda" | "foto_corporal"
+  - Integrado en Paso 1 de agregar prenda; bottom sheet error bloqueante + advertencia no-bloqueante
+  - Fail-open en timeout >5s o error de red
+  → `app/api/validar-imagen/route.ts`
+  → `app/[locale]/(app)/guardarropas/nueva/page.tsx`
 ### ❌ EP-05 — Clima — NO IMPLEMENTADA
 ### ❌ EP-06 — Preferencias/configuración — NO IMPLEMENTADA
 ### ❌ EP-07 — Infraestructura (CI/CD, observabilidad) — NO IMPLEMENTADA

@@ -28,6 +28,10 @@ import {
   ChevronRight,
   Calendar,
   X,
+  User,
+  Sparkles,
+  Download,
+  ImageOff,
 } from "lucide-react";
 import Link from "next/link";
 import { Button, useToast } from "@/components/ui";
@@ -222,6 +226,286 @@ function ColoredPlaceholder({ color }: { color: string }) {
       </defs>
       <rect width="100%" height="100%" fill={`url(#${id})`} opacity="0.5" />
     </svg>
+  );
+}
+
+// ── EscenarioSheet ────────────────────────────────────────────────────────────
+// Pantalla 23 — SHEET · CONFIGURAR ESCENARIO
+// Bottom sheet que aparece al tocar "Vestir mi look".
+// Muestra la ocasión pre-llenada y un campo de texto libre de escenario.
+
+interface EscenarioSheetProps {
+  open:     boolean;
+  ocasion:  string;
+  onClose:  () => void;
+  onGenerar: (escenario: string) => void;
+  loading:  boolean;
+}
+
+const ESCENARIO_PLACEHOLDERS = [
+  "Oficina moderna con luz natural",
+  "Café en el centro de la ciudad",
+  "Noche de salida urbana",
+  "Parque al aire libre",
+  "Reunión de negocios formal",
+];
+
+function EscenarioSheet({ open, ocasion, onClose, onGenerar, loading }: EscenarioSheetProps) {
+  const [escenario, setEscenario] = useState("");
+  const placeholder = ESCENARIO_PLACEHOLDERS[Math.floor(Math.random() * ESCENARIO_PLACEHOLDERS.length)];
+
+  useEffect(() => {
+    if (open) setEscenario("");
+  }, [open]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  if (!open) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-black/[0.45]"
+        aria-hidden
+        onClick={loading ? undefined : onClose}
+      />
+
+      {/* Sheet */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Configurar escenario"
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 bg-bg rounded-t-[20px]",
+          "shadow-[0_-8px_30px_rgba(0,0,0,0.2)]",
+          "[animation:sheet-up_280ms_cubic-bezier(0.32,0.72,0,1)_both]",
+          "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2",
+          "md:-translate-x-1/2 md:-translate-y-1/2",
+          "md:w-full md:max-w-[440px] md:rounded-[20px]",
+        )}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1 md:hidden">
+          <div className="w-9 h-1 rounded-full bg-line" />
+        </div>
+
+        <div className="px-[22px] pb-[max(env(safe-area-inset-bottom),28px)] md:pb-7">
+
+          {/* Header */}
+          <div className="flex items-center justify-between py-4 md:py-5">
+            <h2
+              className="font-display font-semibold uppercase text-ink"
+              style={{ fontSize: 24, letterSpacing: "-0.01em" }}
+            >
+              Configurar escenario
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              aria-label="Cerrar"
+              className="size-8 grid place-items-center text-ink-2 hover:text-ink disabled:opacity-40 transition-colors"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          {/* Ocasión pre-llenada */}
+          <div className="mb-5">
+            <p className="eyebrow mb-2">OCASIÓN</p>
+            <div className="flex items-center gap-2 px-3.5 py-3 border border-line bg-surface">
+              <Sparkles className="size-4 text-accent shrink-0" />
+              <span className="text-base text-ink capitalize">{ocasion || "Casual"}</span>
+            </div>
+          </div>
+
+          {/* Campo escenario */}
+          <div className="mb-6">
+            <p className="eyebrow mb-2">DESCRIBÍ EL ESCENARIO <span className="text-ink-3 lowercase normal-case">(opcional)</span></p>
+            <textarea
+              value={escenario}
+              onChange={(e) => setEscenario(e.target.value)}
+              placeholder={placeholder}
+              disabled={loading}
+              rows={3}
+              className={cn(
+                "w-full px-3.5 py-3 border border-line bg-surface",
+                "text-base text-ink placeholder:text-ink-3",
+                "resize-none outline-none",
+                "focus:border-ink transition-colors",
+                "disabled:opacity-50",
+              )}
+            />
+            <p className="text-xs text-ink-3 mt-1.5">
+              Ejemplo: "Terraza de un café en Palermo un domingo por la tarde"
+            </p>
+          </div>
+
+          {/* CTA */}
+          <Button
+            type="button"
+            variant="accent"
+            size="lg"
+            fullWidth
+            loading={loading}
+            icon={!loading ? <Sparkles className="size-4" /> : undefined}
+            onClick={() => onGenerar(escenario.trim())}
+            disabled={loading}
+          >
+            {loading ? "Generando…" : "Generar imagen"}
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── VestirGeneratingOverlay ────────────────────────────────────────────────────
+// Pantalla 24 — GENERANDO · PANTALLA INTERMEDIA
+// Full-screen overlay con animación mientras se genera la imagen.
+
+function VestirGeneratingOverlay() {
+  return (
+    <div className="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center gap-8">
+      {/* Animated ring */}
+      <div className="relative size-24">
+        <div className="absolute inset-0 rounded-full border-[3px] border-accent-tint" />
+        <div
+          className="absolute inset-0 rounded-full border-[3px] border-accent border-r-transparent animate-spin"
+          style={{ animationDuration: "1.2s" }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Sparkles className="size-9 text-accent" />
+        </div>
+      </div>
+
+      {/* Text */}
+      <div className="text-center px-8">
+        <p
+          className="font-display font-semibold uppercase text-ink"
+          style={{ fontSize: 24, letterSpacing: "-0.01em" }}
+        >
+          Generando tu look…
+        </p>
+        <p className="text-sm text-ink-3 mt-2 leading-relaxed">
+          Estamos creando una imagen fotorrealista con tu outfit. Esto puede tardar hasta 30 segundos.
+        </p>
+      </div>
+
+      {/* Progress dots */}
+      <div className="flex gap-2">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="size-2 rounded-full bg-accent"
+            style={{
+              animation: `pulse 1.4s ease-in-out infinite`,
+              animationDelay: `${i * 0.2}s`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── VestirResultScreen ─────────────────────────────────────────────────────────
+// Pantalla 25 — RESULTADO · IMAGEN GENERADA
+// Full-screen overlay que muestra la imagen generada con acciones.
+
+interface VestirResultScreenProps {
+  imageUrl:      string;
+  onClose:       () => void;
+  onSave:        () => void;
+  onRegenerate:  () => void;
+  saving:        boolean;
+  regenerating:  boolean;
+}
+
+function VestirResultScreen({
+  imageUrl,
+  onClose,
+  onSave,
+  onRegenerate,
+  saving,
+  regenerating,
+}: VestirResultScreenProps) {
+  const isBusy = saving || regenerating;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+
+      {/* Top bar — sobre la imagen */}
+      <div
+        className={cn(
+          "absolute top-0 inset-x-0 z-10 flex items-center justify-between px-4",
+          "pt-[max(env(safe-area-inset-top),16px)]",
+          "pb-3",
+          "bg-gradient-to-b from-black/60 to-transparent",
+        )}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          disabled={isBusy}
+          className="size-10 rounded-full bg-white/15 backdrop-blur-[6px] grid place-items-center text-white disabled:opacity-40"
+        >
+          <X className="size-5" />
+        </button>
+        <span className="eyebrow text-white/70">VESTIR MI LOOK</span>
+        <div className="size-10" aria-hidden />
+      </div>
+
+      {/* Imagen — ocupa todo el espacio */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={imageUrl}
+        alt="Look generado"
+        className="w-full h-full object-cover"
+      />
+
+      {/* Bottom actions */}
+      <div
+        className={cn(
+          "absolute inset-x-0 bottom-0 z-10",
+          "pb-[max(env(safe-area-inset-bottom),20px)]",
+          "pt-4 px-5",
+          "bg-gradient-to-t from-black/80 to-transparent",
+          "flex flex-col gap-2.5",
+        )}
+      >
+        <Button
+          type="button"
+          variant="accent"
+          size="lg"
+          fullWidth
+          loading={saving}
+          icon={!saving ? <Download className="size-4" /> : undefined}
+          onClick={onSave}
+          disabled={isBusy}
+        >
+          {saving ? "Guardando…" : "Guardar imagen"}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="md"
+          fullWidth
+          loading={regenerating}
+          icon={!regenerating ? <RefreshCw className="size-4" /> : undefined}
+          onClick={onRegenerate}
+          disabled={isBusy}
+          className="text-white border-white/30 hover:bg-white/10"
+        >
+          Generar otra versión
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -460,7 +744,30 @@ export function GeneratorResultClient() {
   const [showSaveSheet, setShowSaveSheet] = useState(false);
   const [saving, setSaving]               = useState(false);
 
+  // LOOKSI-035 — Vestir mi look
+  const [profileReady, setProfileReady]         = useState<boolean | null>(null); // null=cargando
+  const [savedLookId, setSavedLookId]           = useState<string | null>(null);
+  const [vestirPhase, setVestirPhase]           = useState<"idle" | "escenario" | "generating" | "result">("idle");
+  const [vestirEscenario, setVestirEscenario]   = useState("");
+  const [vestirImageUrl, setVestirImageUrl]     = useState<string | null>(null);
+  const [vestirImagePath, setVestirImagePath]   = useState<string | null>(null);
+  const [vestirSaving, setVestirSaving]         = useState(false);
+  const [vestirRegenerating, setVestirRegenerating] = useState(false);
+
   const paramsRef = useRef<Record<string, unknown> | null>(null);
+
+  // ── Verificar si el perfil tiene datos corporales (LOOKSI-035) ────────────
+  useEffect(() => {
+    fetch("/api/perfil")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data) { setProfileReady(false); return; }
+        setProfileReady(
+          !!(data.body_photo_url && data.altura_cm && data.peso_kg),
+        );
+      })
+      .catch(() => setProfileReady(false));
+  }, []);
 
   // ── Leer sessionStorage al montar ─────────────────────────────────────────
   useEffect(() => {
@@ -573,6 +880,117 @@ export function GeneratorResultClient() {
     }
   };
 
+  // ── Vestir mi look — generar imagen (LOOKSI-035) ──────────────────────────
+  const handleVestirGenerar = async (escenario: string) => {
+    if (!current) return;
+
+    setVestirEscenario(escenario);
+    setVestirPhase("generating");
+
+    try {
+      // Auto-guardar el look si aún no está guardado (necesario para generar-imagen)
+      let lookId = savedLookId;
+      if (!lookId) {
+        const saveRes = await fetch("/api/looks/guardar", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({
+            nombre:                current.nombre_sugerido,
+            prendas:               current.prendas,
+            descripcion_ia:        current.descripcion_look,
+            parametros_generacion: current.parametros,
+            fecha_uso:             null,
+          }),
+        });
+        if (!saveRes.ok) {
+          const d = await saveRes.json().catch(() => ({})) as { message?: string };
+          toast.error(d.message ?? "No se pudo guardar el look. Intentá de nuevo.");
+          setVestirPhase("escenario");
+          return;
+        }
+        const { id } = await saveRes.json() as { id: string };
+        lookId = id;
+        setSavedLookId(id);
+      }
+
+      const res = await fetch("/api/looks/generar-imagen", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          look_id:  lookId,
+          escenario,
+          ocasion:  current.parametros.ocasion ?? "",
+        }),
+      });
+
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { message?: string };
+        toast.error(d.message ?? "No pudimos generar la imagen. Intentá de nuevo.");
+        setVestirPhase("escenario");
+        return;
+      }
+
+      const { imagen_url, path } = await res.json() as { imagen_url: string; path: string };
+      setVestirImageUrl(imagen_url);
+      setVestirImagePath(path);
+      setVestirPhase("result");
+
+      posthog.capture("vestir_imagen_generada", {
+        con_escenario: !!escenario,
+        ocasion:       current.parametros.ocasion,
+      });
+
+    } catch {
+      toast.error("No pudimos generar la imagen. Intentá de nuevo.");
+      setVestirPhase("escenario");
+    }
+  };
+
+  // ── Guardar imagen de "Vestir mi look" ─────────────────────────────────────
+  const handleVestirGuardar = async () => {
+    if (!vestirImagePath || !current) return;
+    setVestirSaving(true);
+    try {
+      const res = await fetch("/api/looks/guardar-imagen-vestir", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          look_id:            savedLookId,
+          vestir_imagen_path: vestirImagePath,
+          nombre:             current.nombre_sugerido,
+          prendas:            current.prendas,
+          descripcion_ia:     current.descripcion_look,
+          parametros_generacion: current.parametros,
+        }),
+      });
+
+      if (!res.ok) {
+        toast.error("No se pudo guardar la imagen. Intentá de nuevo.");
+        return;
+      }
+
+      const { look_id } = await res.json() as { look_id: string };
+      if (!savedLookId) setSavedLookId(look_id);
+
+      toast.success("Imagen guardada con tu look");
+      setVestirPhase("idle");
+
+      posthog.capture("vestir_imagen_guardada");
+    } catch {
+      toast.error("No se pudo guardar la imagen. Intentá de nuevo.");
+    } finally {
+      setVestirSaving(false);
+    }
+  };
+
+  // ── Regenerar imagen de Vestir mi look ─────────────────────────────────────
+  const handleVestirRegenerar = async () => {
+    if (!vestirImageUrl) return;
+    setVestirRegenerating(true);
+    setVestirPhase("escenario"); // volver al sheet con el escenario previo pre-llenado
+    setVestirRegenerating(false);
+  };
+
   // ── Guardar look (LOOKSI-020) ──────────────────────────────────────────────
   // Handoff 14: tras guardar — cerrar sheet y quedarse en el resultado (no redirigir)
   const handleSave = async (nombre: string, fechaUso: string | null) => {
@@ -596,6 +1014,9 @@ export function GeneratorResultClient() {
         toast.error(data.message ?? "No se pudo guardar el look. Intentá de nuevo.");
         return;
       }
+
+      const savedData = await res.json().catch(() => ({})) as { id?: string };
+      if (savedData.id) setSavedLookId(savedData.id);
 
       setShowSaveSheet(false);
       toast.success("Look guardado");
@@ -637,7 +1058,11 @@ export function GeneratorResultClient() {
     .filter(Boolean)
     .join(" · ");
 
-  const isBusy = regenerating || swappingId !== null || saving;
+  const isBusy         = regenerating || swappingId !== null || saving;
+  const vestirDisabled = profileReady === false;
+  const vestirTooltip  = vestirDisabled
+    ? "Completá tu foto y datos corporales en el perfil para usar esta función"
+    : undefined;
 
   return (
     <>
@@ -772,38 +1197,56 @@ export function GeneratorResultClient() {
           </div>
         </div>
 
-        {/* ── Sticky actions ──────────────────────────────────────────────────── */}
+        {/* ── Sticky actions — Pantalla 22 ────────────────────────────────────── */}
         <div
           className={cn(
             "fixed inset-x-0 z-20",
             "bottom-[calc(60px+max(env(safe-area-inset-bottom),16px))]",
-            "px-5 py-2.5 bg-bg border-t border-line-2",
-            "flex gap-2",
+            "px-5 pt-2.5 pb-3 bg-bg border-t border-line-2",
+            "flex flex-col gap-2",
             "md:static md:border-t md:px-5 md:pb-8 md:pt-3",
           )}
         >
-          <Button
-            type="button"
-            variant="ghost"
-            size="md"
-            className="flex-1"
-            loading={regenerating}
-            icon={!regenerating ? <RefreshCw className="size-4" /> : undefined}
-            onClick={handleOtro}
-            disabled={isBusy}
-          >
-            Otro
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="md"
-            className="flex-[1.4]"
-            onClick={() => setShowSaveSheet(true)}
-            disabled={isBusy}
-          >
-            Guardar look
-          </Button>
+          {/* Row 1: Otro + Guardar look */}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              className="flex-1"
+              loading={regenerating}
+              icon={!regenerating ? <RefreshCw className="size-4" /> : undefined}
+              onClick={handleOtro}
+              disabled={isBusy}
+            >
+              Otro
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              className="flex-[1.4]"
+              onClick={() => setShowSaveSheet(true)}
+              disabled={isBusy}
+            >
+              Guardar look
+            </Button>
+          </div>
+
+          {/* Row 2: Vestir mi look — Pantalla 22 */}
+          <div title={vestirTooltip}>
+            <Button
+              type="button"
+              variant="accent"
+              size="md"
+              fullWidth
+              icon={<User className="size-4" />}
+              onClick={() => { if (!vestirDisabled && !isBusy) setVestirPhase("escenario"); }}
+              disabled={isBusy || vestirDisabled || profileReady === null}
+            >
+              {profileReady === null ? "Verificando perfil…" : "Vestir mi look"}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -816,6 +1259,30 @@ export function GeneratorResultClient() {
         onSave={handleSave}
         saving={saving}
       />
+
+      {/* ── Pantalla 23: EscenarioSheet ─────────────────────────────────────── */}
+      <EscenarioSheet
+        open={vestirPhase === "escenario"}
+        ocasion={current.parametros.ocasion ?? "Casual"}
+        onClose={() => setVestirPhase("idle")}
+        onGenerar={handleVestirGenerar}
+        loading={vestirPhase === "generating"}
+      />
+
+      {/* ── Pantalla 24: Generando ──────────────────────────────────────────── */}
+      {vestirPhase === "generating" && <VestirGeneratingOverlay />}
+
+      {/* ── Pantalla 25: Resultado imagen ──────────────────────────────────── */}
+      {vestirPhase === "result" && vestirImageUrl && (
+        <VestirResultScreen
+          imageUrl={vestirImageUrl}
+          onClose={() => setVestirPhase("idle")}
+          onSave={handleVestirGuardar}
+          onRegenerate={handleVestirRegenerar}
+          saving={vestirSaving}
+          regenerating={vestirRegenerating}
+        />
+      )}
     </>
   );
 }

@@ -4,7 +4,7 @@
 **Épica:** EP-03 — Análisis de prendas con IA  
 **Prioridad:** Media  
 **Estimación:** 2 puntos  
-**Estado:** Pendiente
+**Estado:** Completada
 
 ---
 

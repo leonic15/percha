@@ -4,7 +4,7 @@
 **Épica:** EP-06 — Preferencias y configuración del usuario  
 **Prioridad:** Alta  
 **Estimación:** 2 puntos  
-**Estado:** Pendiente
+**Estado:** Completada
 
 ---
 

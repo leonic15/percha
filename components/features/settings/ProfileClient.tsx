@@ -44,6 +44,7 @@ import {
   Camera,
   Pencil,
   Loader2,
+  UserRound,
 } from "lucide-react";
 import { Chip, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -725,6 +726,10 @@ export interface ProfileClientProps {
   ciudadPais:          string | null;
   estilosFavoritos:    string[];
   ocasionesFrecuentes: string[];
+  // LOOKSI-033
+  genero:              string | null;
+  alturaCm:            number | null;
+  pesoKg:              number | null;
   prendasCount:        number;
   looksCount:          number;
 }
@@ -740,6 +745,9 @@ export function ProfileClient({
   ciudadPais:           initialCiudadPais,
   estilosFavoritos:     initialEstilos,
   ocasionesFrecuentes:  initialOcasiones,
+  genero,
+  alturaCm,
+  pesoKg,
   prendasCount,
   looksCount,
 }: ProfileClientProps) {
@@ -1217,6 +1225,27 @@ export function ProfileClient({
             }
             value={ciudadNombre ? "Cambiar" : "Configurar"}
             onClick={() => setCiudadSheetOpen(true)}
+          />
+        </SettingsSection>
+
+        {/* ── DATOS PERSONALES (LSI-53) ────────────────────────────────────── */}
+        <SettingsSection label="DATOS PERSONALES">
+          <SettingRow
+            icon={UserRound}
+            label="Género, altura y peso"
+            sublabel={
+              genero
+                ? [
+                    genero === "hombre" ? "Hombre" : genero === "mujer" ? "Mujer" : "No especificado",
+                    alturaCm ? `${alturaCm} cm` : null,
+                    pesoKg   ? `${pesoKg} kg`   : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")
+                : "Sin completar — necesario para Vestir mi look"
+            }
+            value="Editar"
+            onClick={() => router.push("/perfil/datos")}
           />
         </SettingsSection>
 

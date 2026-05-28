@@ -4,7 +4,7 @@
 **Épica:** EP-01 — Autenticación y gestión de cuenta  
 **Prioridad:** Media  
 **Estimación:** 3 puntos  
-**Estado:** Pendiente
+**Estado:** Completada
 
 ---
 
