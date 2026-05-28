@@ -845,7 +845,7 @@
           <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
             <span class="eyebrow">Email</span>
           </div>
-          <div class="input">sofia@gmail.com</div>
+          <div class="input"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bccfd3dad5ddfcdbd1ddd5d092dfd3d1">[email&#160;protected]</a></div>
         </div>
         <div>
           <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
@@ -1083,7 +1083,7 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
           <div style="width: 32px; height: 32px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-family: var(--font-display); font-weight: 600; font-size: 12px;">SM</div>
           <div style="min-width: 0;">
             <div style="font-size: 12px; font-weight: 500;">Sofía Marini</div>
-            <div style="font-size: 10px; color: var(--ink-3);">sofia@gmail.com</div>
+            <div style="font-size: 10px; color: var(--ink-3);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ec9f838a858dac8b818d8580c28f8381">[email&#160;protected]</a></div>
           </div>
         </div>
       </div>
@@ -1116,7 +1116,17 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
       <a href="#screen-gen-result"><span class="n">13</span><span class="t">Generador · result</span></a>
       <a href="#screen-save"><span class="n">14</span><span class="t">Guardar look</span></a>
       <a href="#screen-history"><span class="n">15</span><span class="t">Historial</span></a>
-      <a href="#screen-settings"><span class="n">16</span><span class="t">Perfil</span></a>
+      <a href="#screen-look-detail"><span class="n">16</span><span class="t">Detalle del look</span></a>
+      <a href="#screen-look-delete"><span class="n">17</span><span class="t">Eliminar look</span></a>
+      <a href="#screen-settings"><span class="n">18</span><span class="t">Perfil</span></a>
+      <a href="#screen-personal-data"><span class="n">19</span><span class="t">Datos personales</span></a>
+      <a href="#screen-personal-data-sheet"><span class="n">20</span><span class="t">Sheet · foto cuerpo</span></a>
+      <a href="#screen-vestir-button"><span class="n">21</span><span class="t">Botón Vestir · estados</span></a>
+      <a href="#screen-vestir-result"><span class="n">22</span><span class="t">Vestir · entrada</span></a>
+      <a href="#screen-vestir-config"><span class="n">23</span><span class="t">Vestir · escenario</span></a>
+      <a href="#screen-vestir-generating"><span class="n">24</span><span class="t">Vestir · generando</span></a>
+      <a href="#screen-vestir-image"><span class="n">25</span><span class="t">Vestir · resultado</span></a>
+      <a href="#screen-vestir-saved"><span class="n">26</span><span class="t">Look guardado · vestir</span></a>
     </div>
 
     <!-- 01 WELCOME -->
@@ -1726,10 +1736,127 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
       </div>
     </article>
 
-    <!-- 16 SETTINGS -->
+    <!-- 16 LOOK DETAIL -->
+    <article class="spec" id="screen-look-detail">
+      <div class="spec-head">
+        <div><div class="num">16</div><h3>Detalle del look</h3></div>
+        <span class="spec-route">/looks/[id]</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li><strong>Hero collage</strong> full-bleed (sin padding), aspect <span class="mono">390 × 360</span>: grid <span class="mono">2×2</span>, <span class="mono">gap:1px</span>, <span class="mono">background:--surface-2</span>. Si hay &lt; 4 prendas, completar con celdas <span class="mono">--surface-2</span>.</li>
+            <li><strong>Top bar flotante</strong> sobre el hero (<span class="mono">position:absolute; top:56px; px-4</span>):
+              <ul>
+                <li>Izquierda: back en círculo glass 38×38 (<span class="mono">background:rgba(255,255,255,0.88); backdrop-filter:blur(8px)</span>).</li>
+                <li>Derecha: edit + calendar (agendar uso) en círculos glass.</li>
+              </ul>
+            </li>
+            <li><strong>Pill meta</strong> sobre el hero, <span class="mono">left:16px; bottom:12px</span>: fondo <span class="mono">rgba(0,0,0,0.72)</span>, dot pulse + texto mono <span class="mono">LOOK · 4 PIEZAS</span>.</li>
+            <li><strong>Title block</strong> (<span class="mono">px-[22px] pt-5</span>): eyebrow meta (<span class="mono">TRABAJO · OTOÑO · 18°</span>) + H1 32px display 2 líneas + caja <span class="mono">--accent-tint</span> con <span class="mono">&lt;AIBadge size="lg" /&gt;</span> en esquina sup-derecha y rationale italic 13px entre comillas.</li>
+            <li><strong>Stats row</strong>: 3 cells <span class="mono">grid-cols-3</span> con border top/bottom 1px line-2 y separador interno entre cells. Cada cell: eyebrow 9px + valor mono. Última cell (Usos) con valor 18px <span class="mono">font-weight:600</span>.</li>
+            <li><strong>Sección piezas</strong>: eyebrow <span class="mono">LAS PIEZAS · {n}</span> + link "Ver todas →" alineado a la derecha. Lista vertical <span class="mono">gap-2</span> de <span class="mono">&lt;PieceRow /&gt;</span>: thumb 52×52 + eyebrow categoría + nombre display 13px uppercase truncado + chevron forward. Border 1px line-2.</li>
+            <li><strong>Planificado</strong>: eyebrow + row de chips outlined con ícono <span class="mono">calendar</span> 12px + fecha mono. Última chip es <span class="mono">border:1px dashed</span> con "+ Agendar".</li>
+            <li><strong>Acciones primarias</strong>: 2 botones flex-1 — <span class="mono">&lt;Button kind="primary"&gt;Usar hoy&lt;/Button&gt;</span> + <span class="mono">&lt;Button kind="ghost" icon="refresh"&gt;Regenerar&lt;/Button&gt;</span>.</li>
+            <li><strong>Danger zone</strong>: botón outlined 1px <span class="mono">--danger</span>, texto + ícono trash en color danger, full-width. Caption 11px ink-3 centrada debajo: "Las prendas individuales seguirán en tu guardarropa."</li>
+            <li><strong>Componentes:</strong> <span class="mono">&lt;LookHero /&gt;</span>, <span class="mono">&lt;GlassButton /&gt;</span>, <span class="mono">&lt;AIBadge /&gt;</span>, <span class="mono">&lt;StatCell /&gt;</span>, <span class="mono">&lt;PieceRow /&gt;</span>, <span class="mono">&lt;Chip /&gt;</span>, <span class="mono">&lt;Button /&gt;</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Two-column: hero collage izquierda <span class="mono">50%</span> sticky <span class="mono">top-6</span>; content derecha scroll.</li>
+            <li>Top bar deja de ser flotante y se incrusta arriba del content como breadcrumb (<span class="mono">Looks / Sastre & camel</span>).</li>
+            <li>Piezas en grid <span class="mono">grid-cols-2</span> en lugar de lista vertical.</li>
+            <li>Acciones y danger zone <strong>no</strong> sticky — flujo normal al final del scroll.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío</div><div class="desc">N/A — si no existe el look → 404 "Look no encontrado / Volver al historial".</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Skeleton hero <span class="mono">390×360</span> + 3 líneas título + 4 piece-rows skeleton. Back funcional siempre.</div></div>
+        <div class="st"><div class="lbl">Eliminando</div><div class="desc">Tap en "Eliminar look" abre dialog <span class="mono">#screen-look-delete</span>. Mientras la petición está in-flight, ambos botones del dialog disabled + texto "Eliminando…".</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Si falla el fetch → mensaje inline arriba del content con "Reintentar" ghost sm. Si falla la eliminación → toast <span class="mono">error</span> + dialog se reabre con el estado anterior.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>El collage del hero es <strong>no-interactivo</strong>: tap en una pieza específica solo funciona desde la sección "Las piezas" (<span class="mono">/prenda/[id]</span>).</li>
+          <li>"Usar hoy" hace <span class="mono">POST /api/looks/{id}/log</span> con fecha de hoy, incrementa <span class="mono">uses</span> de forma optimistic y muestra toast <span class="mono">success</span> "Registrado para hoy".</li>
+          <li>"Regenerar" navega al generador con la <span class="mono">ocasión</span> y <span class="mono">contexto</span> precargados de este look — no crea uno nuevo automáticamente.</li>
+          <li>"Agendar" abre date picker nativo. Confirmación → insert en <span class="mono">planned[]</span> ordenado por fecha; chip aparece optimistic.</li>
+          <li>Tap en un chip de fecha planificada → action sheet con "Editar fecha" / "Eliminar planificación".</li>
+          <li>La rationale IA del look <strong>no se regenera</strong>: se cachea con el look al guardar; mostrar tal cual.</li>
+          <li>Si el look tiene &gt; 4 piezas mostrar las 4 primeras en el hero collage; la sección "Las piezas" muestra todas.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 17 LOOK DELETE -->
+    <article class="spec" id="screen-look-delete">
+      <div class="spec-head">
+        <div><div class="num">17</div><h3>Eliminar look · confirmación</h3></div>
+        <span class="spec-route">/looks/[id]?delete=open</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li><strong>Backdrop</strong> <span class="mono">rgba(0,0,0,0.55)</span> cubre toda la pantalla. Tap-out <strong>no cierra</strong> (acción destructiva — exigir tap explícito en "Cancelar").</li>
+            <li><strong>Dialog centrado</strong> verticalmente (<span class="mono">top:50% translateY(-50%)</span>), márgenes <span class="mono">left:20px right:20px</span>, shadow-modal. Fondo <span class="mono">--bg</span>, <strong>sin border-radius</strong> (sigue el lenguaje plano del sistema).</li>
+            <li><strong>Cabecera danger</strong> (<span class="mono">px-[22px] py-[22px 16px]</span>, border-bottom 1px line-2):
+              <ul>
+                <li>Ícono trash 24px en círculo 56×56 <span class="mono">background:--danger; color:#fff</span>, margin-bottom 14px, centrado.</li>
+                <li>Eyebrow <span class="mono">--danger</span>: "ACCIÓN IRREVERSIBLE".</li>
+                <li>H2 24px display 2 líneas centrado: "¿Eliminar / este look?".</li>
+              </ul>
+            </li>
+            <li><strong>Resumen del look</strong> (<span class="mono">px-[18px] py-4</span>, border-bottom 1px line-2): mini-collage 60×60 izquierda (mismo grid 2×2) + nombre display 15px uppercase + meta mono 10px ink-3 "<span class="mono">{N} PIEZAS · {U} USOS</span>".</li>
+            <li><strong>Body copy</strong> (<span class="mono">px-[22px] pt-4 pb-2</span>, 13px line-height 1.55, ink-2): "Se va a borrar el look y sus <strong>{N} fechas planificadas</strong>. Las prendas individuales seguirán en tu guardarropa." Los nombres enfatizados van en <span class="mono">--ink</span> + weight 500.</li>
+            <li><strong>Acciones</strong> (<span class="mono">px-[18px] py-[12px 18px]</span>, stack vertical gap-2):
+              <ul>
+                <li>Primaria danger: botón solid <span class="mono">--danger</span>, color <span class="mono">#fff</span>, 14px padding 14/16, ícono trash + texto "Sí, eliminar" uppercase.</li>
+                <li>Secundaria: <span class="mono">&lt;Button kind="ghost" size="lg" full&gt;Cancelar&lt;/Button&gt;</span>.</li>
+              </ul>
+            </li>
+            <li><strong>Componentes:</strong> <span class="mono">&lt;ConfirmDialog tone="danger" /&gt;</span>, <span class="mono">&lt;GarmentImage /&gt;</span>, <span class="mono">&lt;Button /&gt;</span>, <span class="mono">&lt;Icon /&gt;</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Dialog centrado horizontal + vertical, <span class="mono">max-w-[440px]</span>.</li>
+            <li>Resto de la pantalla queda visible y blurreado (<span class="mono">backdrop-filter:blur(2px)</span> opcional sobre <span class="mono">&lt;main&gt;</span>).</li>
+            <li>Acciones en row <span class="mono">flex gap-2</span> en lugar de stack vertical: Cancelar (flex 1) + Sí, eliminar (flex 1.2). El destructivo queda a la derecha.</li>
+            <li>Botón close (×) opcional en esquina sup-derecha del header (equivalente a Cancelar).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Default</div><div class="desc">Dialog interactivo. Foco inicial en "Cancelar" (por a11y — el destructivo nunca tiene foco al abrir).</div></div>
+        <div class="st"><div class="lbl">Eliminando</div><div class="desc">Ambos botones disabled. "Sí, eliminar" → "Eliminando…" + spinner inline 14px reemplaza el ícono trash.</div></div>
+        <div class="st"><div class="lbl">Éxito</div><div class="desc">Cerrar dialog (200ms fade) + replace history a <span class="mono">/looks</span> + toast <span class="mono">success</span> "Look eliminado" con acción "Deshacer" (5s).</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Inline error 12px <span class="mono">--danger</span> sobre el botón Cancelar: "No pudimos eliminar el look. Reintentar." Botones quedan habilitados.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Backdrop fade-in opacity 0 → 0.55 en 200ms. Dialog: <span class="mono">scale(0.96) opacity(0) → scale(1) opacity(1)</span> en 220ms <span class="mono">cubic-bezier(0.32, 0.72, 0, 1)</span>.</li>
+          <li><strong>Trap focus</strong> dentro del dialog mientras está abierto. <span class="mono">Esc</span> equivale a "Cancelar".</li>
+          <li>Petición: <span class="mono">DELETE /api/looks/{id}</span>. Borrar también todas las entradas en <span class="mono">/api/looks/{id}/planned</span> (cascade en el backend).</li>
+          <li>"Deshacer" del toast: <span class="mono">POST /api/looks/{id}/restore</span> con TTL 30s en server. Después de 30s el undo deja de ser visible.</li>
+          <li>El undo restaura el look pero <strong>no</strong> sus planificaciones futuras — el usuario tiene que volver a agendar.</li>
+          <li><strong>Anti-doble-tap:</strong> tras tocar "Sí, eliminar", deshabilitar inmediatamente para evitar reentry mientras la red responde.</li>
+          <li>Si el look tiene 0 fechas planificadas, omitir la mención de "<span class="mono">{N} fechas planificadas</span>" en el body — dejar solo "Las prendas individuales seguirán en tu guardarropa.".</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 18 SETTINGS -->
     <article class="spec" id="screen-settings">
       <div class="spec-head">
-        <div><div class="num">16</div><h3>Configuración · perfil</h3></div>
+        <div><div class="num">18</div><h3>Configuración · perfil</h3></div>
         <span class="spec-route">/perfil</span>
       </div>
       <div class="spec-grid">
@@ -1763,6 +1890,440 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
           <li>"Eliminar cuenta" → dialog full con confirmación tipeando el email (destrucción irreversible).</li>
           <li>Tap Tema → mini-action-sheet con 3 opciones (Claro / Oscuro / Sistema).</li>
           <li>Avatar: iniciales en accent si no hay foto; reemplaza si hay foto subida.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 19 PERSONAL DATA · LOOKSI-033/034 -->
+    <article class="spec" id="screen-personal-data">
+      <div class="spec-head">
+        <div><div class="num">19</div><h3>Datos personales <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-033 · 034</span></h3></div>
+        <span class="spec-route">/perfil/datos</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li><strong>Top bar:</strong> back + eyebrow <span class="mono">PERFIL · DATOS PERSONALES</span> + spacer.</li>
+            <li><strong>Title:</strong> H1 32px "Datos / personales." + sub 13px sobre por qué pedimos esto.</li>
+            <li><strong>Sección Género:</strong> 3 pills de altura 44px en row (gap-6) — <span class="mono">&lt;GenderPill /&gt;</span>. Single-select: <strong>Hombre / Mujer / No decir</strong> (label corto en mobile, "Prefiero no decirlo" en desktop). Caption 11px debajo.</li>
+            <li><strong>Sección Medidas:</strong> 2 <span class="mono">&lt;NumberField /&gt;</span> en row (gap-22): Altura (cm) / Peso (kg). Valor mono 22px <span class="mono">font-weight:600</span>, unit 12px ink-3 a la derecha, underline 1px line.</li>
+            <li><strong>Sección Foto de referencia corporal:</strong> eyebrow + <span class="mono">&lt;AIBadge /&gt;</span> alineado a la derecha. Estado vacío: drop zone <span class="mono">border:1.5px dashed --line; background:--surface-2</span> con <span class="mono">&lt;BodySilhouette size=56 /&gt;</span> + H3 18px "Foto de cuerpo / completo." + sub 12px + <span class="mono">&lt;Button kind="primary" size="sm" icon="plus"&gt;Agregar foto&lt;/Button&gt;</span>. Tap → abre sheet <a href="#screen-personal-data-sheet">20</a>.</li>
+            <li><strong>Checklist de guías</strong> (siempre visible bajo el área): card <span class="mono">surface + border-1px line-2 + p-3</span>, eyebrow 9px "GUÍAS PARA LA FOTO", 3 rows con check-circle 16px (vacío: outline; con foto: filled accent) + texto 12.5px ink-2:
+              <ul>
+                <li>Cuerpo completo (cabeza a pies)</li>
+                <li>Fondo claro o neutro</li>
+                <li>Pose natural de frente</li>
+              </ul>
+            </li>
+            <li><strong>Nota de privacidad</strong>: row con ícono <span class="mono">lock</span> 12px ink-3 + caption 10.5px ink-2.</li>
+            <li><strong>Sticky CTA bottom:</strong> <span class="mono">&lt;Button kind="accent" size="lg" full&gt;Guardar cambios&lt;/Button&gt;</span> sobre <span class="mono">linear-gradient(0deg, --bg 65%, transparent)</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Estado · con foto<span class="badge-side">FILLED</span></div>
+          <ul>
+            <li>El drop zone se reemplaza por card horizontal <span class="mono">p-2.5 + border --line-2</span>:
+              <ul>
+                <li>Thumb 96px aspect 3/4 a la izquierda (foto de referencia).</li>
+                <li>Columna derecha gap-2: mono 10px "SUBIDA · 22 · MAY · 26" + <span class="mono">&lt;Button kind="ghost" size="sm" icon="refresh"&gt;Cambiar&lt;/Button&gt;</span> + botón outline <span class="mono">--danger</span> "Eliminar" sm con trash icon.</li>
+              </ul>
+            </li>
+            <li>Los 3 check-circles del checklist pasan a <strong>filled accent</strong>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="spec-grid" style="margin-top: 8px;">
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Rail izquierdo 200px con nav de configuración (Perfil / <strong>Datos personales</strong> / Estilo / App / Cuenta); active row con <span class="mono">background:--surface</span> + border-left 2px accent.</li>
+            <li>Main split <span class="mono">grid-cols-[1.2fr_1fr] gap-7</span>: izquierda form (Género row de 3 pills con texto largo "Prefiero no decirlo", Medidas, checklist + privacy), derecha drop zone aspect 3/4 con <span class="mono">&lt;BodySilhouette size=72 /&gt;</span> + botones "Galería" + "Cámara".</li>
+            <li>Acciones del form en row inferior: <span class="mono">&lt;Button kind="accent"&gt;Guardar cambios&lt;/Button&gt;</span> + <span class="mono">&lt;Button kind="ghost"&gt;Descartar&lt;/Button&gt;</span>. <strong>No sticky.</strong></li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Componentes nuevos</div>
+          <ul>
+            <li><span class="mono">&lt;GenderPill active&gt;Mujer&lt;/GenderPill&gt;</span> — segmented pill <span class="mono">h-11 flex-1</span>, mismo lenguaje que <span class="mono">&lt;Chip /&gt;</span> pero altura fija.</li>
+            <li><span class="mono">&lt;NumberField label="Altura" value="168" unit="cm" /&gt;</span> — underline, valor mono 22px, unit ink-3 a la derecha.</li>
+            <li><span class="mono">&lt;BodyPhotoZone state="empty | filled" photoUrl /&gt;</span> — compone drop zone o thumb-card + acciones.</li>
+            <li><span class="mono">&lt;BodySilhouette size /&gt;</span> — SVG estilo line, viewBox 48×64, mismo stroke que el resto de iconos.</li>
+            <li><span class="mono">&lt;PhotoGuidelineList complete /&gt;</span> — 3 rows con check circles, intercambia outline ↔ filled accent según <span class="mono">complete</span>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Vacío · default</div><div class="desc">Género sin selección (caption "Influye en cómo la IA interpreta cortes y siluetas."). Altura/Peso placeholder ink-3. Foto: drop zone.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Subiendo foto: thumb con overlay <span class="mono">rgba(0,0,0,0.45)</span> + spinner 18px accent + "Subiendo…". CTA Guardar disabled.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Foto &gt; 10MB → toast error. Sin género al guardar → inline error 11px <span class="mono">--danger</span> bajo el row de pills.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Al completar los 3 datos (género + altura + peso + foto), se desbloquea el botón <strong>"Vestir mi look"</strong> en todo el sistema (LOOKSI-034). Persistir flag <span class="mono">user.profileComplete</span> en el backend.</li>
+          <li>El badge <span class="mono">&lt;AIBadge /&gt;</span> en "Foto de referencia" comunica que la foto se usa para alimentar IA — no que la IA la generó.</li>
+          <li>Tap "Cambiar" abre la sheet 20 con el estado actual preservado.</li>
+          <li>Tap "Eliminar" pide confirmación inline (no abrir modal): la fila se reemplaza por "¿Eliminar foto? Sí · Cancelar" durante 4s.</li>
+          <li>Validación inputs: altura 80–250 cm, peso 30–250 kg. Fuera de rango → underline rojo + hint debajo.</li>
+          <li>Privacidad: el texto del lock <strong>siempre visible</strong>, no como tooltip — es información clave para una foto corporal.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 20 ADD BODY PHOTO SHEET · LOOKSI-033 -->
+    <article class="spec" id="screen-personal-data-sheet">
+      <div class="spec-head">
+        <div><div class="num">20</div><h3>Sheet · agregar foto de referencia <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-033</span></h3></div>
+        <span class="spec-route">/perfil/datos <span style="color:var(--ink-3);">· state</span></span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Backdrop <span class="mono">rgba(0,0,0,0.45)</span>. Tap-out cierra (acción no-destructiva).</li>
+            <li>Sheet <span class="mono">absolute bottom:0</span>, <span class="mono">border-radius: 20px 20px 0 0</span>, padding <span class="mono">16/22/28</span>, <span class="mono">shadow-modal</span>.</li>
+            <li>Drag handle pill 36×4 ink-line centrada.</li>
+            <li>Eyebrow "FOTO DE REFERENCIA" + H2 24px "Agregar foto." + sub 13px sobre las guías rápidas.</li>
+            <li><strong>2 opciones <span class="mono">&lt;SheetOption /&gt;</span></strong> stack gap-2:
+              <ul>
+                <li>Ícono <span class="mono">gallery</span> + título display 14px "Elegir de la galería" + sub 11.5px ink-3 "Foto existente del rollo".</li>
+                <li>Ícono <span class="mono">camera</span> + "Usar cámara" + "Sacar una nueva ahora".</li>
+              </ul>
+              Cada row: ícono 18px en círculo 40px <span class="mono">--surface-2</span> + textos + chevron forward 14px ink-3. Background <span class="mono">--surface</span>, border 1px <span class="mono">--line-2</span>.</li>
+            <li><strong>Aviso de privacidad:</strong> card <span class="mono">--accent-tint</span> padding 12/14, ícono <span class="mono">lock</span> 14px accent + texto 11px ink-2: "Esta foto solo se usa para generar imágenes de looks. No es visible para otros usuarios."</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Pasa a dialog centrado <span class="mono">max-w-[420px]</span> con close (×) sup-derecha.</li>
+            <li>Opciones quedan en stack (no se rompen a 2 columnas — siguen siendo solo 2).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Default</div><div class="desc">Estado por defecto. Focus inicial en "Galería".</div></div>
+        <div class="st"><div class="lbl">Permisos</div><div class="desc">Tap "Cámara" → prompt nativo de permisos. Si se deniega: row queda con badge "Permiso necesario" + link al settings del sistema.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Falla de upload → toast error + sheet permanece abierta para reintentar.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li><span class="mono">&lt;input type="file" accept="image/*" capture="user"&gt;</span> en "Cámara" abre cámara <strong>frontal</strong> (selfie) — distinto del flujo de agregar prenda que usa <span class="mono">capture="environment"</span>.</li>
+          <li>Al confirmar foto, push a vista de crop 1:1.33 (3:4) opcional antes de guardar.</li>
+          <li>Animación: <span class="mono">translateY(100%) → 0</span> 280ms <span class="mono">cubic-bezier(0.32, 0.72, 0, 1)</span>.</li>
+          <li>El aviso de privacidad es <strong>parte del componente</strong> — no se puede ocultar por A/B. Es requisito legal para foto corporal.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 21 VESTIR BUTTON · ESTADOS (LOOKSI-034) -->
+    <article class="spec" id="screen-vestir-button">
+      <div class="spec-head">
+        <div><div class="num">21</div><h3>Botón "Vestir mi look" · estados reutilizables <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-034</span></h3></div>
+        <span class="spec-route" style="background: var(--accent-tint); color: var(--accent);">&lt;VestirButton /&gt;</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Variante · activo<span class="badge-side">ACTIVE</span></div>
+          <ul>
+            <li>Pill accent estándar del sistema: <span class="mono">background:--accent; color:--accent-ink; border:1px solid --accent</span>.</li>
+            <li>Tamaños: <span class="mono">md (46px)</span> default · <span class="mono">lg (54px)</span> hero · <span class="mono">size="full"</span> para sticky bottoms.</li>
+            <li>Ícono <span class="mono">sparkles</span> 15px a la izquierda del texto.</li>
+            <li>Texto: <strong>"Vestir mi look"</strong> uppercase 13px <span class="mono">font-weight: 500</span> letter-spacing 0.04.</li>
+            <li>Tap: <span class="mono">active:scale-[0.985]</span> 120ms. Abre sheet "Configurar escenario" (<a href="#screen-vestir-config">23</a>).</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Variante · bloqueado<span class="badge-side">LOCKED</span></div>
+          <ul>
+            <li>Background <span class="mono">--surface-2</span>, color <span class="mono">--ink-3</span>, border <strong>1px dashed</strong> <span class="mono">--line</span> (señal visual clara de "no disponible").</li>
+            <li>Ícono <span class="mono">lock</span> 14px reemplaza al sparkles.</li>
+            <li><span class="mono">cursor: not-allowed</span>, mismo padding y altura que el activo (no salta layout).</li>
+            <li>Tap NO genera la imagen — push a <span class="mono">/perfil/datos</span> con highlight del campo faltante.</li>
+            <li><strong>Hint obligatorio</strong> debajo o al costado: <span class="mono">&lt;LockHint /&gt;</span> — pill ink/bg con ícono info + texto "Completá tu perfil para usar esta función". En desktop puede ser tooltip on hover; en mobile siempre visible.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-grid" style="margin-top: 8px;">
+        <div class="spec-block">
+          <div class="label">Variante · loading<span class="badge-side">PENDING</span></div>
+          <ul>
+            <li>Mismo styling que activo pero cursor wait, opacity 0.7, disabled.</li>
+            <li>Texto pasa a "Generando…", ícono sparkles → spinner 14px inline.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">A11y</div>
+          <ul>
+            <li>Activo: <span class="mono">aria-label="Vestir mi look — generar imagen del look puesto sobre vos"</span>.</li>
+            <li>Bloqueado: <span class="mono">aria-disabled="true"</span> + <span class="mono">aria-describedby</span> apuntando al <span class="mono">&lt;LockHint /&gt;</span>.</li>
+            <li>El hint también debe leerse al recibir foco.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Reglas de uso</div>
+        <ul>
+          <li>El botón aparece en: <strong>resultado del generador</strong> (<a href="#screen-vestir-result">22</a>), <strong>detalle del look guardado</strong> (<a href="#screen-look-detail">16</a>) cuando todavía no hay imagen vestir, y opcionalmente en cards de "Looks" del historial como acción secundaria.</li>
+          <li>Está bloqueado si <span class="mono">!user.profileComplete</span> — todos los datos requeridos (género + altura + peso + foto) deben estar presentes.</li>
+          <li>El backend rechaza el endpoint con 403 si el perfil está incompleto — el bloqueo del frontend es UX, no seguridad.</li>
+          <li><strong>No</strong> ocultar el botón cuando está bloqueado: la presencia visible educa sobre la feature.</li>
+          <li>Cuota: cada "Vestir mi look" gasta 1 crédito IA. Mostrar contador en el hint si quedan pocos créditos.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 22 GEN RESULT WITH VESTIR · LOOKSI-035 -->
+    <article class="spec" id="screen-vestir-result">
+      <div class="spec-head">
+        <div><div class="num">22</div><h3>Resultado del generador · con "Vestir mi look" <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <span class="spec-route">/generador/resultado</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Misma estructura que <a href="#screen-gen-result">13 · Generador · resultado</a> hasta la grilla de piezas. Cambios sobre la versión anterior:</li>
+            <li><strong>Nueva sección "Vestir hero card"</strong> bajo la grilla, padding <span class="mono">px-5 pt-[18px]</span>:
+              <ul>
+                <li>Card padding 16px, background <span class="mono">--accent-tint</span> (locked: <span class="mono">--surface-2</span>) + border 1px <span class="mono">--line-2</span>.</li>
+                <li>Row top: <span class="mono">&lt;AIBadge size="lg" /&gt;</span> + eyebrow accent "NUEVO".</li>
+                <li>H3 display 18px 2 líneas: "Vestí este look / sobre vos misma." Letter-spacing 0.02.</li>
+                <li>Body 12px ink-2 maxw 280: "Generamos una imagen fotorrealista del look puesto sobre tu foto de referencia."</li>
+                <li><span class="mono">&lt;VestirButton size="lg" full locked={!profileComplete} /&gt;</span>.</li>
+                <li>Si <span class="mono">locked</span>: row debajo con ícono <span class="mono">info</span> + texto 11px ink-3: "Completá tu perfil para usar esta función. <span style="color:var(--accent); text-decoration:underline; text-underline-offset:2px;">Ir a datos personales →</span>".</li>
+              </ul>
+            </li>
+            <li><strong>Sticky bottom actions</strong> sin cambios: <span class="mono">&lt;Button kind="ghost" icon="refresh"&gt;Otro&lt;/Button&gt;</span> + <span class="mono">&lt;Button kind="primary"&gt;Guardar look&lt;/Button&gt;</span>.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Hero card pasa a row <span class="mono">grid-cols-[1fr_auto]</span>: texto a la izquierda, <span class="mono">&lt;VestirButton size="lg" /&gt;</span> auto-width a la derecha alineado al centro vertical.</li>
+            <li>El locked-hint (si aplica) sigue en row debajo, ancho completo.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Activo · perfil completo</div><div class="desc">Card accent-tint + botón accent. Tap → sheet 23.</div></div>
+        <div class="st"><div class="lbl">Bloqueado</div><div class="desc">Card surface-2, botón dashed locked + hint con CTA in-link a <span class="mono">/perfil/datos</span>.</div></div>
+        <div class="st"><div class="lbl">Post-generación</div><div class="desc">Si ya se generó la imagen para este look: la card se reemplaza por <strong>thumb 80px</strong> + "Imagen vestida lista · Ver →".</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Posición de la Vestir hero card es entre la grilla y las acciones — <strong>nunca arriba</strong> del título del look, para no competir con la información primaria.</li>
+          <li>Si el usuario no tiene foto pero sí los otros datos: el hint cambia a "Subí tu foto de referencia para vestir este look."</li>
+          <li>La card no aparece si el feature flag <span class="mono">vestirMiLook</span> está off — fallback graceful.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 23 VESTIR CONFIG SHEET · LOOKSI-035 -->
+    <article class="spec" id="screen-vestir-config">
+      <div class="spec-head">
+        <div><div class="num">23</div><h3>Sheet · configurar escenario <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <span class="spec-route">/generador/resultado <span style="color:var(--ink-3);">· vestir state</span></span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Backdrop <span class="mono">rgba(0,0,0,0.5)</span>. Sheet bottom estándar (radius 20/20/0/0, shadow-modal).</li>
+            <li>Drag handle pill 36×4 ink-line.</li>
+            <li>Top: row con <span class="mono">&lt;AIBadge size="lg" /&gt;</span> + eyebrow accent <strong>"VESTIR MI LOOK"</strong>.</li>
+            <li>H2 26px 2 líneas "Configurar / escenario." + sub 12.5px ink-2.</li>
+            <li><strong>Sección "Ocasión del look"</strong>: eyebrow + un solo chip <strong>read-only</strong> — pill <span class="mono">--surface + border --line</span>, color ink-2, ícono <span class="mono">lock</span> 11px ink-3 a la izquierda + texto (ej. "Trabajo"). El read-only se desambigua con el ícono lock — no se puede cambiar acá porque viene del look.</li>
+            <li><strong>Sección "Escenario · opcional"</strong>: label <span class="mono">font-size:10/uppercase + " · opcional"</span> inline en ink-3 sin caps. Textarea <span class="mono">border 1px line; min-h: 84px; p-3/14; italic placeholder en ink-3</span>. Placeholder: "Ej: Oficina moderna con luz natural, café en el centro…". Hint 10.5px ink-3 abajo: "Sé descriptiva con la luz, el lugar y el clima."</li>
+            <li><strong>CTA</strong>: <span class="mono">&lt;Button kind="accent" size="lg" full icon="sparkles"&gt;Generar imagen&lt;/Button&gt;</span>.</li>
+            <li>Sub-CTA 10.5px ink-3 centrado: "Puede tardar hasta 30 segundos."</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Dialog centrado <span class="mono">max-w-[480px]</span>, no es bottom sheet.</li>
+            <li>Resto del layout idéntico.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Default</div><div class="desc">Ocasión pre-completada (chip locked). Textarea vacía con placeholder italic. Focus inicial en textarea.</div></div>
+        <div class="st"><div class="lbl">Carga</div><div class="desc">Tap "Generar" → CTA disabled + "Generando…" + spinner inline. Inmediatamente push a 24.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Falta crédito IA → toast warning con CTA "Ver planes". Sin perfil → no debería llegar acá (botón está locked en 22).</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>El escenario es opcional. Sin texto, la IA usa default basado en la ocasión.</li>
+          <li>Max length 240 chars. Contador 10px ink-3 abajo a la derecha cuando se acerca al límite.</li>
+          <li>Cerrar sheet sin generar: se descarta el texto (no hay borrador).</li>
+          <li>El chip de ocasión es read-only acá pero <strong>editable</strong> en el flujo del generador. Si el usuario quiere otra ocasión, vuelve al generador.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 24 VESTIR GENERATING · LOOKSI-035 -->
+    <article class="spec" id="screen-vestir-generating">
+      <div class="spec-head">
+        <div><div class="num">24</div><h3>Generando · pantalla intermedia <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <span class="spec-route">/generador/vestir/loading</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li>Background <span class="mono">--bg</span> liso (no fotos detrás). Fullscreen, sin BottomNav.</li>
+            <li>Top bar: close (×) sutil ink-3 a la izquierda + eyebrow "VESTIR MI LOOK · GENERANDO" centrado + spacer.</li>
+            <li><strong>Centro flex column items-center justify-center gap-6</strong>:
+              <ul>
+                <li><strong>AI pulse</strong> 140×140: 2 ringings <span class="mono">border 1.5px accent</span> con animation <span class="mono">scale(0.6) → scale(1.15)</span> y opacity 0.5 → 0 en loop 2.2s (offset 0.7s entre ellos). Core 26%: círculo <span class="mono">--accent-tint</span> con glyph "✦" 32px color accent, animation <span class="mono">scale 1 → 1.08 → 1</span> en 1.4s.</li>
+                <li><span class="mono">&lt;AIBadge size="lg" /&gt;</span>.</li>
+                <li>H2 30px display "Generando / tu look…" centrado. Sub 12px ink-3 letter-spacing 0.06: "Puede tardar hasta 30 segundos."</li>
+                <li>Progress bar indeterminada: <span class="mono">w-60 h-0.5 bg-line-2</span>; fill <span class="mono">w-2/5 bg-accent</span> con keyframes <span class="mono">left: -40% → 100%</span> 1.8s loop.</li>
+              </ul>
+            </li>
+            <li>Footer tip 11px ink-3 centrado: "Combinando tu foto de referencia con las prendas del look. / No cierres la app."</li>
+            <li><strong>No CTAs</strong> — auto-avanza a 25 al terminar.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Misma composición centrada dentro de <span class="mono">&lt;main&gt;</span> (sidebar visible al lado).</li>
+            <li>Pulse 180px en desktop. H2 36px.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Default</div><div class="desc">Único estado interactivo: el close × cancela (POST /vestir/cancel + vuelve al resultado 22).</div></div>
+        <div class="st"><div class="lbl">Lento (&gt; 30s)</div><div class="desc">Sub cambia a "Está tomando un poco más de lo habitual…". El pulse no cambia.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Reemplaza centro por ícono trash en círculo --danger + "No pudimos generar la imagen" + <span class="mono">&lt;Button kind="ghost"&gt;Reintentar&lt;/Button&gt;</span>.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>Honrar <span class="mono">prefers-reduced-motion: reduce</span>: rings dejan de pulsar; solo se mantiene la progress bar (opacity fade).</li>
+          <li>Tiempo total estimado del backend: 12–28s. Después de 30s, mostrar el state "lento". Después de 60s, fail con state error.</li>
+          <li>La pantalla no es swipe-back desde iOS — es modal de pantalla completa hasta que termina.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 25 VESTIR IMAGE · LOOKSI-035 -->
+    <article class="spec" id="screen-vestir-image">
+      <div class="spec-head">
+        <div><div class="num">25</div><h3>Resultado · imagen generada <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <span class="spec-route">/generador/vestir/[imageId]</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li><strong>Imagen full-bleed</strong> ocupando toda la pantalla — aspect ratio aproximado 3:4 vertical, <span class="mono">object-fit: cover</span> y centrada. Background del wrapper <span class="mono">#1a1814</span> para evitar flashes en cargas.</li>
+            <li><strong>Floating top bar</strong> (<span class="mono">absolute top:56 left:16 right:16</span>):
+              <ul>
+                <li>Izquierda: <span class="mono">&lt;GlassButton&gt;&lt;Icon name="back" /&gt;&lt;/GlassButton&gt;</span> — círculo 38px <span class="mono">rgba(255,255,255,0.88) + blur(8px)</span>.</li>
+                <li>Derecha: pill <span class="mono">rgba(0,0,0,0.6) + blur(8px)</span> con dot verde pulse + mono 10px "✦ IA · 22·MAY·26".</li>
+              </ul>
+            </li>
+            <li><strong>Floating glass bar inferior</strong> (<span class="mono">absolute left:16 right:16 bottom:32</span>):
+              <ul>
+                <li>Container pill <span class="mono">rgba(255,255,255,0.18) + blur(16px) + border 1px rgba(255,255,255,0.22)</span>, padding 10/10, radius 999.</li>
+                <li>2 botones flex en row, gap-2, ambos h-11 radius 999:
+                  <ul>
+                    <li><strong>"Otra versión"</strong> (ghost glass): transparent + border <span class="mono">rgba(255,255,255,0.45)</span>, color #fff, ícono refresh 14px.</li>
+                    <li><strong>"Guardar imagen"</strong> (accent pill): background <span class="mono">--accent</span>, color <span class="mono">--accent-ink</span>, ícono download 14px. <span class="mono">flex: 1.2</span> (más ancho).</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li>Sin BottomNav. Sin chrome adicional. La imagen es la protagonista.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Imagen centrada <span class="mono">max-h-[88vh]</span> con margin, fondo <span class="mono">#1a1814</span> oscureciendo el resto.</li>
+            <li>Glass bar inferior se vuelve standard pill bar centrada bajo la imagen (no flotante).</li>
+            <li>Atajos: <span class="mono">G</span> guardar, <span class="mono">R</span> regenerar, <span class="mono">Esc</span> volver.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Default</div><div class="desc">Imagen cargada, ambas acciones activas.</div></div>
+        <div class="st"><div class="lbl">Carga inicial</div><div class="desc">Background <span class="mono">#1a1814</span> + shimmer + spinner pequeño centrado mientras llega el blob.</div></div>
+        <div class="st"><div class="lbl">Guardando</div><div class="desc">Botón "Guardar imagen" → "Guardando…" + spinner. Éxito: toast "Imagen guardada" y push al detalle del look 26 con la imagen ya adjunta.</div></div>
+        <div class="st"><div class="lbl">Error</div><div class="desc">Imagen falla al cargar → mensaje overlay "No pudimos cargar la imagen" + <span class="mono">&lt;Button kind="ghost"&gt;Reintentar&lt;/Button&gt;</span>.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>"Guardar imagen": <strong>doble efecto</strong> — adjunta la imagen al look (server) <em>y</em> ofrece descarga al rollo del dispositivo (vía <span class="mono">navigator.share</span> en mobile, blob download en desktop).</li>
+          <li>"Otra versión": <span class="mono">POST /vestir/regenerate</span> con el mismo escenario; vuelve a 24 (Generando). Consume 1 crédito IA.</li>
+          <li>Long-press sobre la imagen → action sheet nativa con Guardar / Compartir / Reportar (último abre form de moderación).</li>
+          <li>Marca de agua mono 9.5px en sup-derecha durante 1.5s al cargar: "look fotorrealista · {look} · {escenario}" para que el usuario reconozca rápido el contexto. Luego fade out.</li>
+          <li>Honrar <span class="mono">prefers-reduced-motion</span>: el dot verde deja de pulsar.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 26 SAVED LOOK WITH VESTIR · LOOKSI-035 -->
+    <article class="spec" id="screen-vestir-saved">
+      <div class="spec-head">
+        <div><div class="num">26</div><h3>Detalle del look guardado · con imagen "Vestir" <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <span class="spec-route">/looks/[id]</span>
+      </div>
+      <div class="spec-grid">
+        <div class="spec-block">
+          <div class="label">Layout mobile<span class="badge-side">390</span></div>
+          <ul>
+            <li><strong>Variante del detalle del look</strong> (<a href="#screen-look-detail">16</a>) cuando <span class="mono">look.vestirImageUrl</span> está presente. Solo se especifica acá el estado <em>con imagen</em>.</li>
+            <li><strong>Hero superior 420px</strong> = imagen Vestir generada, full-bleed (reemplaza al collage 2×2 del 16). Background base <span class="mono">#1a1814</span>, <span class="mono">object-fit: cover</span>.</li>
+            <li><strong>Top bar flotante</strong>: igual al 16 — glass back izq + glass edit/calendar der.</li>
+            <li><strong>Pill ✦ IA · VESTIR MI LOOK</strong> en sup-izquierda del hero, mismo styling que el detalle estándar pero con label específico.</li>
+            <li><strong>Pill secundaria sup-derecha</strong>: <span class="mono">rgba(255,255,255,0.92)</span> con ícono download + texto "Guardar" — para bajarse esta imagen al rollo. Mono 9.5px.</li>
+            <li><strong>Strip de mini-collage</strong> debajo del hero (full-width, h ~88px): los 4 thumbs de las prendas reales en row con gap-1. Esto recupera el contexto del look (de qué piezas se compone) sin perder la imagen vestida como protagonista.</li>
+            <li><strong>Title block</strong>: igual al 16 — eyebrow meta + H1 32px + AI rationale card accent-tint.</li>
+            <li><strong>CTA "Generar otra versión"</strong>: card <span class="mono">--surface + border --line-2 + p-3/14</span>, row con ícono <span class="mono">sparkles</span> accent + texto ink-2 "Generar otra versión con otro escenario" + chevron forward. Tap abre sheet 23 con el escenario anterior pre-llenado.</li>
+            <li><strong>Pieces list, planned, actions, danger zone</strong>: idénticos al 16.</li>
+          </ul>
+        </div>
+        <div class="spec-block">
+          <div class="label">Layout desktop<span class="badge-side">≥ md</span></div>
+          <ul>
+            <li>Two-column: hero Vestir image izq <span class="mono">max-h-[80vh]</span> sticky <span class="mono">top-6</span>; content der scroll.</li>
+            <li>Strip de mini-collage pasa a row de 4 thumbs <strong>debajo</strong> de la imagen Vestir (no entre hero y content) — funciona como leyenda visual.</li>
+            <li>El "Generar otra versión" queda como acción secundaria del bloque de actions junto a "Usar hoy" y "Regenerar".</li>
+          </ul>
+        </div>
+      </div>
+      <div class="spec-states">
+        <div class="st"><div class="lbl">Sin imagen Vestir</div><div class="desc">Renderizar la versión original 16 con collage 2×2. Solo cambia este estado.</div></div>
+        <div class="st"><div class="lbl">Con imagen Vestir</div><div class="desc">Hero pasa a la imagen generada + mini-collage strip preserva las prendas. Botón "Vestir mi look" original desaparece (ya fue ejecutado).</div></div>
+        <div class="st"><div class="lbl">Imagen Vestir + regenerando</div><div class="desc">Mientras se genera otra versión, mostrar overlay sobre el hero con AI pulse (igual al 24) — la imagen anterior se oscurece a 50%. Se reemplaza al terminar.</div></div>
+      </div>
+      <div class="spec-notes">
+        <div class="lbl">Detalle</div>
+        <ul>
+          <li>La imagen Vestir se guarda en el look una sola vez por escenario; regenerar la reemplaza (sin historial visible por ahora).</li>
+          <li>Tap en la imagen hero → push a un viewer fullscreen con zoom (igual a fotos de prenda).</li>
+          <li>Si el usuario edita el perfil después de generar, la imagen <strong>no</strong> se invalida — pertenece al snapshot del momento.</li>
+          <li>El strip de mini-collage es <strong>interactivo</strong>: tap en un thumb → push a <span class="mono">/prenda/[id]</span>. Distinto del 16 donde el hero collage es no-interactivo.</li>
+          <li>Si la imagen falla al cargar (404 / blob corrupto): fallback al hero collage 2×2 original + banner inline "No pudimos cargar la imagen vestida · Regenerar".</li>
         </ul>
       </div>
     </article>
@@ -1900,7 +2461,7 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
 
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   const html = document.documentElement;
   const btn = document.getElementById('theme-toggle');
   const lbl = document.getElementById('theme-label');
