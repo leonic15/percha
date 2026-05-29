@@ -66,36 +66,13 @@ export default async function GuardarropaPage({
   const garments = (garmentsData ?? []) as Prenda[];
   const total    = count ?? 0;
 
-  // ── Signed URLs en batch ─────────────────────────────────────────────────
-  // imagen_url almacena el path relativo al bucket: "{user_id}/{prenda_id}.{ext}"
-  const paths = garments
-    .map((g) => g.imagen_url)
-    .filter((url): url is string => Boolean(url));
-
-  const signedUrlMap: Record<string, string> = {};
-  if (paths.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrls(paths, 3600); // 1 hora
-    if (signed) {
-      for (const s of signed) {
-        if (s.path && s.signedUrl) signedUrlMap[s.path] = s.signedUrl;
-      }
-    }
-  }
-
-  const garmentsWithUrls = garments.map((g) => ({
-    ...g,
-    signedUrl: g.imagen_url ? (signedUrlMap[g.imagen_url] ?? null) : null,
-  }));
-
   // ── key para forzar remount del cliente al cambiar filtros ───────────────
   const filterKey = [q, categorySlug, season, occasion, String(favorites)].join("|");
 
   return (
     <WardrobeClient
       key={filterKey}
-      initialGarments={garmentsWithUrls}
+      initialGarments={garments}
       categories={categories}
       total={total}
       pageSize={PAGE_SIZE}

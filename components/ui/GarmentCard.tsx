@@ -1,19 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Badge } from "./Badge";
-
-/* ─────────────────────────────────────────────────────────────────────────
-   GarmentCard — card de prenda para la grilla del guardarropa.
-
-   • Foto (next/image), aspect 4/5 por default.
-   • Nombre en display uppercase, categoría en eyebrow.
-   • Toggle favorito en la esquina sup-derecha.
-   • Badge slot (ej. "IA") en sup-izquierda.
-
-   La tarjeta entera es clicable como link al detalle.
-   ───────────────────────────────────────────────────────────────────────── */
 
 export interface Garment {
   id: string;
@@ -30,6 +18,10 @@ export interface GarmentCardProps {
   className?: string;
   /** href al detalle. Si no se pasa, no se envuelve en Link. */
   href?: string;
+  /** true para las primeras cards above-the-fold — carga eager con fetchPriority high */
+  priority?: boolean;
+  /** Se llama justo antes de navegar — sirve para precargar la imagen */
+  onBeforeNavigate?: () => void;
 }
 
 export function GarmentCard({
@@ -38,6 +30,8 @@ export function GarmentCard({
   showAIBadge,
   className,
   href,
+  priority = false,
+  onBeforeNavigate,
 }: GarmentCardProps) {
   const inner = (
     <article
@@ -48,12 +42,14 @@ export function GarmentCard({
       )}
     >
       <div className="relative aspect-[4/5] bg-surface-2 overflow-hidden">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={garment.imageUrl}
           alt={garment.name}
-          fill
-          sizes="(min-width: 768px) 240px, 50vw"
-          className="object-cover"
+          className="absolute inset-0 w-full h-full object-cover"
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
         />
         {showAIBadge && (
           <div className="absolute left-2 top-2">
@@ -91,7 +87,7 @@ export function GarmentCard({
       </div>
     </article>
   );
-  return href ? <Link href={href}>{inner}</Link> : inner;
+  return href ? <Link href={href} onClick={onBeforeNavigate}>{inner}</Link> : inner;
 }
 
 /* ───────────── Skeleton específico del card ─────────────

@@ -127,6 +127,15 @@ export async function POST(req: NextRequest) {
     (g) => !excludeSet.has(g.id)
   );
 
+  // ── 1b. Obtener género del perfil ─────────────────────────────────────────
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("genero")
+    .eq("id", user.id)
+    .single();
+
+  const genero = profileData?.genero ?? null;
+
   // ── 2. Resolver categorías ─────────────────────────────────────────────────
   const categoryIds = [
     ...new Set(garments.map((g) => g.category_id).filter(Boolean)),
@@ -163,12 +172,20 @@ export async function POST(req: NextRequest) {
       ? `El look DEBE incluir obligatoriamente la prenda con ID:${body.prenda_base_id}. Completar con prendas que combinen.`
       : "Crear el look desde cero. La IA elige libremente las mejores prendas.";
 
+  const generoLine =
+    genero === "hombre"
+      ? "Género: hombre. Priorizá prendas y estilos masculinos. Usá terminología masculina al describir (remera, camiseta, pantalón, campera, etc.)."
+      : genero === "mujer"
+        ? "Género: mujer. Priorizá prendas y estilos femeninos. Usá terminología femenina al describir (blusa, vestido, falda, saco, etc.)."
+        : "Género: no especificado. Usá terminología neutra y genérica para las prendas.";
+
   const prompt = `Sos una estilista experta. Armá un look cohesivo para esta persona.
 
 PARÁMETROS:
 - Ocasión: ${body.ocasion}
 - ${body.contexto ? `Contexto: ${body.contexto}` : "Sin contexto adicional."}
 - ${weatherLine}
+- ${generoLine}
 - ${modeInstruction}
 
 GUARDARROPAS DISPONIBLE (${garments.length} prendas):
@@ -176,9 +193,12 @@ ${garmentLines}
 
 INSTRUCCIONES:
 1. Elegí entre 2 y 5 prendas de la lista anterior.
-2. Priorizá: cohesión estética, adecuación a la ocasión, adaptación al clima.
+2. Priorizá: cohesión estética, adecuación a la ocasión y al género, adaptación al clima.
 3. Las prendas elegidas DEBEN estar en la lista (usá los IDs exactos).
 4. Si el look está incompleto (ej: falta calzado, no hay en el guardarropas), listalo en prendas_faltantes.
+5. NO selecciones dos prendas del mismo tipo base (ej: no 2 pantalones, no 2 remeras/tops, no 2 faldas, no 2 shorts, no 2 vestidos, no 2 pares de calzado).
+   EXCEPCIÓN de capas: sí podés combinar prendas de abrigo en niveles distintos (ej: remera + buzo, buzo + campera/blazer, camiseta + saco). El criterio es que una va encima de la otra.
+6. En la descripcion_look, describí las prendas con vocabulario acorde al género indicado.
 
 Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
 {

@@ -15,7 +15,6 @@ import { cn } from "@/lib/cn";
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 type GarmentWithMeta = Prenda & {
-  signedUrl: string | null;
   category: Pick<Category, "nombre" | "slug"> | null;
 };
 
@@ -413,6 +412,9 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
   const router  = useRouter();
   const { toast } = useToast();
 
+  // URL estable del proxy — siempre la misma por garment ID, cacheable por el SW y el browser
+  const imgSrc = garment.imagen_url ? `/api/garments/${garment.id}/image` : null;
+
   // Favorito — optimistic
   const [isFavorite, setIsFavorite] = useState(garment.is_favorite);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
@@ -594,11 +596,13 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
             >
               {/* Hero photo */}
               <div style={{ position: "relative", width: "100%", aspectRatio: "1/1.15" }}>
-                {garment.signedUrl ? (
+                {imgSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={garment.signedUrl}
+                    src={imgSrc}
                     alt={garment.nombre}
+                    fetchPriority="high"
+                    decoding="async"
                     style={{
                       display: "block",
                       width: "100%",
@@ -666,7 +670,7 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
                       height: 5,
                       borderRadius: 999,
                       background: i === 0
-                        ? (garment.signedUrl ? "#fff" : "var(--color-ink)")
+                        ? (imgSrc ? "#fff" : "var(--color-ink)")
                         : "rgba(255,255,255,0.5)",
                     }} />
                   ))}

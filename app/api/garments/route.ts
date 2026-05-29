@@ -56,34 +56,10 @@ export async function GET(req: NextRequest) {
 
   const garments = (garmentsData ?? []) as Prenda[];
 
-  // Signed URLs en batch
-  const paths = garments
-    .map((g) => g.imagen_url)
-    .filter((url): url is string => Boolean(url));
-
-  const signedUrlMap: Record<string, string> = {};
-  if (paths.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrls(paths, 3600);
-    if (signed) {
-      for (const s of signed) {
-        if (s.path && s.signedUrl) signedUrlMap[s.path] = s.signedUrl;
-      }
-    }
-  }
-
-  const garmentsWithUrls = garments.map((g) => ({
-    ...g,
-    signedUrl: g.imagen_url ? (signedUrlMap[g.imagen_url] ?? null) : null,
-  }));
-
-  return NextResponse.json({
-    garments: garmentsWithUrls,
-    total: count ?? 0,
-    page,
-    hasMore: page * limit < (count ?? 0),
-  });
+  return NextResponse.json(
+    { garments, total: count ?? 0, page, hasMore: page * limit < (count ?? 0) },
+    { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=120" } }
+  );
 }
 
 // ── POST — Crear prenda ──────────────────────────────────────────────────────

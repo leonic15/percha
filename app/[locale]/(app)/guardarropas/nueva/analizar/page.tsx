@@ -272,23 +272,50 @@ function dataURLtoBlob(dataURL: string, fallbackMime = "image/jpeg"): Blob {
  * Devuelve el data URL del PNG sin fondo, o null si falla.
  *
  * El resultado se redimensiona a ≤1200px para mantener el tamaño manejable.
+ *
+ * Fuerza numThreads=1 en onnxruntime-web para evitar la dependencia de
+ * SharedArrayBuffer (que requiere COOP/COEP headers). El WASM threaded funciona
+ * correctamente con un solo hilo sin necesitar SharedArrayBuffer.
  */
 async function runBackgroundRemoval(blob: Blob): Promise<string | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let wasmEnv: any = null;
+
   try {
+    // @ts-expect-error — tipos de onnxruntime-web no se resuelven por exports map
+    const ortModule = await import("onnxruntime-web");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ort = (ortModule as any).default ?? ortModule;
+    wasmEnv = ort?.env?.wasm;
+
+    if (wasmEnv) {
+      // numThreads=1: fuerza single-thread para no requerir SharedArrayBuffer.
+      // El CSP tiene blob: en script-src y connect-src para permitir los
+      // import() dinámicos de módulos blob que genera onnxruntime-web.
+      Object.defineProperty(wasmEnv, "numThreads", {
+        get: () => 1,
+        set: () => {},
+        configurable: true,
+        enumerable: true,
+      });
+    }
+
     const { removeBackground } = await import("@imgly/background-removal");
 
     const outputBlob = await removeBackground(blob, {
       output: { format: "image/png", quality: 0.85 },
     });
 
-    // Redimensionar a ≤1200px en canvas para limitar el tamaño del PNG
     const resized = await resizePNG(outputBlob, 1200);
     return await blobToDataURL(resized);
 
   } catch (err) {
-    // Background removal es opcional — si falla, el formulario usa la imagen original
     console.warn("[analizar] background-removal falló (no crítico):", err);
     return null;
+  } finally {
+    if (wasmEnv) {
+      try { delete wasmEnv.numThreads; } catch { /* ignorar */ }
+    }
   }
 }
 

@@ -6,14 +6,13 @@ import { GarmentDetailClient } from "@/components/features/wardrobe/GarmentDetai
 export const dynamic = "force-dynamic";
 
 type GarmentWithMeta = Prenda & {
-  signedUrl: string | null;
   category: Pick<Category, "nombre" | "slug"> | null;
 };
 
 /**
  * LOOKSI-010: Detalle de prenda — Handoff 11
- * Server Component: fetch prenda + categoría + signed URL.
- * Pasa todo al cliente para interactividad (favorito, eliminar).
+ * Server Component: fetch prenda + categoría.
+ * La imagen se sirve vía /api/garments/[id]/image (URL estable, cacheada en SW).
  */
 export default async function GarmentDetailPage({
   params,
@@ -27,7 +26,6 @@ export default async function GarmentDetailPage({
 
   const { id } = await params;
 
-  // Prenda + categoría join
   const { data: row, error } = await supabase
     .from("prendas")
     .select("*, category:categories(nombre, slug)")
@@ -38,20 +36,7 @@ export default async function GarmentDetailPage({
 
   if (error || !row) notFound();
 
-  const prenda = row as GarmentWithMeta;
-
-  // Signed URL
-  let signedUrl: string | null = null;
-  if (prenda.imagen_url) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrl(prenda.imagen_url, 3600);
-    signedUrl = signed?.signedUrl ?? null;
-  }
-
   return (
-    <GarmentDetailClient
-      garment={{ ...prenda, signedUrl }}
-    />
+    <GarmentDetailClient garment={row as GarmentWithMeta} />
   );
 }

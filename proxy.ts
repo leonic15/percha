@@ -80,7 +80,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Excluir: api, assets estáticos, PWA artifacts, imágenes locales y /auth/*
-    "/((?!api|_next/static|_next/image|favicon.ico|icons|images|sw.js|workbox-.*|manifest.json|auth/).*)",
+    // Excluir: api, assets estáticos, PWA artifacts, imágenes locales, /auth/* y /onnx/
+    "/((?!api|_next/static|_next/image|favicon.ico|icons|images|sw.js|workbox-.*|manifest.json|auth|onnx/).*)",
   ],
 };
