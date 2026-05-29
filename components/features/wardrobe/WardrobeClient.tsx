@@ -13,7 +13,7 @@ import { cn } from "@/lib/cn";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
-type GarmentWithUrl = Prenda & { signedUrl: string | null };
+type GarmentWithUrl = Prenda;
 
 interface Filters {
   q:         string;
@@ -221,7 +221,7 @@ export function WardrobeClient({
       const res = await fetch(`/api/garments?${params.toString()}`);
       if (res.ok) {
         const json = await res.json();
-        setGarments(json.garments as GarmentWithUrl[]);
+        setGarments(json.garments as Prenda[]);
         setPage(1);
       }
     } finally {
@@ -278,7 +278,7 @@ export function WardrobeClient({
       const res = await fetch(`/api/garments?${params.toString()}`);
       if (res.ok) {
         const json = await res.json();
-        setGarments((prev) => [...prev, ...(json.garments as GarmentWithUrl[])]);
+        setGarments((prev) => [...prev, ...(json.garments as Prenda[])]);
         setPage(nextPage);
       }
     } finally {
@@ -456,13 +456,20 @@ export function WardrobeClient({
                       id:       g.id,
                       name:     g.nombre,
                       category: (g.category_id ? categoryMap.get(g.category_id)?.nombre : null) ?? "",
-                      imageUrl: g.signedUrl ?? "/icons/placeholder-garment.png",
+                      imageUrl: g.imagen_url ? `/api/garments/${g.id}/image` : "/icons/placeholder-garment.png",
                       favorite: g.is_favorite,
                     }}
                     href={`/guardarropas/${g.id}`}
                     onToggleFavorite={handleToggleFavorite}
                     showAIBadge={g.ia_analizada}
                     priority={i < 4}
+                    onBeforeNavigate={() => {
+                      if (!g.imagen_url) return;
+                      // Precarga la URL estable del proxy en paralelo con el render del server.
+                      // Si el SW ya tiene la imagen cacheada, este fetch retorna al instante.
+                      const img = new window.Image();
+                      img.src = `/api/garments/${g.id}/image`;
+                    }}
                   />
                 ))}
                 {loadingMore && Array.from({ length: 4 }).map((_, i) => (
@@ -479,7 +486,7 @@ export function WardrobeClient({
                       id:       g.id,
                       name:     g.nombre,
                       category: (g.category_id ? categoryMap.get(g.category_id)?.nombre : null) ?? "",
-                      imageUrl: g.signedUrl ?? "/icons/placeholder-garment.png",
+                      imageUrl: g.imagen_url ? `/api/garments/${g.id}/image` : "/icons/placeholder-garment.png",
                       favorite: g.is_favorite,
                     }}
                     onToggleFavorite={handleToggleFavorite}

@@ -12,6 +12,26 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   workboxOptions: {
     disableDevLogs: true,
+    // Cachea las imágenes de prendas en el dispositivo.
+    // StaleWhileRevalidate: sirve desde cache al instante y revalida en background.
+    // El proxy /api/garments/[id]/image tiene URL estable → el SW puede cachearla
+    // a diferencia de los signed URLs de Supabase que cambian de token cada vez.
+    runtimeCaching: [
+      {
+        urlPattern: /\/api\/garments\/[^/]+\/image$/,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "garment-images",
+          expiration: {
+            maxEntries: 500,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 días
+          },
+          cacheableResponse: {
+            statuses: [200],
+          },
+        },
+      },
+    ],
   },
 });
 
