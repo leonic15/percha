@@ -76,7 +76,7 @@ export default async function GuardarropaPage({
   if (paths.length > 0) {
     const { data: signed } = await supabase.storage
       .from("prendas")
-      .createSignedUrls(paths, 3600); // 1 hora
+      .createSignedUrls(paths, 86400); // 24 horas
     if (signed) {
       for (const s of signed) {
         if (s.path && s.signedUrl) signedUrlMap[s.path] = s.signedUrl;

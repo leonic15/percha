@@ -30,6 +30,8 @@ export interface GarmentCardProps {
   className?: string;
   /** href al detalle. Si no se pasa, no se envuelve en Link. */
   href?: string;
+  /** true para las primeras cards above-the-fold (mejora LCP) */
+  priority?: boolean;
 }
 
 export function GarmentCard({
@@ -38,6 +40,7 @@ export function GarmentCard({
   showAIBadge,
   className,
   href,
+  priority = false,
 }: GarmentCardProps) {
   const inner = (
     <article
@@ -54,6 +57,8 @@ export function GarmentCard({
           fill
           sizes="(min-width: 768px) 240px, 50vw"
           className="object-cover"
+          priority={priority}
+          loading={priority ? undefined : "lazy"}
         />
         {showAIBadge && (
           <div className="absolute left-2 top-2">

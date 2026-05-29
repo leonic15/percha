@@ -27,3 +27,5 @@ export { Skeleton, GarmentGridSkeleton, LookListSkeleton } from "./Skeleton";
 
 export { GarmentImage } from "./GarmentImage";
 export type { GarmentImageProps } from "./GarmentImage";
+
+export { NavigationProgress } from "./NavigationProgress";

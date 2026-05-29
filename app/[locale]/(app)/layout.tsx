@@ -1,4 +1,4 @@
-import { BottomNav, Sidebar } from "@/components/ui";
+import { BottomNav, Sidebar, NavigationProgress } from "@/components/ui";
 
 /**
  * Layout principal de la app (rutas protegidas).
@@ -8,6 +8,7 @@ import { BottomNav, Sidebar } from "@/components/ui";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh bg-bg">
+      <NavigationProgress />
       <Sidebar />
       {/*
         pb-[...] reserva espacio para el BottomNav en mobile.

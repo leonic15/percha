@@ -97,7 +97,13 @@ export function WardrobeClient({
   const [garments, setGarments]         = useState(initialGarments);
   const [page, setPage]                 = useState(1);
   const [loadingMore, setLoadingMore]   = useState(false);
+  const [refreshing, setRefreshing]     = useState(false);
   const hasMore = garments.length < total;
+
+  // ── Pull-to-refresh state ─────────────────────────────────────────────────
+  const pullStartY  = useRef(0);
+  const pullDelta   = useRef(0);
+  const [pullActive, setPullActive] = useState(false);
 
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
@@ -200,11 +206,64 @@ export function WardrobeClient({
     }
   }
 
+  // ── Refresh (pull-to-refresh) ─────────────────────────────────────────────
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    const params = new URLSearchParams();
+    if (q)        params.set("q", q);
+    if (category) params.set("category", category);
+    if (season)   params.set("season", season);
+    if (occasion) params.set("occasion", occasion);
+    if (favorites) params.set("favorites", "1");
+    params.set("page", "1");
+    params.set("limit", String(pageSize));
+    try {
+      const res = await fetch(`/api/garments?${params.toString()}`);
+      if (res.ok) {
+        const json = await res.json();
+        setGarments(json.garments as GarmentWithUrl[]);
+        setPage(1);
+      }
+    } finally {
+      setRefreshing(false);
+      setPullActive(false);
+    }
+  }, [q, category, season, occasion, favorites, pageSize]);
+
+  // ── Pull-to-refresh (mobile) ──────────────────────────────────────────────
+  useEffect(() => {
+    const el = document.documentElement;
+    const onTouchStart = (e: TouchEvent) => {
+      if (el.scrollTop === 0) pullStartY.current = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!pullStartY.current) return;
+      pullDelta.current = e.touches[0].clientY - pullStartY.current;
+      if (pullDelta.current > 60) setPullActive(true);
+    };
+    const onTouchEnd = () => {
+      if (pullDelta.current > 60) refresh();
+      pullStartY.current = 0;
+      pullDelta.current  = 0;
+      setPullActive(false);
+    };
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove",  onTouchMove,  { passive: true });
+    window.addEventListener("touchend",   onTouchEnd);
+    return () => {
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove",  onTouchMove);
+      window.removeEventListener("touchend",   onTouchEnd);
+    };
+  }, [refresh]);
+
   // ── Infinite scroll ───────────────────────────────────────────────────────
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef  = useRef<HTMLDivElement | null>(null);
+  const fetchLockRef = useRef(false);
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
+    if (fetchLockRef.current || !hasMore) return;
+    fetchLockRef.current = true;
     setLoadingMore(true);
     const nextPage = page + 1;
     const params = new URLSearchParams();
@@ -223,9 +282,10 @@ export function WardrobeClient({
         setPage(nextPage);
       }
     } finally {
+      fetchLockRef.current = false;
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, page, q, category, season, occasion, favorites, pageSize]);
+  }, [hasMore, page, q, category, season, occasion, favorites, pageSize]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -242,6 +302,20 @@ export function WardrobeClient({
 
   return (
     <div>
+      {/* ═══════════════ PULL-TO-REFRESH INDICATOR ═══════════════════════ */}
+      {(pullActive || refreshing) && (
+        <div className="fixed top-0 inset-x-0 z-50 flex justify-center pt-3 pointer-events-none">
+          <div className="size-8 grid place-items-center bg-bg rounded-full shadow-card border border-line-2">
+            <svg
+              className={cn("size-4 text-accent", refreshing && "animate-spin")}
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" strokeLinecap="round" />
+            </svg>
+          </div>
+        </div>
+      )}
+
       {/* ═══════════════ HEADER STICKY ════════════════════════════════════ */}
       <header className="sticky top-0 z-20 bg-bg">
 
@@ -375,7 +449,7 @@ export function WardrobeClient({
           <>
             {viewMode === "grid" ? (
               <div className="grid grid-cols-2 gap-[10px] md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {garments.map((g) => (
+                {garments.map((g, i) => (
                   <GarmentCard
                     key={g.id}
                     garment={{
@@ -388,6 +462,7 @@ export function WardrobeClient({
                     href={`/guardarropas/${g.id}`}
                     onToggleFavorite={handleToggleFavorite}
                     showAIBadge={g.ia_analizada}
+                    priority={i < 4}
                   />
                 ))}
                 {loadingMore && Array.from({ length: 4 }).map((_, i) => (
@@ -595,7 +670,7 @@ function GarmentListItem({
       <article className="flex items-center gap-3 bg-surface rounded-card shadow-card p-2.5 hover:-translate-y-px transition-transform">
         <div className="relative size-14 rounded-sm overflow-hidden bg-surface-2 shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={garment.imageUrl} alt={garment.name} className="size-full object-cover" />
+          <img src={garment.imageUrl} alt={garment.name} className="size-full object-cover" loading="lazy" decoding="async" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-display font-semibold text-sm uppercase tracking-tight text-ink truncate">
