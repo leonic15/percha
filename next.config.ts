@@ -56,15 +56,18 @@ const nextConfig: NextConfig = {
     //   /ingest/* proxeado a PostHog vía vercel.json rewrites → 'self' suficiente
     const csp = [
       "default-src 'self'",
-      // 'wasm-unsafe-eval': requerido por @imgly/background-removal (ONNX Runtime WASM)
-      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+      // 'wasm-unsafe-eval': requerido para compilación WASM.
+      // 'unsafe-eval': requerido por Emscripten que usa new Function() en la inicialización del binding WASM.
+      // blob: requerido para import() dinámico de módulos blob que genera onnxruntime-web.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:",
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
       // blob: requerido para Web Workers que crea @imgly/background-removal
       "worker-src 'self' blob:",
       // staticimgly.com: CDN de modelos ONNX de @imgly/background-removal
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.ingest.sentry.io https://staticimgly.com",
+      // blob: requerido para que onnxruntime-web pueda fetch() el .wasm desde un blob URL
+      "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.ingest.sentry.io https://staticimgly.com",
       "frame-src 'none'",
       "object-src 'none'",
       "base-uri 'self'",
