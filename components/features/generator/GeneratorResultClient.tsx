@@ -743,6 +743,7 @@ export function GeneratorResultClient() {
   // LOOKSI-020 — sheet de guardado
   const [showSaveSheet, setShowSaveSheet] = useState(false);
   const [saving, setSaving]               = useState(false);
+  const [savedLookId, setSavedLookId]     = useState<string | null>(null);
 
   // LOOKSI-035 — Vestir mi look
   const [profileReady, setProfileReady]         = useState<boolean | null>(null); // null=cargando
