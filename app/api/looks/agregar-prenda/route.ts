@@ -4,65 +4,68 @@ import type { Prenda } from "@/lib/database.types";
 import type { PrendaResult, ClimaData } from "@/app/api/looks/generar/route";
 
 /**
- * POST /api/looks/cambiar-prenda
+ * POST /api/looks/agregar-prenda
  *
- * Reemplaza una prenda específica de un look con una alternativa elegida por IA.
- * No cambia el resto del look — solo la prenda indicada.
+ * Sugiere una prenda del guardarropas para agregar al look actual.
+ * El usuario describe el tipo que quiere (ej: "buzo", "accesorio") y la IA
+ * elige la mejor opción que combine con el look y mantenga el estilo.
  *
  * Body:
- *   prenda_id_a_reemplazar  string   — ID de la prenda que el usuario quiere cambiar
- *   prendas_actuales        string[] — IDs de las otras prendas del look (sin la que se reemplaza)
- *   ocasion                 string   — ocasión del look original
- *   contexto?               string   — contexto libre del look original
- *   clima?                  ClimaData
+ *   prendas_actuales  string[]  — IDs de las prendas del look actual
+ *   tipo_prenda       string    — tipo libre (ej: "buzo", "cinturón")
+ *   ocasion           string    — ocasión del look
+ *   contexto?         string
+ *   clima?            ClimaData
+ *   descripcion_look? string    — descripción IA del look para mantener el estilo
+ *   nombre_look?      string
  *
  * Respuesta exitosa:
- *   prenda_nueva  PrendaResult — la prenda alternativa
+ *   prenda_nueva  PrendaResult
  *
- * Respuesta sin alternativas:
- *   error: "no_alternatives"  — 422
+ * Sin match:
+ *   error: "no_match"  — 422
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
-const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const TIMEOUT_MS   = 15_000;
+const GEMINI_MODEL   = "gemini-2.5-flash-lite";
+const GEMINI_URL     = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const TIMEOUT_MS     = 15_000;
 const MAX_CANDIDATAS = 30;
 
 export const maxDuration = 25;
 
-interface CambiarPrendaBody {
-  prenda_id_a_reemplazar: string;
-  prendas_actuales:       string[];
-  ocasion:                string;
-  contexto?:              string;
-  clima?:                 ClimaData;
+interface AgregarPrendaBody {
+  prendas_actuales:  string[];
+  tipo_prenda:       string;
+  ocasion:           string;
+  contexto?:         string;
+  clima?:            ClimaData;
+  descripcion_look?: string;
+  nombre_look?:      string;
 }
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("[looks/cambiar-prenda] GEMINI_API_KEY no configurada");
+    console.error("[looks/agregar-prenda] GEMINI_API_KEY no configurada");
     return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
   }
 
-  let body: CambiarPrendaBody;
+  let body: AgregarPrendaBody;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
-  if (!body.prenda_id_a_reemplazar || !body.ocasion) {
+  if (!body.tipo_prenda?.trim() || !body.ocasion) {
     return NextResponse.json({ error: "params_requeridos" }, { status: 400 });
   }
 
-  // ── 1. Traer todas las prendas del guardarropas ──────────────────────────────
+  // ── 1. Traer prendas del guardarropas ────────────────────────────────────────
   const { data: garmentsData, error: gError } = await supabase
     .from("prendas")
     .select(
@@ -73,32 +76,28 @@ export async function POST(req: NextRequest) {
     .limit(100);
 
   if (gError) {
-    console.error("[looks/cambiar-prenda] DB error:", gError);
+    console.error("[looks/agregar-prenda] DB error:", gError);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
   if (!garmentsData || garmentsData.length === 0) {
-    return NextResponse.json(
-      { error: "no_garments" },
-      { status: 422 }
-    );
+    return NextResponse.json({ error: "no_garments" }, { status: 422 });
   }
 
-  // ── 2. Excluir la prenda a reemplazar y las que ya están en el look ──────────
-  // Las candidatas son prendas que NO están en el look actual (ni la que se reemplaza)
-  const excluirSet = new Set([body.prenda_id_a_reemplazar, ...body.prendas_actuales]);
+  // ── 2. Excluir prendas ya en el look ────────────────────────────────────────
+  const excluirSet = new Set(body.prendas_actuales ?? []);
   const candidatas = (garmentsData as Prenda[]).filter((g) => !excluirSet.has(g.id));
 
   if (candidatas.length === 0) {
     return NextResponse.json(
-      { error: "no_alternatives", message: "No hay otras prendas en tu guardarropas para reemplazar esta." },
+      { error: "no_match", message: "No hay más prendas disponibles en tu guardarropas." },
       { status: 422 }
     );
   }
 
   // ── 3. Resolver categorías ───────────────────────────────────────────────────
-  const allIds     = [...garmentsData] as Prenda[];
-  const categoryIds = [...new Set(allIds.map((g) => g.category_id).filter(Boolean))] as number[];
+  const allGarments = garmentsData as Prenda[];
+  const categoryIds = [...new Set(allGarments.map((g) => g.category_id).filter(Boolean))] as number[];
   const categoryMap: Record<number, string> = {};
 
   if (categoryIds.length > 0) {
@@ -113,24 +112,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 3b. Encontrar la prenda a reemplazar y su categoría ─────────────────────
-  const prendaAReemplazar = (garmentsData as Prenda[]).find(
-    (g) => g.id === body.prenda_id_a_reemplazar
-  );
-  const catIdAReemplazar  = prendaAReemplazar?.category_id ?? null;
-  const categoriaNombre   = catIdAReemplazar
-    ? (categoryMap[catIdAReemplazar] ?? "Otro")
-    : "Otro";
-
-  // Priorizar candidatas del mismo grupo; si hay al menos 3, usar solo esas
-  const mismaCategoria  = candidatas.filter(
-    (g) => catIdAReemplazar !== null && g.category_id === catIdAReemplazar
-  );
-  const candidatasParaIA = mismaCategoria.length >= 3 ? mismaCategoria : candidatas;
-
-  // ── 4. Describir el look actual (las prendas que se quedan) ─────────────────
-  const prendasEnLook = (garmentsData as Prenda[]).filter((g) =>
-    body.prendas_actuales.includes(g.id)
+  // ── 4. Describir el look actual ──────────────────────────────────────────────
+  const prendasEnLook = allGarments.filter((g) =>
+    (body.prendas_actuales ?? []).includes(g.id)
   );
 
   const lookLines = prendasEnLook
@@ -140,10 +124,8 @@ export async function POST(req: NextRequest) {
     })
     .join("\n");
 
-  // ── 5. Construir lista de candidatas (máx MAX_CANDIDATAS) ───────────────────
-  // Usamos índices secuenciales (no UUIDs) para que la IA no tenga que
-  // reproducir UUIDs exactos, lo que causaba hallucination y 502.
-  const candidatasSlice = candidatasParaIA.slice(0, MAX_CANDIDATAS);
+  // ── 5. Construir candidatas (máx MAX_CANDIDATAS) ─────────────────────────────
+  const candidatasSlice = candidatas.slice(0, MAX_CANDIDATAS);
   const candidatasLines = candidatasSlice
     .map((g, i) => {
       const cat  = g.category_id ? (categoryMap[g.category_id] ?? "Otro") : "Otro";
@@ -156,31 +138,36 @@ export async function POST(req: NextRequest) {
     ? `Clima: ${body.clima.temperatura}°C, ${body.clima.condicion}.`
     : "Clima: no disponible.";
 
-  const prompt = `Sos una estilista experta. Un usuario tiene este look armado para la ocasión "${body.ocasion}":
+  const lookContext = body.descripcion_look
+    ? `\nEstilo del look: "${body.descripcion_look}"`
+    : "";
 
-PRENDAS ACTUALES DEL LOOK:
-${lookLines || "  (ninguna — el look está vacío excepto la prenda a reemplazar)"}
+  const prompt = `Sos una estilista experta. Un usuario tiene este look armado para "${body.ocasion}":
 
-${body.contexto ? `Contexto adicional: ${body.contexto}` : ""}
-${weatherLine}
+LOOK ACTUAL${body.nombre_look ? ` "${body.nombre_look}"` : ""}:
+${lookLines || "  (look vacío)"}${lookContext}
 
-Quiere reemplazar una prenda de categoría "${categoriaNombre}". Debés elegir la MEJOR alternativa de esta lista que:
-1. Sea de la misma categoría "${categoriaNombre}" (o muy similar)
-2. Sea compatible visualmente y en estilo con las prendas que ya están en el look
-3. Sea apropiada para la ocasión "${body.ocasion}"
+${body.contexto ? `Contexto: ${body.contexto}\n` : ""}${weatherLine}
 
-CANDIDATAS DISPONIBLES (${candidatasSlice.length} prendas):
+El usuario quiere agregar una prenda de tipo: "${body.tipo_prenda}"
+
+Elegí de la siguiente lista la prenda que:
+1. Corresponda al tipo solicitado: "${body.tipo_prenda}"
+2. Combine mejor con el look actual (colores, estilo, ocasión)
+3. Sea apropiada para "${body.ocasion}"
+
+PRENDAS DISPONIBLES (${candidatasSlice.length}):
 ${candidatasLines}
 
-Si ninguna prenda de la lista es compatible con el look actual, respondé con:
-{"no_alternatives": true, "razon": "máximo 8 palabras en español"}
+Si ninguna prenda corresponde al tipo "${body.tipo_prenda}" o no hay combinación posible, respondé con:
+{"no_match": true, "razon": "máximo 8 palabras en español"}
 
-Si encontrás una buena alternativa, respondé ÚNICAMENTE con un JSON válido, sin markdown:
+Si encontrás una buena opción, respondé ÚNICAMENTE con JSON válido, sin markdown:
 {"numero": N}
 donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
 
   // ── 6. Llamar a Gemini ───────────────────────────────────────────────────────
-  let rawText = "";
+  let rawText    = "";
   let tokensUsados: number | null = null;
 
   try {
@@ -193,7 +180,7 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
       body:    JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature:     0.5,
+          temperature:     0.4,
           topK:            20,
           topP:            0.9,
           maxOutputTokens: 200,
@@ -208,7 +195,7 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
       const errBody = await geminiRes.json().catch(() => ({})) as {
         error?: { status?: string; details?: { retryDelay?: string }[] };
       };
-      console.error("[looks/cambiar-prenda] Gemini HTTP error:", geminiRes.status, errBody);
+      console.error("[looks/agregar-prenda] Gemini HTTP error:", geminiRes.status, errBody);
       if (geminiRes.status === 429) {
         const retryDelay   = errBody.error?.details?.find((d) => "retryDelay" in d)?.retryDelay ?? "60s";
         const retrySeconds = parseInt(retryDelay) || 60;
@@ -224,37 +211,39 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
     if (err instanceof Error && err.name === "AbortError") {
       return NextResponse.json({ error: "ai_timeout" }, { status: 504 });
     }
-    console.error("[looks/cambiar-prenda] Gemini call error:", err);
+    console.error("[looks/agregar-prenda] Gemini call error:", err);
     return NextResponse.json({ error: "ai_error" }, { status: 502 });
   }
 
   // ── 7. Parsear respuesta ─────────────────────────────────────────────────────
   const jsonMatch = rawText.match(/\{[^{}]*\}/);
   if (!jsonMatch) {
-    console.error("[looks/cambiar-prenda] No JSON in response:", rawText);
+    console.error("[looks/agregar-prenda] No JSON in response:", rawText);
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
-  let aiResult: { numero?: number; no_alternatives?: boolean; razon?: string };
+  let aiResult: { numero?: number; no_match?: boolean; razon?: string };
   try {
     aiResult = JSON.parse(jsonMatch[0]);
   } catch {
-    console.error("[looks/cambiar-prenda] JSON parse error:", jsonMatch[0]);
+    console.error("[looks/agregar-prenda] JSON parse error:", jsonMatch[0]);
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
-  // Sin alternativas según la IA
-  if (aiResult.no_alternatives) {
+  if (aiResult.no_match) {
     return NextResponse.json(
-      { error: "no_alternatives", message: aiResult.razon ?? "No hay alternativas compatibles en tu guardarropas." },
+      {
+        error:   "no_match",
+        message: aiResult.razon ?? "No hay ninguna prenda de ese tipo en tu guardarropas que combine con el look.",
+      },
       { status: 422 }
     );
   }
 
-  // ── 8. Validar que el índice elegido está dentro de rango ────────────────────
+  // ── 8. Validar índice ────────────────────────────────────────────────────────
   const idx = typeof aiResult.numero === "number" ? aiResult.numero - 1 : -1;
   if (idx < 0 || idx >= candidatasSlice.length) {
-    console.error("[looks/cambiar-prenda] índice inválido:", aiResult.numero, "de", candidatasSlice.length);
+    console.error("[looks/agregar-prenda] índice inválido:", aiResult.numero, "de", candidatasSlice.length);
     return NextResponse.json({ error: "ai_invalid_id" }, { status: 502 });
   }
 

@@ -32,7 +32,7 @@ import {
   MapPin,
   Settings,
 } from "lucide-react";
-import { Button, Chip, useToast } from "@/components/ui";
+import { Button, Chip, useToast, LookLoopSpinner } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import type { ClimaData, GenerarLookResult } from "@/app/api/looks/generar/route";
 
@@ -463,8 +463,8 @@ export function GeneratorConfigClient({
             variant="accent"
             size="lg"
             fullWidth
-            loading={generating}
-            icon={!generating ? <Sparkles className="size-4" /> : undefined}
+            disabled={generating}
+            icon={generating ? <LookLoopSpinner size={20} /> : <Sparkles className="size-4" />}
           >
             {generating ? "Generando…" : "Generar look"}
           </Button>

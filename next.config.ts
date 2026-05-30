@@ -18,6 +18,20 @@ const withPWA = withPWAInit({
     // a diferencia de los signed URLs de Supabase que cambian de token cada vez.
     runtimeCaching: [
       {
+        urlPattern: /\/images\/category\//,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "category-images",
+          expiration: {
+            maxEntries: 20,
+            maxAgeSeconds: 365 * 24 * 60 * 60,
+          },
+          cacheableResponse: {
+            statuses: [200],
+          },
+        },
+      },
+      {
         urlPattern: /\/api\/garments\/[^/]+\/image$/,
         handler: "StaleWhileRevalidate",
         options: {

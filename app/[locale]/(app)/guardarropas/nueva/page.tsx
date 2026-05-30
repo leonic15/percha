@@ -14,7 +14,8 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Camera, X, Loader2, AlertCircle, AlertTriangle } from "lucide-react";
+import { Camera, X, AlertCircle, AlertTriangle } from "lucide-react";
+import { LookLoopSpinner } from "@/components/ui";
 import imageCompression from "browser-image-compression";
 import { useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
@@ -426,7 +427,7 @@ export default function NuevaPrendaPage() {
 
             {isLoading ? (
               <div className="flex flex-col items-center gap-3">
-                <Loader2 className="size-9 text-ink-3 animate-spin" />
+                <LookLoopSpinner size={56} />
                 <p
                   className="uppercase text-ink-3 text-center"
                   style={{ fontSize: 11, letterSpacing: "0.12em" }}

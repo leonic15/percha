@@ -29,3 +29,5 @@ export { GarmentImage } from "./GarmentImage";
 export type { GarmentImageProps } from "./GarmentImage";
 
 export { NavigationProgress } from "./NavigationProgress";
+
+export { LookLoopSpinner } from "./LookLoopSpinner";

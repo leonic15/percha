@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   Search, Bell, SlidersHorizontal, LayoutGrid, List,
-  Heart, Plus,
+  Heart, Plus, Grid2x2,
 } from "lucide-react";
-import { GarmentCard, GarmentCardSkeleton, Chip, GarmentImage } from "@/components/ui";
+import { GarmentCard, GarmentCardSkeleton, Chip, GarmentImage, LookLoopSpinner } from "@/components/ui";
 import type { Prenda, Category } from "@/lib/database.types";
 import { cn } from "@/lib/cn";
 
@@ -27,6 +27,7 @@ interface WardrobeClientProps {
   initialGarments: GarmentWithUrl[];
   categories:      Category[];
   total:           number;
+  totalAll:        number;
   pageSize:        number;
   filters:         Filters;
 }
@@ -49,6 +50,17 @@ const OCCASIONS = [
   { value: "salida",  label: "Salida"  },
 ] as const;
 
+const CATEGORY_IMAGE: Record<string, string> = {
+  "tops":                    "/images/category/tops.png",
+  "pantalones-y-shorts":     "/images/category/jeans.png",
+  "vestidos-y-faldas":       "/images/category/dress.png",
+  "calzado":                 "/images/category/shoes.png",
+  "abrigos-y-chaquetas":     "/images/category/Coats.png",
+  "ropa-interior-y-pijamas": "/images/category/Pijama.png",
+  "accesorios":              "/images/category/accesories.png",
+  "otros":                   "/images/category/Others.png",
+};
+
 // ── Wordmark inline ────────────────────────────────────────────────────────────
 
 function Wordmark() {
@@ -68,11 +80,13 @@ export function WardrobeClient({
   initialGarments,
   categories,
   total,
+  totalAll,
   pageSize,
   filters: serverFilters,
 }: WardrobeClientProps) {
   const router   = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
   // ── Filtros activos (sincronizados con URL) ──────────────────────────────
   const [q, setQ]               = useState(serverFilters.q);
@@ -84,7 +98,9 @@ export function WardrobeClient({
   // ── UI state ─────────────────────────────────────────────────────────────
   const [showSearch, setShowSearch] = useState(Boolean(serverFilters.q));
   const [showSheet, setShowSheet]   = useState(false);
-  const [viewMode, setViewMode]     = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode]     = useState<"categories" | "grid" | "list">(
+    serverFilters.category ? "grid" : "categories"
+  );
 
   // ── Filtros pendientes (bottom sheet — se confirman al "Aplicar") ────────
   const [pQ, setPQ]               = useState(serverFilters.q);
@@ -107,6 +123,14 @@ export function WardrobeClient({
 
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
+  // ── Precargar imágenes de categorías en background ───────────────────────
+  useEffect(() => {
+    Object.values(CATEGORY_IMAGE).forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
   // ── Bloquear scroll del body cuando el sheet está abierto ────────────────
   useEffect(() => {
     document.body.style.overflow = showSheet ? "hidden" : "";
@@ -122,7 +146,9 @@ export function WardrobeClient({
     if (f.occasion) params.set("occasion", f.occasion);
     if (f.favorites) params.set("favorites", "1");
     const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    startTransition(() => {
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    });
   }
 
   // ── Debounce búsqueda ─────────────────────────────────────────────────────
@@ -146,6 +172,13 @@ export function WardrobeClient({
   function clearAllFilters() {
     setQ(""); setCategory(""); setSeason(""); setOccasion(""); setFavorites(false);
     router.replace(pathname, { scroll: false });
+  }
+
+  // ── Seleccionar categoría desde la vista de categorías ────────────────────
+  function handleCategorySelect(slug: string) {
+    setCategory(slug);
+    setViewMode("grid");
+    pushFilters({ q, category: slug, season, occasion, favorites });
   }
 
   // ── Bottom sheet: abrir / cerrar / aplicar ────────────────────────────────
@@ -371,39 +404,41 @@ export function WardrobeClient({
           >
             Guardarropa
           </h1>
-          {total > 0 && (
+          {(totalAll || total) > 0 && (
             <div className="text-right leading-none pb-0.5">
               <div className="font-mono font-semibold text-ink" style={{ fontSize: 22, lineHeight: 1 }}>
-                {total}
+                {totalAll || total}
               </div>
               <div className="eyebrow" style={{ fontSize: 9 }}>prendas</div>
             </div>
           )}
         </div>
 
-        {/* Chips categorías — scroll horizontal sin scrollbar */}
-        <div
-          className="px-5 pb-2 flex gap-1.5 overflow-x-auto [-webkit-overflow-scrolling:touch]"
-          style={{ scrollbarWidth: "none" }}
-        >
-          <Chip
-            size="sm"
-            active={!category}
-            onClick={() => { setCategory(""); pushFilters({ q, category: "", season, occasion, favorites }); }}
+        {/* Chips categorías — solo en vista de items o lista */}
+        {viewMode !== "categories" && (
+          <div
+            className="px-5 pb-2 flex gap-1.5 overflow-x-auto [-webkit-overflow-scrolling:touch]"
+            style={{ scrollbarWidth: "none" }}
           >
-            Todas
-          </Chip>
-          {categories.map((cat) => (
             <Chip
-              key={cat.id}
               size="sm"
-              active={category === cat.slug}
-              onClick={() => toggleCategory(cat.slug)}
+              active={!category}
+              onClick={() => { setCategory(""); pushFilters({ q, category: "", season, occasion, favorites }); }}
             >
-              {cat.nombre}
+              Todas
             </Chip>
-          ))}
-        </div>
+            {categories.map((cat) => (
+              <Chip
+                key={cat.id}
+                size="sm"
+                active={category === cat.slug}
+                onClick={() => toggleCategory(cat.slug)}
+              >
+                {cat.nombre}
+              </Chip>
+            ))}
+          </div>
+        )}
 
         {/* Sub-bar: resumen filtros + toggle vista */}
         <div className="px-5 pb-3 flex items-center justify-between">
@@ -419,6 +454,14 @@ export function WardrobeClient({
             {filterSummary}
           </button>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Vista por categorías"
+              onClick={() => setViewMode("categories")}
+              className={cn("transition-colors", viewMode === "categories" ? "text-ink" : "text-ink-3 hover:text-ink-2")}
+            >
+              <Grid2x2 className="size-3.5" aria-hidden />
+            </button>
             <button
               type="button"
               aria-label="Vista en grilla"
@@ -443,7 +486,13 @@ export function WardrobeClient({
 
       {/* ═══════════════ CONTENIDO ════════════════════════════════════════ */}
       <div className="px-5 pt-4 pb-6">
-        {garments.length === 0 ? (
+        {isPending ? (
+          <div className="flex items-center justify-center mt-24">
+            <LookLoopSpinner size={72} />
+          </div>
+        ) : viewMode === "categories" ? (
+          <CategoriesView categories={categories} onSelect={handleCategorySelect} />
+        ) : garments.length === 0 ? (
           <EmptyState hasFilters={Boolean(q || activeFilterCount)} onClear={clearAllFilters} />
         ) : (
           <>
@@ -659,6 +708,68 @@ export function WardrobeClient({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// ── Vista de categorías ───────────────────────────────────────────────────────
+
+const CATEGORY_ORDER = [
+  "tops",
+  "pantalones-y-shorts",
+  "vestidos-y-faldas",
+  "abrigos-y-chaquetas",
+  "ropa-interior-y-pijamas",
+  "calzado",
+  "accesorios",
+  "otros",
+];
+
+function CategoriesView({
+  categories,
+  onSelect,
+}: {
+  categories: Category[];
+  onSelect: (slug: string) => void;
+}) {
+  const sorted = [...categories].sort(
+    (a, b) => (CATEGORY_ORDER.indexOf(a.slug) ?? 99) - (CATEGORY_ORDER.indexOf(b.slug) ?? 99)
+  );
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {sorted.map((cat) => {
+        const imgSrc = CATEGORY_IMAGE[cat.slug];
+        return (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => onSelect(cat.slug)}
+            className={cn(
+              "flex flex-col items-center justify-center gap-3",
+              "bg-surface rounded-card shadow-[0_2px_12px_rgba(0,0,0,0.15)]",
+              "py-4 px-3",
+              "hover:bg-surface-2 active:scale-[0.97] transition-all",
+            )}
+          >
+            <div className="w-[100px] h-[100px] flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imgSrc}
+                alt={cat.nombre}
+                className="w-full h-full object-contain"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+            <span
+              className="font-display font-semibold text-[15px] uppercase tracking-tight text-ink text-center leading-tight"
+            >
+              {cat.nombre}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

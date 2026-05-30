@@ -62,9 +62,17 @@ export default async function GuardarropaPage({
   if (occasion)         query = query.contains("ocasiones", [occasion]);
   if (favorites)        query = query.eq("is_favorite", true);
 
-  const { data: garmentsData, count } = await query;
+  const [{ data: garmentsData, count }, { count: totalAllCount }] = await Promise.all([
+    query,
+    supabase
+      .from("prendas")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("deleted_at", null),
+  ]);
   const garments = (garmentsData ?? []) as Prenda[];
   const total    = count ?? 0;
+  const totalAll = totalAllCount ?? 0;
 
   // ── key para forzar remount del cliente al cambiar filtros ───────────────
   const filterKey = [q, categorySlug, season, occasion, String(favorites)].join("|");
@@ -75,6 +83,7 @@ export default async function GuardarropaPage({
       initialGarments={garments}
       categories={categories}
       total={total}
+      totalAll={totalAll}
       pageSize={PAGE_SIZE}
       filters={{ q, category: categorySlug, season, occasion, favorites }}
     />

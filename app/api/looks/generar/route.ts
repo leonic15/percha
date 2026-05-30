@@ -192,12 +192,15 @@ GUARDARROPAS DISPONIBLE (${garments.length} prendas):
 ${garmentLines}
 
 INSTRUCCIONES:
-1. Elegí entre 2 y 5 prendas de la lista anterior.
+1. Elegí entre 2 y 6 prendas de la lista anterior.
 2. Priorizá: cohesión estética, adecuación a la ocasión y al género, adaptación al clima.
 3. Las prendas elegidas DEBEN estar en la lista (usá los IDs exactos).
 4. Si el look está incompleto (ej: falta calzado, no hay en el guardarropas), listalo en prendas_faltantes.
-5. NO selecciones dos prendas del mismo tipo base (ej: no 2 pantalones, no 2 remeras/tops, no 2 faldas, no 2 shorts, no 2 vestidos, no 2 pares de calzado).
-   EXCEPCIÓN de capas: sí podés combinar prendas de abrigo en niveles distintos (ej: remera + buzo, buzo + campera/blazer, camiseta + saco). El criterio es que una va encima de la otra.
+5. COMPOSICIÓN OBLIGATORIA del look:
+   a) Incluí SIEMPRE una prenda de parte inferior (pantalón, jean, short, falda, cargo) O una prenda completa (vestido, mono). No omitás la parte inferior si hay disponible en el guardarropas.
+   b) Incluí SIEMPRE al menos una parte superior (remera, camiseta, camisa, blusa, buzo, musculosa) y/o una prenda de abrigo (campera, blazer, saco, tapado, chaleco).
+   c) Si seleccionás abrigo exterior (campera, blazer, saco, tapado, sobretodo), SIEMPRE incluí también una prenda de base debajo (remera, camiseta, camisa, buzo). El abrigo va encima, la base debajo.
+   d) NO incluyas 2 prendas del mismo grupo: no 2 pantalones, no 2 remeras/tops, no 2 faldas, no 2 calzados.
 6. En la descripcion_look, describí las prendas con vocabulario acorde al género indicado.
 
 Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:

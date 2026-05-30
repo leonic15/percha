@@ -34,7 +34,7 @@ import {
   ImageOff,
 } from "lucide-react";
 import Link from "next/link";
-import { Button, useToast } from "@/components/ui";
+import { Button, useToast, LookLoopSpinner } from "@/components/ui";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/cn";
 import { SS_RESULT_KEY, SS_PARAMS_KEY } from "./GeneratorConfigClient";
@@ -745,6 +745,10 @@ export function GeneratorResultClient() {
   const [saving, setSaving]               = useState(false);
   const [savedLookId, setSavedLookId]     = useState<string | null>(null);
 
+  // Agregar prenda al look
+  const [addGarmentText, setAddGarmentText] = useState("");
+  const [addingGarment, setAddingGarment]   = useState(false);
+
   // LOOKSI-035 — Vestir mi look
   const [profileReady, setProfileReady]         = useState<boolean | null>(null); // null=cargando
   const [vestirPhase, setVestirPhase]           = useState<"idle" | "escenario" | "generating" | "result">("idle");
@@ -944,6 +948,52 @@ export function GeneratorResultClient() {
     setVestirRegenerating(false);
   };
 
+  // ── Agregar prenda al look ────────────────────────────────────────────────
+  const handleAddGarment = async () => {
+    if (!current || !addGarmentText.trim() || addingGarment) return;
+    setAddingGarment(true);
+    try {
+      const params = paramsRef.current ?? {};
+      const res = await fetch("/api/looks/agregar-prenda", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          prendas_actuales:  current.prendas,
+          tipo_prenda:       addGarmentText.trim(),
+          ocasion:           params.ocasion ?? "",
+          contexto:          params.contexto,
+          clima:             params.clima as ClimaData | undefined,
+          descripcion_look:  current.descripcion_look,
+          nombre_look:       current.nombre_sugerido,
+        }),
+      });
+
+      if (res.status === 422) {
+        const data = await res.json() as { error: string; message?: string };
+        toast.warning(data.message ?? "No encontramos esa prenda en tu guardarropas.");
+        return;
+      }
+
+      if (!res.ok) throw new Error("api_error");
+
+      const { prenda_nueva } = await res.json() as { prenda_nueva: PrendaResult };
+      const nuevasPrendas = [...current.prendas_data, prenda_nueva];
+      const newVersion: GenerarLookResult = {
+        ...current,
+        prendas:      nuevasPrendas.map((p) => p.id),
+        prendas_data: nuevasPrendas,
+      };
+
+      pushVersion(newVersion);
+      setAddGarmentText("");
+      toast.success(`${prenda_nueva.nombre} agregado al look`);
+    } catch {
+      toast.error("No se pudo agregar la prenda. Intentá de nuevo.");
+    } finally {
+      setAddingGarment(false);
+    }
+  };
+
   // ── Guardar look (LOOKSI-020) ──────────────────────────────────────────────
   // Handoff 14: tras guardar — cerrar sheet y quedarse en el resultado (no redirigir)
   const handleSave = async (nombre: string, fechaUso: string | null) => {
@@ -989,10 +1039,7 @@ export function GeneratorResultClient() {
   if (!current) {
     return (
       <div className="flex flex-col min-h-dvh bg-bg items-center justify-center gap-4">
-        <span
-          aria-label="Cargando"
-          className="size-6 rounded-full border-2 border-ink border-r-transparent animate-spin"
-        />
+        <LookLoopSpinner size={72} />
         <p className="text-sm text-ink-3">Preparando tu look…</p>
       </div>
     );
@@ -1011,7 +1058,7 @@ export function GeneratorResultClient() {
     .filter(Boolean)
     .join(" · ");
 
-  const isBusy         = regenerating || swappingId !== null || saving;
+  const isBusy         = regenerating || swappingId !== null || saving || addingGarment;
   const vestirDisabled = profileReady === false;
   const vestirTooltip  = vestirDisabled
     ? "Completá tu foto y datos corporales en el perfil para usar esta función"
@@ -1107,21 +1154,28 @@ export function GeneratorResultClient() {
           )}
 
           {/* Garment grid */}
-          <div className="px-5 grid grid-cols-2 md:grid-cols-4 gap-2">
-            {current.prendas_data.map((prenda) => (
-              <Link
-                key={prenda.id}
-                href={`/guardarropas/${prenda.id}`}
-                className="block"
-                onClick={(e) => swappingId !== null && e.preventDefault()}
-              >
-                <GarmentTile
-                  prenda={prenda}
-                  swapping={swappingId === prenda.id}
-                  onSwap={handleSwap}
-                />
-              </Link>
-            ))}
+          <div className="relative px-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {current.prendas_data.map((prenda) => (
+                <Link
+                  key={prenda.id}
+                  href={`/guardarropas/${prenda.id}`}
+                  className="block"
+                  onClick={(e) => swappingId !== null && e.preventDefault()}
+                >
+                  <GarmentTile
+                    prenda={prenda}
+                    swapping={swappingId === prenda.id}
+                    onSwap={handleSwap}
+                  />
+                </Link>
+              ))}
+            </div>
+            {regenerating && (
+              <div className="absolute inset-0 bg-bg/70 backdrop-blur-[2px] flex items-center justify-center animate-[fadeIn_200ms_ease]">
+                <LookLoopSpinner size={84} />
+              </div>
+            )}
           </div>
 
           {/* Prendas faltantes */}
@@ -1147,6 +1201,44 @@ export function GeneratorResultClient() {
                 Tocá <strong>⇄</strong> en cualquier prenda para ver alternativas de tu guardarropas.
               </span>
             </div>
+          </div>
+
+          {/* Agregar prenda al look */}
+          <div className="px-5 mt-4 mb-2">
+            <p className="eyebrow mb-2">AGREGAR PRENDA AL LOOK</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={addGarmentText}
+                onChange={(e) => setAddGarmentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !addingGarment && addGarmentText.trim()) {
+                    void handleAddGarment();
+                  }
+                }}
+                placeholder="Ej: buzo, cinturón, accesorio…"
+                disabled={addingGarment || regenerating || swappingId !== null}
+                className={cn(
+                  "flex-1 px-3.5 py-2.5 border border-line bg-surface",
+                  "text-sm text-ink placeholder:text-ink-3",
+                  "outline-none focus:border-ink transition-colors",
+                  "disabled:opacity-50",
+                )}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="md"
+                loading={addingGarment}
+                onClick={() => void handleAddGarment()}
+                disabled={!addGarmentText.trim() || addingGarment || regenerating || swappingId !== null}
+              >
+                Agregar
+              </Button>
+            </div>
+            <p className="text-[11px] text-ink-3 mt-1.5">
+              La IA buscará en tu guardarropas la prenda que mejor combine con el look.
+            </p>
           </div>
         </div>
 
