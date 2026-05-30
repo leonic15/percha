@@ -38,6 +38,7 @@ export function GarmentCard({
       className={cn(
         "group relative overflow-hidden bg-surface rounded-card shadow-card",
         "transition-transform duration-200 ease-out-soft hover:-translate-y-0.5",
+        "h-full",
         className,
       )}
     >
@@ -83,11 +84,11 @@ export function GarmentCard({
         <h3 className="font-display font-semibold text-[13px] uppercase tracking-tight leading-tight line-clamp-1 text-ink">
           {garment.name}
         </h3>
-        <div className="eyebrow mt-0.5">{garment.category}</div>
+        <div className="eyebrow mt-0.5 truncate">{garment.category}</div>
       </div>
     </article>
   );
-  return href ? <Link href={href} onClick={onBeforeNavigate}>{inner}</Link> : inner;
+  return href ? <Link href={href} onClick={onBeforeNavigate} className="h-full block">{inner}</Link> : inner;
 }
 
 /* ───────────── Skeleton específico del card ─────────────

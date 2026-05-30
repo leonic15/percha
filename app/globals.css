@@ -21,6 +21,9 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
+/* Excluir carpeta interna de codegraph para evitar que Tailwind intente leer el socket */
+@source not "../.codegraph/**";
+
 /* dark mode → activado por [data-theme="dark"] en <html> o cualquier
    ancestro. Mantenemos también la clase .dark por compatibilidad. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));

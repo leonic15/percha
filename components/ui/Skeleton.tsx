@@ -36,7 +36,7 @@ export function Skeleton({ className, shape = "rect" }: SkeletonProps) {
 /* Skeleton compuesto: grilla de prendas con N items */
 export function GarmentGridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
+    <div className="grid grid-cols-3 gap-2.5 md:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="bg-surface rounded-card shadow-card overflow-hidden">
           <Skeleton className="aspect-[4/5] w-full" />

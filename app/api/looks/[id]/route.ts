@@ -22,6 +22,7 @@ export interface LookDetailData {
   heroImages: string[];   // hasta 4 signed URLs para el collage
   usageCount: number;
   lastUsedISO: string | null;
+  vestir_imagen_url: string | null;  // signed URL, null si no hay imagen generada
 }
 
 // ── GET /api/looks/[id] ────────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ export async function GET(
   // ── Look ───────────────────────────────────────────────────────────────────
   const { data: look, error: lookErr } = await supabase
     .from("looks")
-    .select("id, nombre, descripcion_ia, parametros_generacion, created_at")
+    .select("id, nombre, descripcion_ia, parametros_generacion, created_at, vestir_imagen_url")
     .eq("id", id)
     .eq("user_id", user.id)
     .single();
@@ -126,17 +127,28 @@ export async function GET(
   // ── Parámetros ─────────────────────────────────────────────────────────────
   const params2 = (look.parametros_generacion ?? {}) as { ocasion?: string; contexto?: string };
 
+  // ── Firmar URL de vestir (bucket: look-images) ─────────────────────────────
+  let vestirSignedUrl: string | null = null;
+  const vestirPath = (look as { vestir_imagen_url?: string | null }).vestir_imagen_url ?? null;
+  if (vestirPath) {
+    const { data: vs } = await supabase.storage
+      .from("look-images")
+      .createSignedUrl(vestirPath, 3600);
+    vestirSignedUrl = vs?.signedUrl ?? null;
+  }
+
   const result: LookDetailData = {
-    id:             look.id,
-    nombre:         look.nombre,
-    descripcion_ia: look.descripcion_ia,
-    ocasion:        params2.ocasion ?? "",
-    contexto:       params2.contexto ?? "",
-    created_at:     look.created_at,
+    id:                look.id,
+    nombre:            look.nombre,
+    descripcion_ia:    look.descripcion_ia,
+    ocasion:           params2.ocasion ?? "",
+    contexto:          params2.contexto ?? "",
+    created_at:        look.created_at,
     piezas,
     heroImages,
-    usageCount:     usos.length,
-    lastUsedISO:    usos[0]?.fecha_uso ?? null,
+    usageCount:        usos.length,
+    lastUsedISO:       usos[0]?.fecha_uso ?? null,
+    vestir_imagen_url: vestirSignedUrl,
   };
 
   return NextResponse.json(result);

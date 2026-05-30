@@ -104,6 +104,7 @@ desktop.ini
 .cache/
 .parcel-cache/
 .turbo/
+.codegraph/
 
 # ------------------------------------------------------------------------------
 # Análisis de bundle

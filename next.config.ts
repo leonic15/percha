@@ -87,7 +87,7 @@ const nextConfig: NextConfig = {
       "worker-src 'self' blob:",
       // staticimgly.com: CDN de modelos ONNX de @imgly/background-removal
       // blob: requerido para que onnxruntime-web pueda fetch() el .wasm desde un blob URL
-      "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.ingest.sentry.io https://staticimgly.com",
+      "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.ingest.sentry.io https://staticimgly.com",
       "frame-src 'none'",
       "object-src 'none'",
       "base-uri 'self'",

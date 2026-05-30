@@ -603,7 +603,6 @@ export function LookDetailClient({ detail }: LookDetailClientProps) {
   const [profileReady, setProfileReady]               = useState<boolean | null>(null);
   const [vestirPhase, setVestirPhase]                 = useState<"idle" | "escenario" | "generating" | "result">("idle");
   const [vestirImageUrl, setVestirImageUrl]           = useState<string | null>(null);
-  const [vestirImagePath, setVestirImagePath]         = useState<string | null>(null);
   const [vestirSaving, setVestirSaving]               = useState(false);
   const [vestirRegenerating, setVestirRegenerating]   = useState(false);
 
@@ -631,9 +630,8 @@ export function LookDetailClient({ detail }: LookDetailClientProps) {
         setVestirPhase("escenario");
         return;
       }
-      const { imagen_url, path } = await res.json() as { imagen_url: string; path: string };
+      const { imagen_url } = await res.json() as { imagen_url: string };
       setVestirImageUrl(imagen_url);
-      setVestirImagePath(path);
       setVestirPhase("result");
     } catch {
       toast.error("No pudimos generar la imagen. Intentá de nuevo.");
@@ -642,23 +640,23 @@ export function LookDetailClient({ detail }: LookDetailClientProps) {
   }, [data.id, data.ocasion, toast]);
 
   const handleVestirGuardar = useCallback(async () => {
-    if (!vestirImagePath) return;
+    if (!vestirImageUrl) return;
     setVestirSaving(true);
     try {
-      const res = await fetch("/api/looks/guardar-imagen-vestir", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ look_id: data.id, vestir_imagen_path: vestirImagePath }),
-      });
-      if (!res.ok) { toast.error("No se pudo guardar la imagen. Intentá de nuevo."); return; }
-      toast.success("Imagen guardada con tu look");
-      setVestirPhase("idle");
+      const res = await fetch(vestirImageUrl);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "vestir-mi-look.jpg";
+      a.click();
+      URL.revokeObjectURL(blobUrl);
     } catch {
-      toast.error("No se pudo guardar la imagen. Intentá de nuevo.");
+      window.open(vestirImageUrl, "_blank");
     } finally {
       setVestirSaving(false);
     }
-  }, [data.id, vestirImagePath, toast]);
+  }, [vestirImageUrl]);
 
   const handleVestirRegenerar = useCallback(() => {
     setVestirPhase("escenario");

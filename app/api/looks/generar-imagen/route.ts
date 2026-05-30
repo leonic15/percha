@@ -33,7 +33,10 @@ const MAX_PRENDA_IMAGES   = 4; // máximo de fotos de prendas a incluir como ref
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
 export interface GenerarImagenRequest {
-  look_id:  string;
+  /** Look ya guardado en DB */
+  look_id?:  string;
+  /** Prendas del look aún no guardado (alternativa a look_id) */
+  prendas?:  string[];
   escenario?: string;
   ocasion?:   string;
 }
@@ -278,7 +281,8 @@ async function callGeminiImageGen(opts: {
 
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
-        throw new Error(`gemini_imagen_http_${res.status}: ${errText.slice(0, 200)}`);
+        console.warn(`[generar-imagen] modelo ${model} error ${res.status}: ${errText.slice(0, 200)}`);
+        continue;
       }
 
       const json = await res.json();
@@ -287,6 +291,8 @@ async function callGeminiImageGen(opts: {
       if (useImagen) {
         const b64 = json?.predictions?.[0]?.bytesBase64Encoded as string | undefined;
         if (b64) return b64;
+        console.warn(`[generar-imagen] modelo ${model} (Imagen) sin imagen en respuesta`);
+        continue;
       }
 
       // Formato Gemini generateContent (parts[].inlineData)
@@ -295,7 +301,8 @@ async function callGeminiImageGen(opts: {
       const b64 = parts.find((p) => p.inlineData?.data)?.inlineData?.data;
       if (b64) return b64;
 
-      throw new Error("gemini_imagen_empty_response");
+      console.warn(`[generar-imagen] modelo ${model} sin imagen en respuesta`);
+      continue;
     }
 
     const available = await listImageModels(apiKey);
@@ -329,21 +336,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
-  const { look_id, escenario = "", ocasion = "" } = body;
-  if (!look_id) {
-    return NextResponse.json({ error: "look_id_requerido" }, { status: 400 });
+  const { look_id, prendas: prendasIds, escenario = "", ocasion = "" } = body;
+  if (!look_id && (!prendasIds || prendasIds.length === 0)) {
+    return NextResponse.json({ error: "look_id_o_prendas_requerido" }, { status: 400 });
   }
 
-  // ── 1. Verificar que el look pertenece al usuario ─────────────────────────
-  const { data: look, error: lookErr } = await supabase
-    .from("looks")
-    .select("id, nombre, parametros_generacion")
-    .eq("id", look_id)
-    .eq("user_id", user.id)
-    .single();
+  // ── 1. Resolver ocasión desde el look guardado (si existe) ───────────────
+  let ocasionFromLook = "";
+  if (look_id) {
+    const { data: look, error: lookErr } = await supabase
+      .from("looks")
+      .select("id, parametros_generacion")
+      .eq("id", look_id)
+      .eq("user_id", user.id)
+      .single();
 
-  if (lookErr || !look) {
-    return NextResponse.json({ error: "look_not_found" }, { status: 404 });
+    if (lookErr || !look) {
+      return NextResponse.json({ error: "look_not_found" }, { status: 404 });
+    }
+
+    const params = look.parametros_generacion as Record<string, unknown>;
+    ocasionFromLook = (params?.ocasion as string) || "";
   }
 
   // ── 2. Datos corporales del perfil ────────────────────────────────────────
@@ -392,36 +405,55 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "body_photo_fetch_error" }, { status: 500 });
   }
 
-  // ── 5. Obtener prendas del look con imagen_url ─────────────────────────────
-  const { data: lookPrendas, error: lookPrendasError } = await supabase
-    .from("look_prendas")
-    .select("prenda_id, prendas(nombre, color_principal, estilos, imagen_url)")
-    .eq("look_id", look_id)
-    .eq("prenda_eliminada", false);
+  // ── 5. Obtener prendas con imagen_url ─────────────────────────────────────
+  type PrendaInfo = { nombre: string; categoria: string; color: string; estilos: string[]; imagen_url: string | null };
 
-  if (lookPrendasError) {
-    console.error("[generar-imagen] Error querying look_prendas:", lookPrendasError);
-  }
+  let prendasInfo: PrendaInfo[] = [];
 
-  type RawLookPrenda = {
-    prendas: {
-      nombre:          string;
-      color_principal: string | null;
-      estilos:         string[];
-      imagen_url:      string | null;
-    } | null;
-  };
+  if (look_id) {
+    const { data: lookPrendas, error: lookPrendasError } = await supabase
+      .from("look_prendas")
+      .select("prenda_id, prendas(nombre, color_principal, estilos, imagen_url)")
+      .eq("look_id", look_id)
+      .eq("prenda_eliminada", false);
 
-  const prendasInfo = (lookPrendas ?? []).map((lp) => {
-    const p = (lp as unknown as RawLookPrenda).prendas;
-    return {
-      nombre:     p?.nombre          ?? "prenda",
-      categoria:  "ropa",
-      color:      p?.color_principal ?? "neutro",
-      estilos:    p?.estilos         ?? [],
-      imagen_url: p?.imagen_url      ?? null,
+    if (lookPrendasError) {
+      console.error("[generar-imagen] Error querying look_prendas:", lookPrendasError);
+    }
+
+    type RawLookPrenda = {
+      prendas: { nombre: string; color_principal: string | null; estilos: string[]; imagen_url: string | null } | null;
     };
-  });
+
+    prendasInfo = (lookPrendas ?? []).map((lp) => {
+      const p = (lp as unknown as RawLookPrenda).prendas;
+      return {
+        nombre:     p?.nombre          ?? "prenda",
+        categoria:  "ropa",
+        color:      p?.color_principal ?? "neutro",
+        estilos:    p?.estilos         ?? [],
+        imagen_url: p?.imagen_url      ?? null,
+      };
+    });
+  } else {
+    const { data: rawPrendas, error: rawErr } = await supabase
+      .from("prendas")
+      .select("nombre, color_principal, estilos, imagen_url")
+      .in("id", prendasIds!)
+      .eq("user_id", user.id);
+
+    if (rawErr) {
+      console.error("[generar-imagen] Error querying prendas:", rawErr);
+    }
+
+    prendasInfo = (rawPrendas ?? []).map((p) => ({
+      nombre:     p.nombre          ?? "prenda",
+      categoria:  "ropa",
+      color:      p.color_principal ?? "neutro",
+      estilos:    (p.estilos as string[]) ?? [],
+      imagen_url: p.imagen_url      ?? null,
+    }));
+  }
 
   // ── 6. Descargar imágenes de prendas en base64 (máx MAX_PRENDA_IMAGES) ────
   const prendasConImagen = prendasInfo
@@ -462,11 +494,10 @@ export async function POST(req: NextRequest) {
     if (b64) refImages.push(b64);
   }
 
-  const alturaStr = `${profile.altura_cm}cm`;
-  const pesoStr   = `${profile.peso_kg}kg`;
-  const genero    = profile.genero ?? "person";
-  const params    = look.parametros_generacion as Record<string, unknown>;
-  const ocasionFinal = ocasion || (params?.ocasion as string) || "casual";
+  const alturaStr    = `${profile.altura_cm}cm`;
+  const pesoStr      = `${profile.peso_kg}kg`;
+  const genero       = profile.genero ?? "person";
+  const ocasionFinal = ocasion || ocasionFromLook || "casual";
 
   const numPrendasImages = refImages.length - 1; // excluye la foto corporal
 
@@ -516,7 +547,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 9. Subir imagen a Storage ─────────────────────────────────────────────
-  const path = `${user.id}/${look_id}/vestir_${Date.now()}.jpg`;
+  const path = `${user.id}/${look_id ?? "temp"}/vestir_${Date.now()}.jpg`;
   const imgBuffer = Buffer.from(imagenB64, "base64");
 
   const { error: uploadErr } = await supabase.storage
@@ -547,7 +578,7 @@ export async function POST(req: NextRequest) {
   });
 
   const userHash = hashUserId(user.id);
-  console.info("[generar-imagen] ok", { user_hash: userHash, look_id, path });
+  console.info("[generar-imagen] ok", { user_hash: userHash, look_id: look_id ?? "none", path });
 
   return NextResponse.json<GenerarImagenResponse>({
     imagen_url: resultUrl.signedUrl,

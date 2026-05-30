@@ -26,6 +26,9 @@ import type { PrendaResult, ClimaData } from "@/app/api/looks/generar/route";
 const GEMINI_MODEL = "gemini-2.5-flash-lite";
 const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const TIMEOUT_MS   = 15_000;
+const MAX_CANDIDATAS = 30;
+
+export const maxDuration = 25;
 
 interface CambiarPrendaBody {
   prenda_id_a_reemplazar: string;
@@ -122,12 +125,15 @@ export async function POST(req: NextRequest) {
     })
     .join("\n");
 
-  // ── 5. Construir lista de candidatas ─────────────────────────────────────────
-  const candidatasLines = candidatas
-    .map((g) => {
+  // ── 5. Construir lista de candidatas (máx MAX_CANDIDATAS) ───────────────────
+  // Usamos índices secuenciales (no UUIDs) para que la IA no tenga que
+  // reproducir UUIDs exactos, lo que causaba hallucination y 502.
+  const candidatasSlice = candidatas.slice(0, MAX_CANDIDATAS);
+  const candidatasLines = candidatasSlice
+    .map((g, i) => {
       const cat  = g.category_id ? (categoryMap[g.category_id] ?? "Otro") : "Otro";
       const desc = g.ia_descripcion ? ` — ${g.ia_descripcion.slice(0, 100)}` : "";
-      return `ID:${g.id} | ${g.nombre} (${cat}, ${g.color_principal ?? "neutro"})${desc}`;
+      return `${i + 1}. ${g.nombre} (${cat}, ${g.color_principal ?? "neutro"})${desc}`;
     })
     .join("\n");
 
@@ -146,16 +152,17 @@ ${weatherLine}
 Quiere reemplazar una prenda. Debés elegir la MEJOR alternativa de esta lista de prendas disponibles que:
 1. Sea compatible visualmente y en estilo con las prendas que ya están en el look
 2. Sea apropiada para la ocasión "${body.ocasion}"
-3. Prefentemente de una categoría similar a la que se reemplaza
+3. Preferentemente de una categoría similar a la que se reemplaza
 
-CANDIDATAS DISPONIBLES (${candidatas.length} prendas):
+CANDIDATAS DISPONIBLES (${candidatasSlice.length} prendas):
 ${candidatasLines}
 
 Si ninguna prenda de la lista es compatible con el look actual, respondé con:
-{"no_alternatives": true, "razon": "breve explicación en español"}
+{"no_alternatives": true, "razon": "máximo 8 palabras en español"}
 
 Si encontrás una buena alternativa, respondé ÚNICAMENTE con un JSON válido, sin markdown:
-{"prenda_id": "id_exacto_de_la_prenda_elegida"}`;
+{"numero": N}
+donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
 
   // ── 6. Llamar a Gemini ───────────────────────────────────────────────────────
   let rawText = "";
@@ -174,7 +181,7 @@ Si encontrás una buena alternativa, respondé ÚNICAMENTE con un JSON válido, 
           temperature:     0.5,
           topK:            20,
           topP:            0.9,
-          maxOutputTokens: 128,
+          maxOutputTokens: 200,
         },
       }),
       signal: controller.signal,
@@ -184,8 +191,9 @@ Si encontrás una buena alternativa, respondé ÚNICAMENTE con un JSON válido, 
 
     if (!geminiRes.ok) {
       const errBody = await geminiRes.json().catch(() => ({})) as {
-        error?: { details?: { retryDelay?: string }[] };
+        error?: { status?: string; details?: { retryDelay?: string }[] };
       };
+      console.error("[looks/cambiar-prenda] Gemini HTTP error:", geminiRes.status, errBody);
       if (geminiRes.status === 429) {
         const retryDelay   = errBody.error?.details?.find((d) => "retryDelay" in d)?.retryDelay ?? "60s";
         const retrySeconds = parseInt(retryDelay) || 60;
@@ -206,16 +214,17 @@ Si encontrás una buena alternativa, respondé ÚNICAMENTE con un JSON válido, 
   }
 
   // ── 7. Parsear respuesta ─────────────────────────────────────────────────────
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const jsonMatch = rawText.match(/\{[^{}]*\}/);
   if (!jsonMatch) {
     console.error("[looks/cambiar-prenda] No JSON in response:", rawText);
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
-  let aiResult: { prenda_id?: string; no_alternatives?: boolean; razon?: string };
+  let aiResult: { numero?: number; no_alternatives?: boolean; razon?: string };
   try {
     aiResult = JSON.parse(jsonMatch[0]);
   } catch {
+    console.error("[looks/cambiar-prenda] JSON parse error:", jsonMatch[0]);
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
@@ -227,14 +236,14 @@ Si encontrás una buena alternativa, respondé ÚNICAMENTE con un JSON válido, 
     );
   }
 
-  // ── 8. Validar que el ID elegido existe en las candidatas ────────────────────
-  const validCandidateIds = new Set(candidatas.map((g) => g.id));
-  if (!aiResult.prenda_id || !validCandidateIds.has(aiResult.prenda_id)) {
-    console.error("[looks/cambiar-prenda] ID inválido o no en candidatas:", aiResult.prenda_id);
+  // ── 8. Validar que el índice elegido está dentro de rango ────────────────────
+  const idx = typeof aiResult.numero === "number" ? aiResult.numero - 1 : -1;
+  if (idx < 0 || idx >= candidatasSlice.length) {
+    console.error("[looks/cambiar-prenda] índice inválido:", aiResult.numero, "de", candidatasSlice.length);
     return NextResponse.json({ error: "ai_invalid_id" }, { status: 502 });
   }
 
-  const nuevaPrenda = candidatas.find((g) => g.id === aiResult.prenda_id)!;
+  const nuevaPrenda = candidatasSlice[idx];
 
   // ── 9. Firmar URL de imagen ──────────────────────────────────────────────────
   let signedUrl: string | null = null;

@@ -746,11 +746,9 @@ export function GeneratorResultClient() {
 
   // LOOKSI-035 — Vestir mi look
   const [profileReady, setProfileReady]         = useState<boolean | null>(null); // null=cargando
-  const [savedLookId, setSavedLookId]           = useState<string | null>(null);
   const [vestirPhase, setVestirPhase]           = useState<"idle" | "escenario" | "generating" | "result">("idle");
   const [vestirEscenario, setVestirEscenario]   = useState("");
   const [vestirImageUrl, setVestirImageUrl]     = useState<string | null>(null);
-  const [vestirImagePath, setVestirImagePath]   = useState<string | null>(null);
   const [vestirSaving, setVestirSaving]         = useState(false);
   const [vestirRegenerating, setVestirRegenerating] = useState(false);
 
@@ -888,39 +886,10 @@ export function GeneratorResultClient() {
     setVestirPhase("generating");
 
     try {
-      // Auto-guardar el look si aún no está guardado (necesario para generar-imagen)
-      let lookId = savedLookId;
-      if (!lookId) {
-        const saveRes = await fetch("/api/looks/guardar", {
-          method:  "POST",
-          headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({
-            nombre:                current.nombre_sugerido,
-            prendas:               current.prendas,
-            descripcion_ia:        current.descripcion_look,
-            parametros_generacion: current.parametros,
-            fecha_uso:             null,
-          }),
-        });
-        if (!saveRes.ok) {
-          const d = await saveRes.json().catch(() => ({})) as { message?: string };
-          toast.error(d.message ?? "No se pudo guardar el look. Intentá de nuevo.");
-          setVestirPhase("escenario");
-          return;
-        }
-        const { id } = await saveRes.json() as { id: string };
-        lookId = id;
-        setSavedLookId(id);
-      }
-
       const res = await fetch("/api/looks/generar-imagen", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          look_id:  lookId,
-          escenario,
-          ocasion:  current.parametros.ocasion ?? "",
-        }),
+        body:    JSON.stringify({ prendas: current.prendas, escenario, ocasion: current.parametros.ocasion ?? "" }),
       });
 
       if (!res.ok) {
@@ -930,9 +899,8 @@ export function GeneratorResultClient() {
         return;
       }
 
-      const { imagen_url, path } = await res.json() as { imagen_url: string; path: string };
+      const { imagen_url } = await res.json() as { imagen_url: string };
       setVestirImageUrl(imagen_url);
-      setVestirImagePath(path);
       setVestirPhase("result");
 
       posthog.capture("vestir_imagen_generada", {
@@ -946,38 +914,22 @@ export function GeneratorResultClient() {
     }
   };
 
-  // ── Guardar imagen de "Vestir mi look" ─────────────────────────────────────
+  // ── Guardar imagen en dispositivo ─────────────────────────────────────────
   const handleVestirGuardar = async () => {
-    if (!vestirImagePath || !current) return;
+    if (!vestirImageUrl) return;
     setVestirSaving(true);
     try {
-      const res = await fetch("/api/looks/guardar-imagen-vestir", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          look_id:            savedLookId,
-          vestir_imagen_path: vestirImagePath,
-          nombre:             current.nombre_sugerido,
-          prendas:            current.prendas,
-          descripcion_ia:     current.descripcion_look,
-          parametros_generacion: current.parametros,
-        }),
-      });
-
-      if (!res.ok) {
-        toast.error("No se pudo guardar la imagen. Intentá de nuevo.");
-        return;
-      }
-
-      const { look_id } = await res.json() as { look_id: string };
-      if (!savedLookId) setSavedLookId(look_id);
-
-      toast.success("Imagen guardada con tu look");
-      setVestirPhase("idle");
-
-      posthog.capture("vestir_imagen_guardada");
+      const res = await fetch(vestirImageUrl);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = "vestir-mi-look.jpg";
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+      posthog.capture("vestir_imagen_descargada");
     } catch {
-      toast.error("No se pudo guardar la imagen. Intentá de nuevo.");
+      window.open(vestirImageUrl, "_blank");
     } finally {
       setVestirSaving(false);
     }
