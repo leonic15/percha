@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shirt, Sparkles, Layers, User } from "lucide-react";
+import { Shirt, Sparkles, Layers, Luggage, User } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -15,10 +15,11 @@ import { cn } from "@/lib/cn";
    ───────────────────────────────────────────────────────────────────────── */
 
 const NAV_ITEMS = [
-  { href: "/guardarropas", label: "Guardarropas", icon: Shirt },
-  { href: "/generador",    label: "Generador",    icon: Sparkles },
-  { href: "/looks",        label: "Looks",        icon: Layers },
-  { href: "/perfil",       label: "Perfil",       icon: User },
+  { href: "/guardarropas", label: "Closet",    icon: Shirt },
+  { href: "/generador",    label: "Generador", icon: Sparkles },
+  { href: "/looks",        label: "Looks",     icon: Layers },
+  { href: "/viajes",       label: "Viajes",    icon: Luggage },
+  { href: "/perfil",       label: "Perfil",    icon: User },
 ] as const;
 
 export function BottomNav() {
@@ -42,7 +43,7 @@ export function BottomNav() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 px-3 py-1.5 min-w-[60px]",
+                  "relative flex flex-col items-center gap-1 px-2 py-1.5 min-w-[52px]",
                   active ? "text-ink" : "text-ink-3 hover:text-ink-2",
                 )}
               >

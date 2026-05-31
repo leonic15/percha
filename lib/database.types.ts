@@ -256,6 +256,169 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      viajes: {
+        Row: {
+          id: string;
+          user_id: string;
+          nombre: string;
+          fecha_inicio: string;
+          fecha_fin: string;
+          modo_optimizacion: "maleta_liviana" | "estilo_completo";
+          estado: "borrador" | "listo" | "en_viaje" | "completado";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          nombre: string;
+          fecha_inicio: string;
+          fecha_fin: string;
+          modo_optimizacion?: "maleta_liviana" | "estilo_completo";
+          estado?: "borrador" | "listo" | "en_viaje" | "completado";
+        };
+        Update: {
+          nombre?: string;
+          fecha_inicio?: string;
+          fecha_fin?: string;
+          modo_optimizacion?: "maleta_liviana" | "estilo_completo";
+          estado?: "borrador" | "listo" | "en_viaje" | "completado";
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      destinos: {
+        Row: {
+          id: string;
+          viaje_id: string;
+          ciudad: string;
+          pais: string;
+          orden: number;
+        };
+        Insert: {
+          id?: string;
+          viaje_id: string;
+          ciudad: string;
+          pais: string;
+          orden?: number;
+        };
+        Update: {
+          ciudad?: string;
+          pais?: string;
+          orden?: number;
+        };
+        Relationships: [];
+      };
+      viaje_eventos: {
+        Row: {
+          id: string;
+          viaje_id: string;
+          tipo: "trabajo" | "playa" | "outdoor" | "noche" | "paseos" | "deporte" | "formal";
+          cantidad_looks: number;
+        };
+        Insert: {
+          id?: string;
+          viaje_id: string;
+          tipo: "trabajo" | "playa" | "outdoor" | "noche" | "paseos" | "deporte" | "formal";
+          cantidad_looks?: number;
+        };
+        Update: {
+          tipo?: "trabajo" | "playa" | "outdoor" | "noche" | "paseos" | "deporte" | "formal";
+          cantidad_looks?: number;
+        };
+        Relationships: [];
+      };
+      viaje_preferencias_prendas: {
+        Row: {
+          id: string;
+          viaje_id: string;
+          prenda_id: string;
+          tipo: "incluir" | "excluir";
+        };
+        Insert: {
+          id?: string;
+          viaje_id: string;
+          prenda_id: string;
+          tipo: "incluir" | "excluir";
+        };
+        Update: {
+          tipo?: "incluir" | "excluir";
+        };
+        Relationships: [];
+      };
+      viaje_preferencias_estilos: {
+        Row: {
+          id: string;
+          viaje_id: string;
+          estilo: string;
+        };
+        Insert: {
+          id?: string;
+          viaje_id: string;
+          estilo: string;
+        };
+        Update: {
+          estilo?: string;
+        };
+        Relationships: [];
+      };
+      viaje_looks: {
+        Row: {
+          id: string;
+          viaje_id: string;
+          viaje_evento_id: string;
+          nombre: string;
+          descripcion_ia: string | null;
+          numero_en_evento: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          viaje_id: string;
+          viaje_evento_id: string;
+          nombre: string;
+          descripcion_ia?: string | null;
+          numero_en_evento?: number;
+        };
+        Update: {
+          nombre?: string;
+          descripcion_ia?: string | null;
+          numero_en_evento?: number;
+        };
+        Relationships: [];
+      };
+      viaje_look_prendas: {
+        Row: {
+          id: string;
+          viaje_look_id: string;
+          prenda_id: string;
+        };
+        Insert: {
+          id?: string;
+          viaje_look_id: string;
+          prenda_id: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      viaje_basicos_sugeridos: {
+        Row: {
+          id: string;
+          viaje_id: string;
+          tipo_prenda: string;
+          cantidad: number;
+        };
+        Insert: {
+          id?: string;
+          viaje_id: string;
+          tipo_prenda: string;
+          cantidad?: number;
+        };
+        Update: {
+          cantidad?: number;
+        };
+        Relationships: [];
+      };
     };
   };
 }
@@ -270,6 +433,11 @@ export type Look         = Database["public"]["Tables"]["looks"]["Row"];
 export type LookPrenda   = Database["public"]["Tables"]["look_prendas"]["Row"];
 export type LookUso      = Database["public"]["Tables"]["look_usos"]["Row"];
 export type AiUsage      = Database["public"]["Tables"]["ai_usage"]["Row"];
+export type Viaje        = Database["public"]["Tables"]["viajes"]["Row"];
+export type Destino      = Database["public"]["Tables"]["destinos"]["Row"];
+export type ViajeEvento  = Database["public"]["Tables"]["viaje_eventos"]["Row"];
+export type ViajeLook    = Database["public"]["Tables"]["viaje_looks"]["Row"];
+export type ViajeBasico  = Database["public"]["Tables"]["viaje_basicos_sugeridos"]["Row"];
 
 // Tipos de insert/update
 export type PrendaInsert = Database["public"]["Tables"]["prendas"]["Insert"];

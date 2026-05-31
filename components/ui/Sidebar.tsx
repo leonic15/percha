@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shirt, Sparkles, Layers, User, Plus, Settings } from "lucide-react";
+import { Shirt, Sparkles, Layers, Luggage, User, Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { href: "/guardarropas", label: "Guardarropas", icon: Shirt },
   { href: "/generador",    label: "Generador",    icon: Sparkles },
   { href: "/looks",        label: "Looks",        icon: Layers },
+  { href: "/viajes",       label: "Viajes",       icon: Luggage },
   { href: "/perfil",       label: "Perfil",       icon: User },
 ] as const;
 
