@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
 import { TIPO_EVENTO, EVENTO_CONFIG, type TipoEvento, type ModoOptimizacion } from "@/lib/viajes/constants";
 import type { PrendaResult } from "@/app/api/looks/generar/route";
+import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
 
 /**
  * POST /api/viajes/generar-looks
@@ -73,6 +74,10 @@ export async function POST(req: NextRequest) {
   if (!body.eventos?.length) {
     return NextResponse.json({ error: "eventos_requeridos" }, { status: 400 });
   }
+
+  // ── Rate limiting (H-03) ───────────────────────────────────────────────────
+  const rl = await checkAiRateLimit(user.id, "generacion_viaje");
+  if (!rl.allowed) return rateLimitResponse(rl.retryAfter);
 
   // ── 1. Traer guardarropas ──────────────────────────────────────────────────
   const { data: garmentsRaw, error: gErr } = await supabase
@@ -322,14 +327,9 @@ Respondé ÚNICAMENTE con JSON válido, sin markdown ni texto extra:
     };
   });
 
-  // ── 8. Registrar uso ───────────────────────────────────────────────────────
+  // ── 8. Registrar uso (service role — H-01) ──────────────────────────────────
   const costo = tokensUsados ? tokensUsados * 0.000000075 : null;
-  await supabase.from("ai_usage").insert({
-    user_id: user.id,
-    tipo:    "generacion_look",
-    tokens_usados: tokensUsados,
-    costo_estimado: costo,
-  });
+  await recordAiUsage(user.id, "generacion_viaje", { tokens: tokensUsados, costo });
 
   return NextResponse.json({
     looks,

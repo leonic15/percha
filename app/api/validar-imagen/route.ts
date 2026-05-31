@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
 
 /**
  * POST /api/validar-imagen — LOOKSI-036
@@ -150,12 +151,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "tipo_invalido" }, { status: 400 });
   }
 
+  // ── Rate limiting (H-03) ───────────────────────────────────────────────────
+  const rl = await checkAiRateLimit(user.id, "validacion_imagen");
+  if (!rl.allowed) return rateLimitResponse(rl.retryAfter);
+
   const { data: base64Data, mimeType } = extractBase64(imagen);
   const prompt = tipo === "prenda" ? PROMPT_PRENDA : PROMPT_FOTO_CORPORAL;
 
   let rawText: string;
   try {
     rawText = await callGemini(apiKey, prompt, base64Data, mimeType);
+    // Registrar uso para tracking + rate limit (service role — H-01)
+    void recordAiUsage(user.id, "validacion_imagen");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     // Fail-open: no bloquear por error de red / timeout

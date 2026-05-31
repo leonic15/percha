@@ -11,6 +11,15 @@
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
+/** Tipos de uso de IA registrados en ai_usage (la columna es TEXT libre en DB). */
+export type AiUsageTipo =
+  | "analisis_prenda"
+  | "generacion_look"
+  | "generacion_viaje"
+  | "cambio_prenda"
+  | "generacion_imagen"
+  | "validacion_imagen";
+
 export interface Database {
   public: {
     // Views y Functions son requeridos por GenericSchema de supabase-js
@@ -241,7 +250,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          tipo: "analisis_prenda" | "generacion_look" | "cambio_prenda";
+          tipo: AiUsageTipo;
           tokens_usados: number | null;
           costo_estimado: number | null;
           created_at: string;
@@ -249,7 +258,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          tipo: "analisis_prenda" | "generacion_look" | "cambio_prenda";
+          tipo: AiUsageTipo;
           tokens_usados?: number | null;
           costo_estimado?: number | null;
         };

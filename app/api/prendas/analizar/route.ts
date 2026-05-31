@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
 
 /**
  * POST /api/prendas/analizar
@@ -56,6 +57,10 @@ export async function POST(req: NextRequest) {
     console.error("[prendas/analizar] GEMINI_API_KEY no configurada");
     return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
   }
+
+  // ── Rate limiting (H-03) ───────────────────────────────────────────────────
+  const rl = await checkAiRateLimit(user.id, "analisis_prenda");
+  if (!rl.allowed) return rateLimitResponse(rl.retryAfter);
 
   // Leer imagen del FormData
   let formData: FormData;
@@ -144,6 +149,9 @@ export async function POST(req: NextRequest) {
     const tokensUsados: number | null =
       geminiData?.usageMetadata?.totalTokenCount ?? null;
     const costoEstimado = tokensUsados ? tokensUsados * 0.000000075 : null;
+
+    // Registrar uso en ai_usage (service role — H-01: habilita tracking + rate limit)
+    await recordAiUsage(user.id, "analisis_prenda", { tokens: tokensUsados, costo: costoEstimado });
 
     await captureServerEvent(user.id, "ia_analisis_completado", {
       duracion_ms:     Date.now() - inicioMs,

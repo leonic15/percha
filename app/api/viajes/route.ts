@@ -126,27 +126,32 @@ export async function POST(req: NextRequest) {
     await supabase.from("viaje_preferencias_prendas").insert(prefPrendas);
   }
 
-  // 6. Looks y sus prendas
-  for (const look of body.looks ?? []) {
-    const eventoId = eventoIdMap[look.evento];
-    if (!eventoId) continue;
-
-    const { data: lookCreado } = await supabase
+  // 6. Looks y sus prendas — batch para evitar N+1 (perf H-13).
+  // Un solo insert de viaje_looks y un solo insert de viaje_look_prendas.
+  // PostgREST devuelve las filas insertadas en el mismo orden de entrada,
+  // así que correlacionamos look ↔ prendas por índice.
+  const validLooks = (body.looks ?? []).filter((l) => eventoIdMap[l.evento]);
+  if (validLooks.length) {
+    const { data: looksCreados } = await supabase
       .from("viaje_looks")
-      .insert({
-        viaje_id:        viajeId,
-        viaje_evento_id: eventoId,
-        nombre:          look.nombre ?? look.nombre_sugerido,
-        descripcion_ia:  look.descripcion_look,
+      .insert(validLooks.map((look) => ({
+        viaje_id:         viajeId,
+        viaje_evento_id:  eventoIdMap[look.evento]!,
+        nombre:           look.nombre ?? look.nombre_sugerido,
+        descripcion_ia:   look.descripcion_look,
         numero_en_evento: look.numero_en_evento,
-      })
-      .select("id")
-      .single();
+      })))
+      .select("id");
 
-    if (lookCreado && look.prendas?.length) {
-      await supabase.from("viaje_look_prendas").insert(
-        look.prendas.map((pId) => ({ viaje_look_id: lookCreado.id, prenda_id: pId }))
-      );
+    const lookPrendasRows = (looksCreados ?? []).flatMap((created, i) =>
+      (validLooks[i]?.prendas ?? []).map((prenda_id) => ({
+        viaje_look_id: created.id,
+        prenda_id,
+      }))
+    );
+
+    if (lookPrendasRows.length) {
+      await supabase.from("viaje_look_prendas").insert(lookPrendasRows);
     }
   }
 

@@ -37,13 +37,20 @@ export async function GET(req: NextRequest) {
     categoryId = (cat as { id: number } | null)?.id ?? null;
   }
 
+  // Perf (H-10): solo la primera página calcula el COUNT(*) exacto (caro).
+  // Las páginas de scroll infinito detectan hasMore pidiendo una fila extra
+  // (limit + 1), evitando un COUNT por request. El cliente conserva el total
+  // del render inicial, así que `total` solo se devuelve en la página 1.
+  const wantsCount = page === 1;
+  const from = (page - 1) * limit;
+
   let query = supabase
     .from("prendas")
-    .select("*", { count: "exact" })
+    .select("*", wantsCount ? { count: "exact" } : {})
     .eq("user_id", user.id)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
-    .range((page - 1) * limit, page * limit - 1);
+    .range(from, from + limit); // limit + 1 filas para detectar hasMore
 
   if (q)          query = query.or(`nombre.ilike.%${q}%,color_principal.ilike.%${q}%,notas.ilike.%${q}%`);
   if (categoryId) query = query.eq("category_id", categoryId);
@@ -54,10 +61,12 @@ export async function GET(req: NextRequest) {
   const { data: garmentsData, count, error } = await query;
   if (error) return NextResponse.json({ error: "db_error" }, { status: 500 });
 
-  const garments = (garmentsData ?? []) as Prenda[];
+  const rows     = (garmentsData ?? []) as Prenda[];
+  const hasMore  = rows.length > limit;
+  const garments = hasMore ? rows.slice(0, limit) : rows;
 
   return NextResponse.json(
-    { garments, total: count ?? 0, page, hasMore: page * limit < (count ?? 0) },
+    { garments, total: wantsCount ? (count ?? 0) : null, page, hasMore },
     { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=120" } }
   );
 }

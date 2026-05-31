@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
 
 /**
  * POST /api/looks/generar
@@ -98,6 +99,10 @@ export async function POST(req: NextRequest) {
   if (!body.ocasion) {
     return NextResponse.json({ error: "ocasion_requerida" }, { status: 400 });
   }
+
+  // ── Rate limiting (H-03) ───────────────────────────────────────────────────
+  const rl = await checkAiRateLimit(user.id, "generacion_look");
+  if (!rl.allowed) return rateLimitResponse(rl.retryAfter);
 
   // ── 1. Traer prendas del guardarropas ──────────────────────────────────────
   const { data: garmentsData, error: gError } = await supabase
@@ -319,14 +324,9 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
     signedUrl: g.imagen_url ? (signedMap[g.imagen_url] ?? null) : null,
   }));
 
-  // ── 7. Registrar uso en ai_usage ──────────────────────────────────────────
+  // ── 7. Registrar uso en ai_usage (service role — H-01) ─────────────────────
   const costoEstimado = tokensUsados ? tokensUsados * 0.000000075 : null;
-  await supabase.from("ai_usage").insert({
-    user_id:         user.id,
-    tipo:            "generacion_look",
-    tokens_usados:   tokensUsados,
-    costo_estimado:  costoEstimado,
-  });
+  await recordAiUsage(user.id, "generacion_look", { tokens: tokensUsados, costo: costoEstimado });
 
   // ── PostHog: look generado ────────────────────────────────────────────────
   await captureServerEvent(user.id, "look_generado", {

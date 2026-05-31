@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
 import type { PrendaResult, ClimaData } from "@/app/api/looks/generar/route";
+import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
 
 /**
  * POST /api/looks/cambiar-prenda
@@ -61,6 +62,10 @@ export async function POST(req: NextRequest) {
   if (!body.prenda_id_a_reemplazar || !body.ocasion) {
     return NextResponse.json({ error: "params_requeridos" }, { status: 400 });
   }
+
+  // ── Rate limiting (H-03) ───────────────────────────────────────────────────
+  const rl = await checkAiRateLimit(user.id, "cambio_prenda");
+  if (!rl.allowed) return rateLimitResponse(rl.retryAfter);
 
   // ── 1. Traer todas las prendas del guardarropas ──────────────────────────────
   const { data: garmentsData, error: gError } = await supabase
@@ -269,12 +274,10 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
     if (signed?.[0]?.signedUrl) signedUrl = signed[0].signedUrl;
   }
 
-  // ── 10. Registrar uso en ai_usage ────────────────────────────────────────────
-  await supabase.from("ai_usage").insert({
-    user_id:        user.id,
-    tipo:           "cambio_prenda",
-    tokens_usados:  tokensUsados,
-    costo_estimado: tokensUsados ? tokensUsados * 0.000000075 : null,
+  // ── 10. Registrar uso en ai_usage (service role — H-01) ──────────────────────
+  await recordAiUsage(user.id, "cambio_prenda", {
+    tokens: tokensUsados,
+    costo:  tokensUsados ? tokensUsados * 0.000000075 : null,
   });
 
   // ── 11. Responder ────────────────────────────────────────────────────────────

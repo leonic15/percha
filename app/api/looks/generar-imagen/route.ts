@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createHash } from "crypto";
+import { checkAiRateLimit, recordAiUsage } from "@/lib/ai/usage";
 
 /**
  * POST /api/looks/generar-imagen — LOOKSI-035
@@ -29,6 +30,11 @@ const BUCKET_LOOK_IMAGES = "look-images";
 const BUCKET_BODY_PHOTOS  = "body-photos";
 const DAILY_LIMIT         = 3;
 const MAX_PRENDA_IMAGES   = 4; // máximo de fotos de prendas a incluir como referencia
+
+// Perf (H-14): cachea en memoria de proceso el primer modelo que respondió OK,
+// para probarlo primero y evitar recorrer los 404 de modelos no disponibles en
+// cada request (la mayoría de las keys solo tienen acceso a uno o dos modelos).
+let cachedWorkingModel: string | null = null;
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -230,11 +236,17 @@ async function callGeminiImageGen(opts: {
     { model: "imagen-4.0-fast-generate-001",              method: "predict",         useImagen: true,  supportsImages: false },
   ];
 
+  // Prioriza el último modelo que funcionó (si lo hay) para no recorrer 404s.
+  const ordered = cachedWorkingModel
+    ? [...CANDIDATES].sort((a, b) =>
+        a.model === cachedWorkingModel ? -1 : b.model === cachedWorkingModel ? 1 : 0)
+    : CANDIDATES;
+
   const controller = new AbortController();
   const timeoutId  = setTimeout(() => controller.abort(), 45000);
 
   try {
-    for (const { model, method, useImagen, supportsImages } of CANDIDATES) {
+    for (const { model, method, useImagen, supportsImages } of ordered) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${method}?key=${apiKey}`;
 
       let body: string;
@@ -290,7 +302,7 @@ async function callGeminiImageGen(opts: {
       // Formato Imagen (predictions[])
       if (useImagen) {
         const b64 = json?.predictions?.[0]?.bytesBase64Encoded as string | undefined;
-        if (b64) return b64;
+        if (b64) { cachedWorkingModel = model; return b64; }
         console.warn(`[generar-imagen] modelo ${model} (Imagen) sin imagen en respuesta`);
         continue;
       }
@@ -299,7 +311,7 @@ async function callGeminiImageGen(opts: {
       const parts: { inlineData?: { data: string } }[] =
         json?.candidates?.[0]?.content?.parts ?? [];
       const b64 = parts.find((p) => p.inlineData?.data)?.inlineData?.data;
-      if (b64) return b64;
+      if (b64) { cachedWorkingModel = model; return b64; }
 
       console.warn(`[generar-imagen] modelo ${model} sin imagen en respuesta`);
       continue;
@@ -373,21 +385,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── 3. Rate limiting (máx DAILY_LIMIT por día) ────────────────────────────
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  const { count: usosHoy } = await supabase
-    .from("ai_usage")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("tipo", "generacion_imagen" as never)
-    .gte("created_at", todayStart.toISOString());
-
-  if ((usosHoy ?? 0) >= DAILY_LIMIT) {
+  // ── 3. Rate limiting (H-01/H-03) ──────────────────────────────────────────
+  // Cuenta vía service role (los INSERT de ai_usage también son service role,
+  // antes fallaban en silencio por RLS → el límite nunca se aplicaba).
+  const rl = await checkAiRateLimit(user.id, "generacion_imagen");
+  if (!rl.allowed) {
     return NextResponse.json(
-      { error: "rate_limit", message: `Alcanzaste el límite de ${DAILY_LIMIT} imágenes por día. Volvé mañana.` },
-      { status: 429 },
+      {
+        error:       "rate_limit",
+        retry_after: rl.retryAfter,
+        message:     `Alcanzaste el límite de ${DAILY_LIMIT} imágenes por día. Volvé mañana.`,
+      },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfter) } },
     );
   }
 
@@ -571,11 +580,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "signed_url_error" }, { status: 500 });
   }
 
-  // ── 11. Registrar en ai_usage ─────────────────────────────────────────────
-  await supabase.from("ai_usage").insert({
-    user_id: user.id,
-    tipo:    "generacion_imagen" as never,
-  });
+  // ── 11. Registrar en ai_usage (service role — H-01) ───────────────────────
+  await recordAiUsage(user.id, "generacion_imagen");
 
   const userHash = hashUserId(user.id);
   console.info("[generar-imagen] ok", { user_hash: userHash, look_id: look_id ?? "none", path });
