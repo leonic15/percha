@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/utils/logger";
 import { createClient } from "@/lib/supabase/server";
 
 // LOOKSI-004: Enviar email de recuperación de contraseña
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
 
     // Respuesta siempre exitosa — no revelar si el email existe (seguridad)
     if (error && process.env.NODE_ENV === "development") {
-      console.error("[reset-password]", error.message);
+      logger.error("[reset-password] Error", { endpoint: "auth/reset-password" }, error instanceof Error ? error : undefined);
     }
 
     return NextResponse.json({ success: true });

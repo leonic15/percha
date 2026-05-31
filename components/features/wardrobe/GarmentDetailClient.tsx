@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, ArrowLeft, Pencil, Trash2, Sparkles, RefreshCw } from "lucide-react";
+import { Heart, ArrowLeft, Pencil, Trash2, Sparkles, RefreshCw, Camera, Loader2 } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
 import { BottomNav } from "@/components/ui/BottomNav";
 import { Sidebar } from "@/components/ui/Sidebar";
@@ -413,7 +413,10 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
   const { toast } = useToast();
 
   // URL estable del proxy — siempre la misma por garment ID, cacheable por el SW y el browser
-  const imgSrc = garment.imagen_url ? `/api/garments/${garment.id}/image` : null;
+  const [imgSrcLocal, setImgSrcLocal] = useState<string | null>(
+    garment.imagen_url ? `/api/garments/${garment.id}/image` : null
+  );
+  const imgSrc = imgSrcLocal;
 
   // Favorito — optimistic
   const [isFavorite, setIsFavorite] = useState(garment.is_favorite);
@@ -423,6 +426,10 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [, startDelete] = useTransition();
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Cambiar foto sin re-analizar
+  const photoInputRef   = useRef<HTMLInputElement>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   // LOOKSI-016 — Análisis IA inline
   const [iaDescripcion, setIaDescripcion] = useState(garment.ia_descripcion);
@@ -481,9 +488,33 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
   }, [garment.id, router, toast]);
 
   const handleEditClick = useCallback(() => {
-    // LOOKSI-011 (próximo): por ahora navega a la ruta de edición
     router.push(`/guardarropas/${garment.id}/editar`);
   }, [garment.id, router]);
+
+  const handlePhotoChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setPhotoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("imagen", file);
+      const res = await fetch(`/api/garments/${garment.id}`, { method: "PATCH", body: fd });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({})) as { message?: string };
+        toast.error(d.message ?? "No se pudo cambiar la foto. Intentá de nuevo.");
+        return;
+      }
+      // Forzar recarga del proxy con cache-bust
+      setImgSrcLocal(`/api/garments/${garment.id}/image?t=${Date.now()}`);
+      toast.success("Foto actualizada");
+    } catch {
+      toast.error("No se pudo cambiar la foto. Intentá de nuevo.");
+    } finally {
+      setPhotoUploading(false);
+    }
+  }, [garment.id, toast]);
 
   /** LOOKSI-016 — Lanza análisis IA desde el detalle */
   const handleAnalyze = useCallback(async () => {
@@ -618,6 +649,47 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
                   />
                 )}
 
+                {/* Botón cambiar foto — bottom-right de la imagen */}
+                <button
+                  type="button"
+                  aria-label="Cambiar foto de la prenda"
+                  disabled={photoUploading}
+                  onClick={() => photoInputRef.current?.click()}
+                  style={{
+                    position: "absolute",
+                    bottom: 48,
+                    right: 12,
+                    zIndex: 10,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 9999,
+                    background: "rgba(0,0,0,0.6)",
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: "#fff",
+                    opacity: photoUploading ? 0.65 : 1,
+                  }}
+                >
+                  {photoUploading
+                    ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />
+                    : <Camera size={15} />
+                  }
+                </button>
+
+                {/* Input archivo oculto para la foto */}
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handlePhotoChange}
+                />
+
                 {/* Top bar flotante — solo mobile */}
                 <div
                   className="md:hidden"
@@ -707,6 +779,19 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
                 >
                   <Pencil size={15} />
                   Editar
+                </button>
+                <button
+                  type="button"
+                  disabled={photoUploading}
+                  onClick={() => photoInputRef.current?.click()}
+                  className="flex items-center gap-2 h-9 px-4 rounded-button border border-line text-ink-2 hover:text-ink text-sm font-medium transition-colors disabled:opacity-50"
+                  style={{ fontSize: 13 }}
+                >
+                  {photoUploading
+                    ? <Loader2 size={14} className="animate-spin" />
+                    : <Camera size={14} />
+                  }
+                  Cambiar foto
                 </button>
               </div>
             </div>

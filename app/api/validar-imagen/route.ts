@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
+import { JSON_IMAGE_MAX_BYTES, BASE64_IMAGE_MAX_CHARS } from "@/lib/upload/validation";
+import { geminiGenerateContent, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/validar-imagen — LOOKSI-036
@@ -22,8 +25,6 @@ import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usa
  * para no bloquear al usuario.
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
-const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const PROMPT_PRENDA = `Analiza esta imagen y determina si muestra una prenda de ropa o accesorio de moda (incluyendo ropa puesta en una persona, en percha, doblada o sobre fondo neutro).
 
@@ -85,20 +86,17 @@ function extractBase64(imagen: string): { data: string; mimeType: string } {
 }
 
 async function callGemini(
-  apiKey: string,
   prompt: string,
   base64Data: string,
   mimeType: string,
 ): Promise<string> {
-  const controller  = new AbortController();
-  const timeoutId   = setTimeout(() => controller.abort(), 5000);
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 5000);
 
   try {
-    const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      signal:  controller.signal,
-      body:    JSON.stringify({
+    const res = await geminiGenerateContent(
+      GEMINI_FLASH_LITE,
+      {
         contents: [{
           parts: [
             { text: prompt },
@@ -106,8 +104,9 @@ async function callGemini(
           ],
         }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 256 },
-      }),
-    });
+      },
+      { signal: controller.signal },
+    );
 
     if (!res.ok) throw new Error(`gemini_http_${res.status}`);
     const json = await res.json();
@@ -124,9 +123,8 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error("[validar-imagen] GEMINI_API_KEY no configurada");
+  if (!process.env.GEMINI_API_KEY) {
+    logger.error("[validar-imagen] GEMINI_API_KEY no configurada", { endpoint: "validar-imagen" });
     // Fail-open: no bloquear si no hay config
     return NextResponse.json<ValidarImagenResponse>({
       valida:    true,
@@ -134,6 +132,12 @@ export async function POST(req: NextRequest) {
       motivo:    "error_servicio",
       mensaje:   "Servicio de validación no disponible.",
     });
+  }
+
+  // H-06: rechazar payloads grandes antes de parsear el body completo en memoria
+  const contentLength = req.headers.get("content-length");
+  if (contentLength && parseInt(contentLength, 10) > JSON_IMAGE_MAX_BYTES) {
+    return NextResponse.json({ error: "payload_too_large" }, { status: 413 });
   }
 
   let body: ValidarImagenRequest;
@@ -150,6 +154,12 @@ export async function POST(req: NextRequest) {
   if (tipo !== "prenda" && tipo !== "foto_corporal") {
     return NextResponse.json({ error: "tipo_invalido" }, { status: 400 });
   }
+  if (typeof imagen !== "string" || imagen.length > BASE64_IMAGE_MAX_CHARS) {
+    return NextResponse.json(
+      { error: "imagen_demasiado_grande", message: "La imagen supera el tamaño máximo permitido." },
+      { status: 422 },
+    );
+  }
 
   // ── Rate limiting (H-03) ───────────────────────────────────────────────────
   const rl = await checkAiRateLimit(user.id, "validacion_imagen");
@@ -160,13 +170,13 @@ export async function POST(req: NextRequest) {
 
   let rawText: string;
   try {
-    rawText = await callGemini(apiKey, prompt, base64Data, mimeType);
+    rawText = await callGemini(prompt, base64Data, mimeType);
     // Registrar uso para tracking + rate limit (service role — H-01)
     void recordAiUsage(user.id, "validacion_imagen");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     // Fail-open: no bloquear por error de red / timeout
-    console.error("[validar-imagen] Gemini error (fail-open):", msg);
+    logger.error("[validar-imagen] Gemini error (fail-open)", { endpoint: "validar-imagen" }, err instanceof Error ? err : undefined);
     return NextResponse.json<ValidarImagenResponse>({
       valida:    true,
       confianza: 1,
@@ -178,7 +188,7 @@ export async function POST(req: NextRequest) {
   // Extraer JSON del texto
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    console.error("[validar-imagen] No JSON in Gemini response:", rawText);
+    logger.error("[validar-imagen] No JSON in Gemini response", { endpoint: "validar-imagen" });
     return NextResponse.json<ValidarImagenResponse>({
       valida:    true,
       confianza: 1,
@@ -196,7 +206,7 @@ export async function POST(req: NextRequest) {
       };
 
       // Log solo resultado (sin PII, sin imagen)
-      console.info("[validar-imagen] prenda:", { es_prenda, confianza, motivo });
+      logger.info("[validar-imagen] prenda", { endpoint: "validar-imagen", es_prenda, confianza, motivo });
 
       if (es_prenda && confianza >= 0.7) {
         return NextResponse.json<ValidarImagenResponse>({
@@ -229,7 +239,7 @@ export async function POST(req: NextRequest) {
         confianza:       number;
       };
 
-      console.info("[validar-imagen] foto_corporal:", { hay_persona, cuerpo_completo, de_frente, fondo, confianza });
+      logger.info("[validar-imagen] foto_corporal", { endpoint: "validar-imagen", hay_persona, cuerpo_completo, de_frente, fondo, confianza });
 
       if (!hay_persona) {
         return NextResponse.json<ValidarImagenResponse>({
@@ -265,7 +275,7 @@ export async function POST(req: NextRequest) {
       });
     }
   } catch (err) {
-    console.error("[validar-imagen] JSON parse error:", err);
+    logger.error("[validar-imagen] JSON parse error", { endpoint: "validar-imagen" }, err instanceof Error ? err : undefined);
     return NextResponse.json<ValidarImagenResponse>({
       valida:    true,
       confianza: 1,

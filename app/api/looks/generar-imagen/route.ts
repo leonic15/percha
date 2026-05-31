@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createHash } from "crypto";
 import { checkAiRateLimit, recordAiUsage } from "@/lib/ai/usage";
+import { geminiPost, geminiGet, hasGeminiApiKey } from "@/lib/gemini/client";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/looks/generar-imagen — LOOKSI-035
@@ -68,15 +70,11 @@ function hashUserId(userId: string): string {
  * Se usa en AMBOS paths: como texto de refuerzo en el prompt multimodal,
  * y como descripción completa en el fallback de solo texto (Imagen 4).
  */
-async function getPhysicalDescription(apiKey: string, imageB64: string, imageMime: string): Promise<string> {
+async function getPhysicalDescription(imageB64: string, imageMime: string): Promise<string> {
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+    const res = await geminiPost(
+      "/models/gemini-2.0-flash-lite:generateContent",
       {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        signal:  AbortSignal.timeout(10000),
-        body: JSON.stringify({
           contents: [{
             parts: [
               {
@@ -96,8 +94,8 @@ Write in third person. Be precise and detailed. Do not include names, nationalit
             ],
           }],
           generationConfig: { maxOutputTokens: 250 },
-        }),
       },
+      { signal: AbortSignal.timeout(10000) },
     );
     if (!res.ok) return "";
     const json = await res.json();
@@ -186,12 +184,9 @@ function buildTextOnlyPrompt(opts: {
 }
 
 /** Lista los modelos de imagen disponibles para la key — solo para diagnóstico. */
-async function listImageModels(apiKey: string): Promise<string[]> {
+async function listImageModels(): Promise<string[]> {
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}&pageSize=200`,
-      { signal: AbortSignal.timeout(5000) },
-    );
+    const res = await geminiGet("/models?pageSize=200", { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return [];
     const json = await res.json();
     type ModelEntry = { name: string; supportedGenerationMethods?: string[] };
@@ -215,12 +210,11 @@ async function listImageModels(apiKey: string): Promise<string[]> {
  * Imagen 3/4 se usa como último recurso (solo texto).
  */
 async function callGeminiImageGen(opts: {
-  apiKey:     string;
   promptText: string;      // fallback texto puro (para Imagen 3)
   promptFull: string;      // prompt con instrucciones de referencia (para Gemini con imágenes)
   refImages:  RefImage[];  // [foto_cuerpo, prenda_1, ..., prenda_N]
 }): Promise<string> {
-  const { apiKey, promptText, promptFull, refImages } = opts;
+  const { promptText, promptFull, refImages } = opts;
 
   const CANDIDATES = [
     // Pro models primero: mayor capacidad de preservación de identidad
@@ -247,16 +241,14 @@ async function callGeminiImageGen(opts: {
 
   try {
     for (const { model, method, useImagen, supportsImages } of ordered) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${method}?key=${apiKey}`;
-
-      let body: string;
+      let bodyObj: unknown;
 
       if (useImagen) {
         // Imagen 3: solo acepta texto como prompt
-        body = JSON.stringify({
+        bodyObj = {
           instances:  [{ prompt: promptText }],
           parameters: { sampleCount: 1, aspectRatio: "3:4", personGeneration: "allow_adult" },
-        });
+        };
       } else if (supportsImages && refImages.length > 0) {
         // Gemini multimodal: prompt + imágenes de referencia inline.
         // TEXT+IMAGE permite que el modelo razone antes de generar,
@@ -267,33 +259,28 @@ async function callGeminiImageGen(opts: {
             inline_data: { mime_type: img.mime, data: img.b64 },
           })),
         ];
-        body = JSON.stringify({
+        bodyObj = {
           contents:         [{ parts }],
           generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
-        });
+        };
       } else {
         // Gemini sin imágenes
-        body = JSON.stringify({
+        bodyObj = {
           contents:         [{ parts: [{ text: promptText }] }],
           generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
-        });
+        };
       }
 
-      const res = await fetch(url, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        signal:  controller.signal,
-        body,
-      });
+      const res = await geminiPost(`/models/${model}:${method}`, bodyObj, { signal: controller.signal });
 
       if (res.status === 404) {
-        console.info(`[generar-imagen] modelo no disponible: ${model}`);
+        logger.info(`[generar-imagen] modelo no disponible: ${model}`, { endpoint: "looks/generar-imagen" });
         continue;
       }
 
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
-        console.warn(`[generar-imagen] modelo ${model} error ${res.status}: ${errText.slice(0, 200)}`);
+        logger.warn(`[generar-imagen] modelo ${model} error ${res.status}`, { endpoint: "looks/generar-imagen", status: res.status });
         continue;
       }
 
@@ -303,7 +290,7 @@ async function callGeminiImageGen(opts: {
       if (useImagen) {
         const b64 = json?.predictions?.[0]?.bytesBase64Encoded as string | undefined;
         if (b64) { cachedWorkingModel = model; return b64; }
-        console.warn(`[generar-imagen] modelo ${model} (Imagen) sin imagen en respuesta`);
+        logger.warn(`[generar-imagen] modelo ${model} (Imagen) sin imagen en respuesta`, { endpoint: "looks/generar-imagen" });
         continue;
       }
 
@@ -313,12 +300,12 @@ async function callGeminiImageGen(opts: {
       const b64 = parts.find((p) => p.inlineData?.data)?.inlineData?.data;
       if (b64) { cachedWorkingModel = model; return b64; }
 
-      console.warn(`[generar-imagen] modelo ${model} sin imagen en respuesta`);
+      logger.warn(`[generar-imagen] modelo ${model} sin imagen en respuesta`, { endpoint: "looks/generar-imagen" });
       continue;
     }
 
-    const available = await listImageModels(apiKey);
-    console.error("[generar-imagen] Ningún modelo disponible. Modelos de imagen en esta key:", available);
+    const available = await listImageModels();
+    logger.error("[generar-imagen] Ningún modelo disponible", { endpoint: "looks/generar-imagen", available });
     throw new Error("no_image_model_available");
 
   } finally {
@@ -333,8 +320,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
-  const apiKey = process.env.GOOGLE_VERTEX_API_KEY ?? process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+  if (!hasGeminiApiKey()) {
     return NextResponse.json(
       { error: "ai_no_config", message: "Servicio de generación de imágenes no disponible." },
       { status: 503 },
@@ -427,7 +413,7 @@ export async function POST(req: NextRequest) {
       .eq("prenda_eliminada", false);
 
     if (lookPrendasError) {
-      console.error("[generar-imagen] Error querying look_prendas:", lookPrendasError);
+      logger.error("[generar-imagen] Error querying look_prendas", { endpoint: "looks/generar-imagen" }, lookPrendasError instanceof Error ? lookPrendasError : undefined);
     }
 
     type RawLookPrenda = {
@@ -452,7 +438,7 @@ export async function POST(req: NextRequest) {
       .eq("user_id", user.id);
 
     if (rawErr) {
-      console.error("[generar-imagen] Error querying prendas:", rawErr);
+      logger.error("[generar-imagen] Error querying prendas", { endpoint: "looks/generar-imagen" }, rawErr instanceof Error ? rawErr : undefined);
     }
 
     prendasInfo = (rawPrendas ?? []).map((p) => ({
@@ -493,7 +479,7 @@ export async function POST(req: NextRequest) {
         return url ? fetchImageAsB64(url, 5000) : Promise.resolve(null);
       }),
     ),
-    getPhysicalDescription(apiKey, bodyPhotoRef.b64, bodyPhotoRef.mime),
+    getPhysicalDescription(bodyPhotoRef.b64, bodyPhotoRef.mime),
   ]);
 
   // ── 7. Construir imágenes de referencia y prompts ─────────────────────────
@@ -530,7 +516,8 @@ export async function POST(req: NextRequest) {
     ocasion:    ocasionFinal,
   });
 
-  console.info("[generar-imagen] ref_images", {
+  logger.info("[generar-imagen] ref_images", {
+    endpoint:      "looks/generar-imagen",
     total:         refImages.length,
     tiene_cuerpo:  true,
     prendas_imgs:  numPrendasImages,
@@ -541,14 +528,13 @@ export async function POST(req: NextRequest) {
   let imagenB64: string;
   try {
     imagenB64 = await callGeminiImageGen({
-      apiKey,
       promptText,
       promptFull,
       refImages,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[generar-imagen] Google Imagen error:", msg);
+    logger.error("[generar-imagen] Google Imagen error", { endpoint: "looks/generar-imagen" });
     return NextResponse.json(
       { error: "ai_error", message: "No pudimos generar la imagen. Intentá de nuevo." },
       { status: 502 },
@@ -567,7 +553,7 @@ export async function POST(req: NextRequest) {
     });
 
   if (uploadErr) {
-    console.error("[generar-imagen] Storage upload error:", uploadErr);
+    logger.error("[generar-imagen] Storage upload error", { endpoint: "looks/generar-imagen" }, uploadErr instanceof Error ? uploadErr : undefined);
     return NextResponse.json({ error: "storage_error" }, { status: 500 });
   }
 
@@ -584,7 +570,7 @@ export async function POST(req: NextRequest) {
   await recordAiUsage(user.id, "generacion_imagen");
 
   const userHash = hashUserId(user.id);
-  console.info("[generar-imagen] ok", { user_hash: userHash, look_id: look_id ?? "none", path });
+  logger.info("[generar-imagen] ok", { endpoint: "looks/generar-imagen", user_hash: userHash, look_id: look_id ?? "none", path });
 
   return NextResponse.json<GenerarImagenResponse>({
     imagen_url: resultUrl.signedUrl,

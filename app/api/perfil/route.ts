@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import type { ProfileUpdate } from "@/lib/database.types";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * GET /api/perfil
@@ -62,7 +63,7 @@ export async function GET() {
   ]);
 
   if (profileRes.error || !profileRes.data) {
-    console.error("[perfil] GET error:", profileRes.error);
+    logger.error("[perfil] GET error", { endpoint: "perfil/GET" }, profileRes.error instanceof Error ? profileRes.error : undefined);
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
@@ -145,7 +146,7 @@ export async function PATCH(req: NextRequest) {
     .eq("id", user.id);
 
   if (error) {
-    console.error("[perfil] PATCH error:", error);
+    logger.error("[perfil] PATCH error", { endpoint: "perfil/PATCH" }, error instanceof Error ? error : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
@@ -177,7 +178,7 @@ export async function DELETE() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
-    console.error("[perfil] DELETE: missing env vars");
+    logger.error("[perfil] DELETE: missing env vars", { endpoint: "perfil/DELETE" });
     return NextResponse.json({ error: "config_error" }, { status: 500 });
   }
 
@@ -204,12 +205,12 @@ export async function DELETE() {
         .from("prendas")
         .remove(paths);
       if (storageErr) {
-        console.warn("[perfil] DELETE: prendas storage partial error:", storageErr.message);
+        logger.warn("[perfil] DELETE: prendas storage partial error", { endpoint: "perfil/DELETE" });
         // Continuar de todas formas — no bloquear la eliminación de cuenta
       }
     }
   } catch (err) {
-    console.warn("[perfil] DELETE: prendas storage error:", err);
+    logger.warn("[perfil] DELETE: prendas storage error", { endpoint: "perfil/DELETE" });
   }
 
   // ── 2. Eliminar archivos de Storage: bucket `avatars` ────────────────────
@@ -225,11 +226,11 @@ export async function DELETE() {
         .from("avatars")
         .remove(avatarPaths);
       if (avatarErr) {
-        console.warn("[perfil] DELETE: avatars storage error:", avatarErr.message);
+        logger.warn("[perfil] DELETE: avatars storage error", { endpoint: "perfil/DELETE" });
       }
     }
   } catch (err) {
-    console.warn("[perfil] DELETE: avatars storage error:", err);
+    logger.warn("[perfil] DELETE: avatars storage error", { endpoint: "perfil/DELETE" });
   }
 
   // ── 3. Eliminar usuario de Supabase Auth ──────────────────────────────────
@@ -237,7 +238,7 @@ export async function DELETE() {
   // tabla con ON DELETE CASCADE sobre user_id/profile_id.
   const { error: deleteErr } = await admin.auth.admin.deleteUser(user.id);
   if (deleteErr) {
-    console.error("[perfil] DELETE: auth.admin.deleteUser error:", deleteErr.message);
+    logger.error("[perfil] DELETE: auth.admin.deleteUser error", { endpoint: "perfil/DELETE" }, deleteErr instanceof Error ? deleteErr : undefined);
     return NextResponse.json({ error: "delete_error" }, { status: 500 });
   }
 

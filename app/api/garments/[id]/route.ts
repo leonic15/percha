@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Prenda, PrendaUpdate } from "@/lib/database.types";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { GARMENT_IMAGE_MAX_BYTES, detectImageMimeType } from "@/lib/upload/validation";
+import { logger } from "@/lib/utils/logger";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -179,10 +181,16 @@ export async function PATCH(
   // ── Reemplazar imagen (opcional) ────────────────────────────────────────────
   const imagen = formData.get("imagen") as File | null;
   if (imagen && imagen.size > 0) {
-    const normalizedType = (!imagen.type || imagen.type === "image/jpg")
-      ? "image/jpeg"
-      : imagen.type;
-    if (!normalizedType.startsWith("image/")) {
+    if (imagen.size > GARMENT_IMAGE_MAX_BYTES) {
+      return NextResponse.json(
+        { error: "imagen_demasiado_grande", message: "La imagen no puede superar 5 MB." },
+        { status: 422 },
+      );
+    }
+
+    // H-17: detectar tipo real por magic bytes
+    const normalizedType = await detectImageMimeType(imagen);
+    if (!normalizedType) {
       return NextResponse.json({ error: "tipo_imagen_invalido" }, { status: 400 });
     }
 
@@ -199,7 +207,7 @@ export async function PATCH(
       });
 
     if (uploadErr) {
-      console.error("[garments/PATCH] upload error:", uploadErr);
+      logger.error("[garments/PATCH] upload error", { endpoint: "garments/PATCH" }, uploadErr instanceof Error ? uploadErr : undefined);
       return NextResponse.json({ error: "upload_error" }, { status: 502 });
     }
 
@@ -223,7 +231,7 @@ export async function PATCH(
     .eq("user_id", user.id);
 
   if (updateErr) {
-    console.error("[garments/PATCH] db error:", updateErr);
+    logger.error("[garments/PATCH] db error", { endpoint: "garments/PATCH" }, updateErr instanceof Error ? updateErr : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 

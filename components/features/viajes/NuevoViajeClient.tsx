@@ -269,7 +269,7 @@ function Step3Actividades({ data, onChange }: { data: WizardData; onChange: (d: 
             <div
               key={tipo}
               className={cn(
-                "flex items-center gap-3 rounded-button border px-4 py-3 transition-colors",
+                "flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors",
                 active ? "border-accent bg-accent/5" : "border-line-2 bg-bg"
               )}
             >
@@ -364,7 +364,7 @@ function Step4Preferencias({
                 key={key}
                 onClick={() => onChange({ modo_optimizacion: key })}
                 className={cn(
-                  "rounded-button border px-4 py-3 text-left transition-colors",
+                  "rounded-lg border px-4 py-3 text-left transition-colors",
                   data.modo_optimizacion === key
                     ? "border-accent bg-accent/5"
                     : "border-line-2 hover:border-ink-2"
@@ -429,7 +429,7 @@ function Step4Preferencias({
               : "Estas prendas serán ignoradas por la IA."}
           </p>
 
-          <div className="grid grid-cols-3 gap-2 max-h-52 overflow-y-auto">
+          <div className="grid grid-cols-3 gap-2">
             {prendas.map((p) => {
               const selected =
                 tab === "incluir"
@@ -724,7 +724,7 @@ function Step5Generacion({
                         <p className="text-xs text-ink-3 mb-2">
                           Tocá una prenda para agregarla o quitarla del look.
                         </p>
-                        <div className="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto">
+                        <div className="grid grid-cols-3 gap-1.5">
                           {prendas.map((p) => {
                             const inLook = look.prendas.includes(p.id);
                             return (

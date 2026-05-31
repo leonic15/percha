@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/utils/logger";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -85,7 +86,7 @@ export async function GET(req: NextRequest) {
     clearTimeout(timeoutId);
 
     if (!res.ok) {
-      console.error("[clima] Open-Meteo error:", res.status);
+      logger.error("[clima] Open-Meteo error", { endpoint: "clima", status: res.status });
       return NextResponse.json({ error: "weather_api_error" }, { status: 502 });
     }
 
@@ -130,10 +131,10 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     clearTimeout(timeoutId);
     if (err instanceof Error && err.name === "AbortError") {
-      console.warn("[clima] Timeout al consultar Open-Meteo");
+      logger.warn("[clima] Timeout al consultar Open-Meteo", { endpoint: "clima" });
       return NextResponse.json({ error: "timeout" }, { status: 504 });
     }
-    console.error("[clima] Error:", err);
+    logger.error("[clima] Error", { endpoint: "clima" }, err instanceof Error ? err : undefined);
     return NextResponse.json({ error: "weather_error" }, { status: 502 });
   }
 }

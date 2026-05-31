@@ -35,7 +35,9 @@ export async function GET(request: Request) {
        })();
 
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/guardarropas";
+  // H-12: aceptar `next` solo si es una ruta interna (empieza con "/" pero no "//")
+  const nextRaw = searchParams.get("next") ?? "";
+  const next = (nextRaw.startsWith("/") && !nextRaw.startsWith("//")) ? nextRaw : "/guardarropas";
   const error = searchParams.get("error");
 
   // El usuario canceló el popup de Google → volver a login sin error

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
+import { geminiGenerateContent, hasGeminiApiKey, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
+import { logger } from "@/lib/utils/logger";
+import { detectImageMimeType } from "@/lib/upload/validation";
 
 /**
  * POST /api/prendas/analizar
@@ -12,8 +15,6 @@ import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usa
  * Analytics: eventos ia_analisis_iniciado / ia_analisis_completado / ia_analisis_fallido → PostHog.
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
-const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const PROMPT = `Sos un experto en moda. Analizá esta imagen de una prenda de ropa.
 
@@ -52,9 +53,8 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error("[prendas/analizar] GEMINI_API_KEY no configurada");
+  if (!hasGeminiApiKey()) {
+    logger.error("[prendas/analizar] GEMINI_API_KEY no configurada", { endpoint: "prendas/analizar" });
     return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
   }
 
@@ -75,10 +75,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "imagen_requerida" }, { status: 400 });
   }
 
-  // Validar tipo MIME
-  const allowedMimes = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"];
-  const mimeType     = imagen.type || "image/jpeg";
-  if (!allowedMimes.includes(mimeType)) {
+  // H-17: detectar tipo real por magic bytes
+  const mimeType = await detectImageMimeType(imagen);
+  if (!mimeType) {
     return NextResponse.json({ error: "tipo_imagen_invalido" }, { status: 400 });
   }
 
@@ -111,15 +110,11 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify(payload),
-    });
+    const geminiRes = await geminiGenerateContent(GEMINI_FLASH_LITE, payload);
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
-      console.error("[prendas/analizar] Gemini HTTP error:", geminiRes.status, errText);
+      logger.error("[prendas/analizar] Gemini HTTP error", { endpoint: "prendas/analizar", status: geminiRes.status });
       await captureServerEvent(user.id, "ia_analisis_fallido", {
         motivo:       "gemini_http_error",
         status_code:  geminiRes.status,
@@ -135,7 +130,7 @@ export async function POST(req: NextRequest) {
     // Extraer JSON del texto (Gemini a veces añade texto alrededor)
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error("[prendas/analizar] No JSON in Gemini response:", rawText);
+      logger.error("[prendas/analizar] No JSON in Gemini response", { endpoint: "prendas/analizar" });
       await captureServerEvent(user.id, "ia_analisis_fallido", {
         motivo:      "parse_error",
         duracion_ms: Date.now() - inicioMs,
@@ -163,7 +158,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(analysis);
 
   } catch (err) {
-    console.error("[prendas/analizar] Error:", err);
+    logger.error("[prendas/analizar] Error", { endpoint: "prendas/analizar" }, err instanceof Error ? err : undefined);
     await captureServerEvent(user.id, "ia_analisis_fallido", {
       motivo:      "exception",
       duracion_ms: Date.now() - inicioMs,

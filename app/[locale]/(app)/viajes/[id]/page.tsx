@@ -258,6 +258,51 @@ export default function ViajeDetallePage() {
         </section>
       )}
 
+      {/* Lista de valija — prendas únicas de todos los looks */}
+      {viaje.viaje_looks.length > 0 && (() => {
+        const seen = new Set<string>();
+        const todas: PrendaData[] = [];
+        for (const look of viaje.viaje_looks) {
+          for (const p of look.prendas_data) {
+            if (!seen.has(p.prenda_id)) {
+              seen.add(p.prenda_id);
+              todas.push(p);
+            }
+          }
+        }
+        return (
+          <section className="mt-8">
+            <p className="text-xs font-medium uppercase tracking-wider text-ink-3 mb-3">
+              🧳 Lista de valija · {todas.length} prendas
+            </p>
+            <div className="border border-line-2 rounded-lg divide-y divide-line-2">
+              {todas.map((p) => (
+                <div key={p.prenda_id} className="flex items-center gap-3 px-4 py-2.5">
+                  {p.signedUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.signedUrl}
+                      alt={p.nombre}
+                      className="size-10 object-cover rounded shrink-0 bg-surface"
+                    />
+                  ) : (
+                    <div className="size-10 rounded shrink-0 bg-surface grid place-items-center">
+                      <span className="text-[8px] text-ink-3 text-center leading-tight px-0.5">{p.nombre.slice(0, 2)}</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-ink truncate">{p.nombre}</p>
+                    {p.categoria && (
+                      <p className="text-xs text-ink-3">{p.categoria}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
+
       {viaje.viaje_looks.length === 0 && (
         <div className="text-center py-12">
           <Luggage className="size-10 text-ink-3 mx-auto mb-3" strokeWidth={1.2} />

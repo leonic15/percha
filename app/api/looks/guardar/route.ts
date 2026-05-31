@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/database.types";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/looks/guardar
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
     .in("id", prendaIds);
 
   if (pError) {
-    console.error("[looks/guardar] DB error verificando prendas:", pError);
+    logger.error("[looks/guardar] DB error verificando prendas", { endpoint: "looks/guardar" }, pError instanceof Error ? pError : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (lookError || !look) {
-    console.error("[looks/guardar] DB error insertando look:", lookError);
+    logger.error("[looks/guardar] DB error insertando look", { endpoint: "looks/guardar" }, lookError instanceof Error ? lookError : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
@@ -124,7 +125,7 @@ export async function POST(req: NextRequest) {
     .insert(lookPrendasRows);
 
   if (lpError) {
-    console.error("[looks/guardar] DB error insertando look_prendas:", lpError);
+    logger.error("[looks/guardar] DB error insertando look_prendas", { endpoint: "looks/guardar" }, lpError instanceof Error ? lpError : undefined);
     // Roll back el look
     await supabase.from("looks").delete().eq("id", look.id);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
@@ -138,7 +139,7 @@ export async function POST(req: NextRequest) {
 
     if (usoError) {
       // No fatal — el look ya fue guardado. Solo loguear.
-      console.error("[looks/guardar] Error registrando look_uso:", usoError);
+      logger.error("[looks/guardar] Error registrando look_uso", { endpoint: "looks/guardar" }, usoError instanceof Error ? usoError : undefined);
     }
   }
 

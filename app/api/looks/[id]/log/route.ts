@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/utils/logger";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -46,7 +47,7 @@ export async function POST(
       .insert({ look_id: id, fecha_uso: today });
 
     if (error) {
-      console.error("[looks/log] DB error:", error);
+      logger.error("[looks/log] DB error", { endpoint: "looks/[id]/log" }, error instanceof Error ? error : undefined);
       return NextResponse.json({ error: "db_error" }, { status: 500 });
     }
   }

@@ -80,49 +80,58 @@ const nextConfig: NextConfig = {
 
   // ── Cabeceras de seguridad HTTP (LOOKSI-029) ─────────────────────────────
   async headers() {
-    // Content-Security-Policy
-    // - script-src: 'unsafe-inline' requerido por Next.js hydration sin nonces.
-    //   Upgrade a nonce-based CSP en una iteración futura si se necesita A+.
-    // - font-src 'self': next/font descarga y sirve las fuentes desde /_next/static/
-    // - img-src: blob: para compresión de imágenes client-side (browser-image-compression)
-    //   lh3.googleusercontent.com: avatares de Google OAuth
-    // - connect-src: wss://*.supabase.co para Supabase Realtime (future-proof)
-    //   /ingest/* proxeado a PostHog vía vercel.json rewrites → 'self' suficiente
-    const csp = [
+    const isProd = process.env.NODE_ENV === "production";
+
+    // Directivas comunes a todas las rutas
+    const cspBase = (scriptSrc: string) => [
       "default-src 'self'",
-      // 'wasm-unsafe-eval': requerido para compilación WASM.
-      // 'unsafe-eval': requerido por Emscripten que usa new Function() en la inicialización del binding WASM.
-      // blob: requerido para import() dinámico de módulos blob que genera onnxruntime-web.
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'",
       "font-src 'self'",
       "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
       // blob: requerido para Web Workers que crea @imgly/background-removal
       "worker-src 'self' blob:",
       // staticimgly.com: CDN de modelos ONNX de @imgly/background-removal
-      // blob: requerido para que onnxruntime-web pueda fetch() el .wasm desde un blob URL
       "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.ingest.sentry.io https://staticimgly.com",
       "frame-src 'none'",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-      // Solo en producción: en dev sobre LAN (http://192.168.x.x) este header
-      // hace que el browser intente subir los recursos a https:// — que no existe
-      // en el dev server — y las imágenes/fonts fallan en silencio en iOS Safari.
-      ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
+      // Solo en producción: en dev LAN (http://192.168.x.x) rompería imágenes/fonts en iOS Safari
+      ...(isProd ? ["upgrade-insecure-requests"] : []),
     ].join("; ");
 
+    // CSP estricta: sin 'unsafe-eval' — usada en todo el sitio excepto la página WASM
+    const cspStrict = cspBase(
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:"
+    );
+
+    // CSP relajada: con 'unsafe-eval' — solo para la página de análisis IA con WASM
+    // (Emscripten/onnxruntime-web usa new Function() en la inicialización del binding WASM)
+    const cspWasm = cspBase(
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:"
+    );
+
+    const securityHeaders = (csp: string) => [
+      { key: "Content-Security-Policy",   value: csp },
+      { key: "X-Frame-Options",           value: "DENY" },
+      { key: "X-Content-Type-Options",    value: "nosniff" },
+      { key: "Referrer-Policy",           value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy",        value: "camera=self, geolocation=self, microphone=()" },
+      { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+    ];
+
     return [
+      // CSP relajada solo en la ruta que carga @imgly/background-removal (WASM + Emscripten)
+      // El patrón cubre todas las variantes de locale: /es/guardarropas/..., /en/guardarropas/...
+      {
+        source: "/(.*)/guardarropas/nueva/analizar",
+        headers: securityHeaders(cspWasm),
+      },
+      // CSP estricta para todo lo demás
       {
         source: "/(.*)",
-        headers: [
-          { key: "Content-Security-Policy",   value: csp },
-          { key: "X-Frame-Options",           value: "DENY" },
-          { key: "X-Content-Type-Options",    value: "nosniff" },
-          { key: "Referrer-Policy",           value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy",        value: "camera=self, geolocation=self, microphone=()" },
-          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-        ],
+        headers: securityHeaders(cspStrict),
       },
     ];
   },

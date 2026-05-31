@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/utils/logger";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
     clearTimeout(timeoutId);
 
     if (!res.ok) {
-      console.error("[clima/ciudades] Geocoding error:", res.status);
+      logger.error("[clima/ciudades] Geocoding error", { endpoint: "clima/ciudades", status: res.status });
       return NextResponse.json({ error: "geocoding_error" }, { status: 502 });
     }
 
@@ -78,10 +79,10 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     clearTimeout(timeoutId);
     if (err instanceof Error && err.name === "AbortError") {
-      console.warn("[clima/ciudades] Timeout");
+      logger.warn("[clima/ciudades] Timeout", { endpoint: "clima/ciudades" });
       return NextResponse.json({ error: "timeout" }, { status: 504 });
     }
-    console.error("[clima/ciudades] Error:", err);
+    logger.error("[clima/ciudades] Error", { endpoint: "clima/ciudades" }, err instanceof Error ? err : undefined);
     return NextResponse.json({ error: "geocoding_error" }, { status: 502 });
   }
 }

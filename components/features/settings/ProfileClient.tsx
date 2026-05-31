@@ -226,8 +226,8 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mb-6">
-      <div className="px-[22px] pt-6 pb-2">
+    <div className="mb-2">
+      <div className="px-[22px] pt-3 pb-1.5">
         <span className="eyebrow text-[10px]">{label}</span>
       </div>
       <div className="bg-surface border-y border-line-2 divide-y divide-line-2">
@@ -713,6 +713,61 @@ function DeleteAccountSheet({
   );
 }
 
+// ── Barras de uso de IA ───────────────────────────────────────────────────────
+
+interface UsageBarItem {
+  tipo:  string;
+  label: string;
+  usado: number;
+  max:   number;
+}
+
+function UsageBars() {
+  const [items, setItems] = useState<UsageBarItem[] | null>(null);
+
+  useEffect(() => {
+    fetch("/api/perfil/uso-ia")
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d?.items) setItems(d.items); })
+      .catch(() => {});
+  }, []);
+
+  if (!items) return null;
+
+  return (
+    <div className="px-[22px] pt-3 pb-[14px]">
+      <p className="text-xs text-ink-3 mb-3">
+        Uso de generaciones IA · últimas 24 h
+      </p>
+      <div className="space-y-2.5">
+        {items.map((item) => {
+          const pct = Math.min(100, Math.round((item.usado / item.max) * 100));
+          const warning = pct >= 80;
+          return (
+            <div key={item.tipo}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-ink-2">{item.label}</span>
+                <span className={cn("text-[11px] font-mono", warning ? "text-amber-600" : "text-ink-3")}>
+                  {item.usado}/{item.max}
+                </span>
+              </div>
+              <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    warning ? "bg-amber-500" : "bg-accent",
+                  )}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export interface ProfileClientProps {
@@ -1071,7 +1126,7 @@ export function ProfileClient({
         </header>
 
         {/* ── Perfil head — Handoff 16: flex row avatar + info ───────────── */}
-        <div className="flex items-center gap-4 px-[22px] pt-2 pb-7">
+        <div className="flex items-center gap-4 px-[22px] pt-2 pb-4">
 
           {/* Columna avatar */}
           <div className="relative shrink-0">
@@ -1283,6 +1338,11 @@ export function ProfileClient({
               ))}
             </div>
           </div>
+        </SettingsSection>
+
+        {/* ── USO DE IA ────────────────────────────────────────────────────── */}
+        <SettingsSection label="GENERACIONES IA">
+          <UsageBars />
         </SettingsSection>
 
         {/* ── APP (LSI-36) ─────────────────────────────────────────────────── */}

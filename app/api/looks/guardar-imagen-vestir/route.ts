@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/database.types";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/looks/guardar-imagen-vestir — LOOKSI-035
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (lookErr || !look) {
-      console.error("[guardar-imagen-vestir] Error auto-save look:", lookErr);
+      logger.error("[guardar-imagen-vestir] Error auto-save look", { endpoint: "looks/guardar-imagen-vestir" }, lookErr instanceof Error ? lookErr : undefined);
       return NextResponse.json({ error: "db_error" }, { status: 500 });
     }
 
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
     const rows = prendaIds.map((pid) => ({ look_id: lookId, prenda_id: pid }));
     const { error: lpErr } = await supabase.from("look_prendas").insert(rows);
     if (lpErr) {
-      console.error("[guardar-imagen-vestir] Error insertando look_prendas:", lpErr);
+      logger.error("[guardar-imagen-vestir] Error insertando look_prendas", { endpoint: "looks/guardar-imagen-vestir" }, lpErr instanceof Error ? lpErr : undefined);
       await supabase.from("looks").delete().eq("id", lookId);
       return NextResponse.json({ error: "db_error" }, { status: 500 });
     }
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
     .eq("user_id", user.id);
 
   if (updateErr) {
-    console.error("[guardar-imagen-vestir] Error actualizando vestir_imagen_url:", updateErr);
+    logger.error("[guardar-imagen-vestir] Error actualizando vestir_imagen_url", { endpoint: "looks/guardar-imagen-vestir" }, updateErr instanceof Error ? updateErr : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 

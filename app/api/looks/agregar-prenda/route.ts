@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
 import type { PrendaResult, ClimaData } from "@/app/api/looks/generar/route";
+import { geminiGenerateContent, hasGeminiApiKey, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/looks/agregar-prenda
@@ -26,9 +28,7 @@ import type { PrendaResult, ClimaData } from "@/app/api/looks/generar/route";
  *   error: "no_match"  — 422
  */
 
-const GEMINI_MODEL   = "gemini-2.5-flash-lite";
-const GEMINI_URL     = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const TIMEOUT_MS     = 15_000;
+const TIMEOUT_MS = 15_000;
 const MAX_CANDIDATAS = 30;
 
 export const maxDuration = 25;
@@ -48,9 +48,8 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error("[looks/agregar-prenda] GEMINI_API_KEY no configurada");
+  if (!hasGeminiApiKey()) {
+    logger.error("[looks/agregar-prenda] GEMINI_API_KEY no configurada", { endpoint: "looks/agregar-prenda" });
     return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
   }
 
@@ -76,7 +75,7 @@ export async function POST(req: NextRequest) {
     .limit(100);
 
   if (gError) {
-    console.error("[looks/agregar-prenda] DB error:", gError);
+    logger.error("[looks/agregar-prenda] DB error", { endpoint: "looks/agregar-prenda" }, gError instanceof Error ? gError : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
@@ -174,20 +173,14 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
     const controller = new AbortController();
     const tid        = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({
+    const geminiRes = await geminiGenerateContent(
+      GEMINI_FLASH_LITE,
+      {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature:     0.4,
-          topK:            20,
-          topP:            0.9,
-          maxOutputTokens: 200,
-        },
-      }),
-      signal: controller.signal,
-    });
+        generationConfig: { temperature: 0.4, topK: 20, topP: 0.9, maxOutputTokens: 200 },
+      },
+      { signal: controller.signal },
+    );
 
     clearTimeout(tid);
 
@@ -195,7 +188,7 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
       const errBody = await geminiRes.json().catch(() => ({})) as {
         error?: { status?: string; details?: { retryDelay?: string }[] };
       };
-      console.error("[looks/agregar-prenda] Gemini HTTP error:", geminiRes.status, errBody);
+      logger.error("[looks/agregar-prenda] Gemini HTTP error", { endpoint: "looks/agregar-prenda", status: geminiRes.status });
       if (geminiRes.status === 429) {
         const retryDelay   = errBody.error?.details?.find((d) => "retryDelay" in d)?.retryDelay ?? "60s";
         const retrySeconds = parseInt(retryDelay) || 60;
@@ -211,14 +204,14 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
     if (err instanceof Error && err.name === "AbortError") {
       return NextResponse.json({ error: "ai_timeout" }, { status: 504 });
     }
-    console.error("[looks/agregar-prenda] Gemini call error:", err);
+    logger.error("[looks/agregar-prenda] Gemini call error", { endpoint: "looks/agregar-prenda" }, err instanceof Error ? err : undefined);
     return NextResponse.json({ error: "ai_error" }, { status: 502 });
   }
 
   // ── 7. Parsear respuesta ─────────────────────────────────────────────────────
   const jsonMatch = rawText.match(/\{[^{}]*\}/);
   if (!jsonMatch) {
-    console.error("[looks/agregar-prenda] No JSON in response:", rawText);
+    logger.error("[looks/agregar-prenda] No JSON in response", { endpoint: "looks/agregar-prenda" });
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
@@ -226,7 +219,7 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
   try {
     aiResult = JSON.parse(jsonMatch[0]);
   } catch {
-    console.error("[looks/agregar-prenda] JSON parse error:", jsonMatch[0]);
+    logger.error("[looks/agregar-prenda] JSON parse error", { endpoint: "looks/agregar-prenda" });
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
@@ -243,7 +236,7 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
   // ── 8. Validar índice ────────────────────────────────────────────────────────
   const idx = typeof aiResult.numero === "number" ? aiResult.numero - 1 : -1;
   if (idx < 0 || idx >= candidatasSlice.length) {
-    console.error("[looks/agregar-prenda] índice inválido:", aiResult.numero, "de", candidatasSlice.length);
+    logger.error("[looks/agregar-prenda] índice inválido", { endpoint: "looks/agregar-prenda", numero: aiResult.numero, total: candidatasSlice.length });
     return NextResponse.json({ error: "ai_invalid_id" }, { status: 502 });
   }
 

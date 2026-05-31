@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { GarmentAnalysis } from "@/app/api/prendas/analizar/route";
+import { geminiGenerateContent, hasGeminiApiKey, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/garments/[id]/analizar
@@ -20,9 +22,7 @@ import type { GarmentAnalysis } from "@/app/api/prendas/analizar/route";
  * Respuesta 422: { error: "sin_imagen" }  → la prenda no tiene foto en Storage
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
-const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const TIMEOUT_MS   = 25_000;
+const TIMEOUT_MS = 25_000;
 
 const PROMPT = `Sos un experto en moda. Analizá esta imagen de una prenda de ropa.
 
@@ -51,9 +51,8 @@ export async function POST(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error("[garments/analizar] GEMINI_API_KEY no configurada");
+  if (!hasGeminiApiKey()) {
+    logger.error("[garments/analizar] GEMINI_API_KEY no configurada", { endpoint: "garments/analizar" });
     return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
   }
 
@@ -87,7 +86,7 @@ export async function POST(
     .download(prenda.imagen_url);
 
   if (dlError || !fileData) {
-    console.error("[garments/analizar] Error descargando imagen:", dlError);
+    logger.error("[garments/analizar] Error descargando imagen", { endpoint: "garments/analizar" }, dlError instanceof Error ? dlError : undefined);
     return NextResponse.json({ error: "imagen_no_disponible" }, { status: 502 });
   }
 
@@ -112,30 +111,24 @@ export async function POST(
     const controller = new AbortController();
     const tid        = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({
+    const geminiRes = await geminiGenerateContent(
+      GEMINI_FLASH_LITE,
+      {
         contents: [{
           parts: [
             { text: PROMPT },
             { inline_data: { mime_type: mimeType, data: base64 } },
           ],
         }],
-        generationConfig: {
-          temperature:     0.1,
-          topK:            1,
-          topP:            1,
-          maxOutputTokens: 512,
-        },
-      }),
-      signal: controller.signal,
-    });
+        generationConfig: { temperature: 0.1, topK: 1, topP: 1, maxOutputTokens: 512 },
+      },
+      { signal: controller.signal },
+    );
 
     clearTimeout(tid);
 
     if (!geminiRes.ok) {
-      console.error("[garments/analizar] Gemini HTTP error:", geminiRes.status);
+      logger.error("[garments/analizar] Gemini HTTP error", { endpoint: "garments/analizar", status: geminiRes.status });
       return NextResponse.json({ error: "ai_error" }, { status: 502 });
     }
 
@@ -147,14 +140,14 @@ export async function POST(
     if (err instanceof Error && err.name === "AbortError") {
       return NextResponse.json({ error: "ai_timeout" }, { status: 504 });
     }
-    console.error("[garments/analizar] Gemini call error:", err);
+    logger.error("[garments/analizar] Gemini call error", { endpoint: "garments/analizar" }, err instanceof Error ? err : undefined);
     return NextResponse.json({ error: "ai_error" }, { status: 502 });
   }
 
   // ── 5. Parsear respuesta ──────────────────────────────────────────────────
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    console.error("[garments/analizar] No JSON in Gemini response:", rawText);
+    logger.error("[garments/analizar] No JSON in Gemini response", { endpoint: "garments/analizar" });
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
@@ -176,7 +169,7 @@ export async function POST(
     .eq("user_id", user.id);
 
   if (updateError) {
-    console.error("[garments/analizar] Error actualizando prenda:", updateError);
+    logger.error("[garments/analizar] Error actualizando prenda", { endpoint: "garments/analizar" }, updateError instanceof Error ? updateError : undefined);
     // Devolvemos el resultado igual — el cliente puede mostrar la descripción
     // aunque no se haya persistido (non-fatal)
   }

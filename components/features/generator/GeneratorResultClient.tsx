@@ -32,6 +32,7 @@ import {
   Sparkles,
   Download,
   ImageOff,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { Button, useToast, LookLoopSpinner } from "@/components/ui";
@@ -123,9 +124,10 @@ interface GarmentTileProps {
   prenda:      PrendaResult;
   swapping:    boolean;
   onSwap:      (prendaId: string) => void;
+  advertencia?: string | null;
 }
 
-function GarmentTile({ prenda, swapping, onSwap }: GarmentTileProps) {
+function GarmentTile({ prenda, swapping, onSwap, advertencia }: GarmentTileProps) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -176,6 +178,17 @@ function GarmentTile({ prenda, swapping, onSwap }: GarmentTileProps) {
         >
           {swapping ? <Spinner size={12} /> : <SwapIcon />}
         </button>
+
+        {/* Advertencia de incompatibilidad */}
+        {advertencia && (
+          <div
+            className="absolute top-2 left-2 size-6 rounded-full bg-amber-500 flex items-center justify-center"
+            title={advertencia}
+            aria-label={`Advertencia: ${advertencia}`}
+          >
+            <AlertTriangle className="size-3.5 text-white" strokeWidth={2} />
+          </div>
+        )}
       </div>
 
       {/* Footer */}
@@ -186,6 +199,9 @@ function GarmentTile({ prenda, swapping, onSwap }: GarmentTileProps) {
         >
           {prenda.nombre}
         </div>
+        {advertencia && (
+          <p className="text-[10px] text-amber-600 leading-tight mt-0.5">{advertencia}</p>
+        )}
       </div>
     </div>
   );
@@ -740,6 +756,9 @@ export function GeneratorResultClient() {
   // ID de la prenda que se está swapeando (null = ninguna)
   const [swappingId, setSwappingId] = useState<string | null>(null);
 
+  // Advertencias de incompatibilidad por prenda (prendaId → texto)
+  const [advertencias, setAdvertencias] = useState<Record<string, string>>({});
+
   // LOOKSI-020 — sheet de guardado
   const [showSaveSheet, setShowSaveSheet] = useState(false);
   const [saving, setSaving]               = useState(false);
@@ -815,6 +834,7 @@ export function GeneratorResultClient() {
       });
       if (!res.ok) throw new Error("api_error");
       const result: GenerarLookResult = await res.json();
+      setAdvertencias({});
       pushVersion(result);
       // ── PostHog: look regenerado ──────────────────────────────────────────
       posthog.capture("look_regenerado", {
@@ -864,16 +884,38 @@ export function GeneratorResultClient() {
 
       if (!res.ok) throw new Error("api_error");
 
-      const { prenda_nueva } = await res.json() as { prenda_nueva: PrendaResult };
+      const {
+        prenda_nueva,
+        combina_bien,
+        advertencia,
+        descripcion_actualizada,
+      } = await res.json() as {
+        prenda_nueva:            PrendaResult;
+        combina_bien:            boolean;
+        advertencia:             string | null;
+        descripcion_actualizada: string | null;
+      };
 
       const nuevasPrendas = current.prendas_data.map((p) =>
         p.id === prendaId ? prenda_nueva : p
       );
       const newVersion: GenerarLookResult = {
         ...current,
-        prendas:      nuevasPrendas.map((p) => p.id),
-        prendas_data: nuevasPrendas,
+        prendas:          nuevasPrendas.map((p) => p.id),
+        prendas_data:     nuevasPrendas,
+        descripcion_look: descripcion_actualizada ?? current.descripcion_look,
       };
+
+      // Actualizar advertencias: quitar la anterior de la prenda reemplazada
+      // y agregar la nueva si no combina bien
+      setAdvertencias((prev) => {
+        const next = { ...prev };
+        delete next[prendaId];
+        if (!combina_bien && advertencia && prenda_nueva.id) {
+          next[prenda_nueva.id] = advertencia;
+        }
+        return next;
+      });
 
       pushVersion(newVersion);
     } catch {
@@ -1167,6 +1209,7 @@ export function GeneratorResultClient() {
                     prenda={prenda}
                     swapping={swappingId === prenda.id}
                     onSwap={handleSwap}
+                    advertencia={advertencias[prenda.id] ?? null}
                   />
                 </Link>
               ))}

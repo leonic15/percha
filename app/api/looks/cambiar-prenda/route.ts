@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
 import type { PrendaResult, ClimaData } from "@/app/api/looks/generar/route";
 import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
+import { geminiGenerateContent, hasGeminiApiKey, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/looks/cambiar-prenda
@@ -24,9 +26,7 @@ import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usa
  *   error: "no_alternatives"  — 422
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
-const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const TIMEOUT_MS   = 15_000;
+const TIMEOUT_MS = 15_000;
 const MAX_CANDIDATAS = 30;
 
 export const maxDuration = 25;
@@ -37,6 +37,7 @@ interface CambiarPrendaBody {
   ocasion:                string;
   contexto?:              string;
   clima?:                 ClimaData;
+  descripcion_look_actual?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -46,9 +47,8 @@ export async function POST(req: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error("[looks/cambiar-prenda] GEMINI_API_KEY no configurada");
+  if (!hasGeminiApiKey()) {
+    logger.error("[looks/cambiar-prenda] GEMINI_API_KEY no configurada", { endpoint: "looks/cambiar-prenda" });
     return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
   }
 
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     .limit(100);
 
   if (gError) {
-    console.error("[looks/cambiar-prenda] DB error:", gError);
+    logger.error("[looks/cambiar-prenda] DB error", { endpoint: "looks/cambiar-prenda" }, gError instanceof Error ? gError : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
@@ -180,8 +180,13 @@ ${candidatasLines}
 Si ninguna prenda de la lista es compatible con el look actual, respondé con:
 {"no_alternatives": true, "razon": "máximo 8 palabras en español"}
 
-Si encontrás una buena alternativa, respondé ÚNICAMENTE con un JSON válido, sin markdown:
-{"numero": N}
+Si encontrás una alternativa, respondé ÚNICAMENTE con un JSON válido, sin markdown:
+{
+  "numero": N,
+  "combina_bien": true o false,
+  "advertencia": "si combina_bien es false: breve razón de incompatibilidad (máx 12 palabras). Si combina_bien es true: null",
+  "descripcion_actualizada": "2-3 oraciones en español describiendo cómo funciona el look completo con la nueva prenda"
+}
 donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
 
   // ── 6. Llamar a Gemini ───────────────────────────────────────────────────────
@@ -192,20 +197,14 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
     const controller = new AbortController();
     const tid        = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({
+    const geminiRes = await geminiGenerateContent(
+      GEMINI_FLASH_LITE,
+      {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature:     0.5,
-          topK:            20,
-          topP:            0.9,
-          maxOutputTokens: 200,
-        },
-      }),
-      signal: controller.signal,
-    });
+        generationConfig: { temperature: 0.5, topK: 20, topP: 0.9, maxOutputTokens: 200 },
+      },
+      { signal: controller.signal },
+    );
 
     clearTimeout(tid);
 
@@ -213,7 +212,7 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
       const errBody = await geminiRes.json().catch(() => ({})) as {
         error?: { status?: string; details?: { retryDelay?: string }[] };
       };
-      console.error("[looks/cambiar-prenda] Gemini HTTP error:", geminiRes.status, errBody);
+      logger.error("[looks/cambiar-prenda] Gemini HTTP error", { endpoint: "looks/cambiar-prenda", status: geminiRes.status });
       if (geminiRes.status === 429) {
         const retryDelay   = errBody.error?.details?.find((d) => "retryDelay" in d)?.retryDelay ?? "60s";
         const retrySeconds = parseInt(retryDelay) || 60;
@@ -229,22 +228,29 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
     if (err instanceof Error && err.name === "AbortError") {
       return NextResponse.json({ error: "ai_timeout" }, { status: 504 });
     }
-    console.error("[looks/cambiar-prenda] Gemini call error:", err);
+    logger.error("[looks/cambiar-prenda] Gemini call error", { endpoint: "looks/cambiar-prenda" }, err instanceof Error ? err : undefined);
     return NextResponse.json({ error: "ai_error" }, { status: 502 });
   }
 
   // ── 7. Parsear respuesta ─────────────────────────────────────────────────────
   const jsonMatch = rawText.match(/\{[^{}]*\}/);
   if (!jsonMatch) {
-    console.error("[looks/cambiar-prenda] No JSON in response:", rawText);
+    logger.error("[looks/cambiar-prenda] No JSON in response", { endpoint: "looks/cambiar-prenda" });
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
-  let aiResult: { numero?: number; no_alternatives?: boolean; razon?: string };
+  let aiResult: {
+    numero?: number;
+    no_alternatives?: boolean;
+    razon?: string;
+    combina_bien?: boolean;
+    advertencia?: string | null;
+    descripcion_actualizada?: string;
+  };
   try {
     aiResult = JSON.parse(jsonMatch[0]);
   } catch {
-    console.error("[looks/cambiar-prenda] JSON parse error:", jsonMatch[0]);
+    logger.error("[looks/cambiar-prenda] JSON parse error", { endpoint: "looks/cambiar-prenda" });
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
@@ -259,7 +265,7 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
   // ── 8. Validar que el índice elegido está dentro de rango ────────────────────
   const idx = typeof aiResult.numero === "number" ? aiResult.numero - 1 : -1;
   if (idx < 0 || idx >= candidatasSlice.length) {
-    console.error("[looks/cambiar-prenda] índice inválido:", aiResult.numero, "de", candidatasSlice.length);
+    logger.error("[looks/cambiar-prenda] índice inválido", { endpoint: "looks/cambiar-prenda", numero: aiResult.numero, total: candidatasSlice.length });
     return NextResponse.json({ error: "ai_invalid_id" }, { status: 502 });
   }
 
@@ -289,5 +295,10 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
     signedUrl,
   };
 
-  return NextResponse.json({ prenda_nueva: prendaNuevaResult });
+  return NextResponse.json({
+    prenda_nueva:           prendaNuevaResult,
+    combina_bien:           aiResult.combina_bien !== false,
+    advertencia:            aiResult.advertencia ?? null,
+    descripcion_actualizada: aiResult.descripcion_actualizada ?? null,
+  });
 }

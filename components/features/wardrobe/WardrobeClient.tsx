@@ -116,6 +116,12 @@ export function WardrobeClient({
   const [refreshing, setRefreshing]     = useState(false);
   const hasMore = garments.length < total;
 
+  // Sincroniza la grilla cuando el Server Component pasa nuevos datos (cambio de filtros en URL)
+  useEffect(() => {
+    setGarments(initialGarments);
+    setPage(1);
+  }, [initialGarments]);
+
   // ── Pull-to-refresh state ─────────────────────────────────────────────────
   const pullStartY  = useRef(0);
   const pullDelta   = useRef(0);

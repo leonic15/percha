@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/lib/database.types";
 import type { CookieOptions } from "@supabase/ssr";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * LOOKSI-003: Inicio de OAuth con Google — server-side.
@@ -112,7 +113,7 @@ export async function GET(request: Request) {
   }
 
   if (error || !data.url) {
-    console.error("[auth/google] signInWithOAuth error:", error?.message);
+    logger.error("[auth/google] signInWithOAuth error", { endpoint: "auth/google" }, error instanceof Error ? error : undefined);
     const errRes = NextResponse.redirect(`${origin}/login?error=oauth_error`);
     errRes.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
     return errRes;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/utils/logger";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
     });
 
   if (uploadError) {
-    console.error("[perfil/avatar] Upload error:", uploadError.message);
+    logger.error("[perfil/avatar] Upload error", { endpoint: "perfil/avatar" }, uploadError instanceof Error ? uploadError : undefined);
     return NextResponse.json({ error: "upload_error" }, { status: 500 });
   }
 
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
     .eq("id", user.id);
 
   if (updateError) {
-    console.error("[perfil/avatar] DB update error:", updateError.message);
+    logger.error("[perfil/avatar] DB update error", { endpoint: "perfil/avatar" }, updateError instanceof Error ? updateError : undefined);
     // La imagen se subió pero no se actualizó el perfil — devolver igual la URL
     return NextResponse.json({ avatarUrl, warning: "db_update_failed" });
   }

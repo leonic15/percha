@@ -51,7 +51,7 @@ export async function GET(
   return new NextResponse(upstream.body, {
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": "private, max-age=86400, stale-while-revalidate=604800",
+      "Cache-Control": "private, max-age=2592000, stale-while-revalidate=2592000",
     },
   });
 }

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
+import { geminiGenerateContent, hasGeminiApiKey, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * POST /api/looks/generar
@@ -27,9 +29,7 @@ import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usa
  *   parametros       object
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
-const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const TIMEOUT_MS   = 20_000;
+const TIMEOUT_MS = 20_000;
 
 // ── Tipos públicos (reutilizados por el cliente) ───────────────────────────────
 
@@ -83,9 +83,8 @@ export async function POST(req: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error("[looks/generar] GEMINI_API_KEY no configurada");
+  if (!hasGeminiApiKey()) {
+    logger.error("[looks/generar] GEMINI_API_KEY no configurada", { endpoint: "looks/generar" });
     return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
   }
 
@@ -115,7 +114,7 @@ export async function POST(req: NextRequest) {
     .limit(100);
 
   if (gError) {
-    console.error("[looks/generar] DB error prendas:", gError);
+    logger.error("[looks/generar] DB error prendas", { endpoint: "looks/generar" }, gError instanceof Error ? gError : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
@@ -224,20 +223,14 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
     const controller = new AbortController();
     const tid        = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({
+    const geminiRes = await geminiGenerateContent(
+      GEMINI_FLASH_LITE,
+      {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature:     0.7,
-          topK:            40,
-          topP:            0.95,
-          maxOutputTokens: 512,
-        },
-      }),
-      signal: controller.signal,
-    });
+        generationConfig: { temperature: 0.7, topK: 40, topP: 0.95, maxOutputTokens: 512 },
+      },
+      { signal: controller.signal },
+    );
 
     clearTimeout(tid);
 
@@ -245,7 +238,7 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
       const errBody = await geminiRes.json().catch(() => ({})) as {
         error?: { status?: string; details?: { retryDelay?: string }[] };
       };
-      console.error("[looks/generar] Gemini HTTP error:", geminiRes.status, errBody);
+      logger.error("[looks/generar] Gemini HTTP error", { endpoint: "looks/generar", status: geminiRes.status });
 
       if (geminiRes.status === 429) {
         // Extraer tiempo de retry del mensaje de Gemini si está disponible
@@ -269,14 +262,14 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
     if (err instanceof Error && err.name === "AbortError") {
       return NextResponse.json({ error: "ai_timeout" }, { status: 504 });
     }
-    console.error("[looks/generar] Gemini call error:", err);
+    logger.error("[looks/generar] Gemini call error", { endpoint: "looks/generar" }, err instanceof Error ? err : undefined);
     return NextResponse.json({ error: "ai_error" }, { status: 502 });
   }
 
   // ── 5. Parsear respuesta ───────────────────────────────────────────────────
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    console.error("[looks/generar] No JSON in response:", rawText);
+    logger.error("[looks/generar] No JSON in response", { endpoint: "looks/generar" });
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 
@@ -290,7 +283,7 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
   try {
     aiResult = JSON.parse(jsonMatch[0]);
   } catch {
-    console.error("[looks/generar] JSON parse error:", jsonMatch[0]);
+    logger.error("[looks/generar] JSON parse error", { endpoint: "looks/generar" });
     return NextResponse.json({ error: "ai_parse_error" }, { status: 502 });
   }
 

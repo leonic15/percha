@@ -4,6 +4,7 @@ import type { Prenda } from "@/lib/database.types";
 import { TIPO_EVENTO, EVENTO_CONFIG, type TipoEvento, type ModoOptimizacion } from "@/lib/viajes/constants";
 import type { PrendaResult } from "@/app/api/looks/generar/route";
 import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
+import { geminiGenerateContent, hasGeminiApiKey, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
 
 /**
  * POST /api/viajes/generar-looks
@@ -15,9 +16,7 @@ import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usa
  * Respuesta: GenerarViajeLooksResult
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash-lite";
-const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-const TIMEOUT_MS   = 45_000;
+const TIMEOUT_MS = 45_000;
 
 // ── Tipos públicos ─────────────────────────────────────────────────────────────
 
@@ -64,8 +63,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "no_session" }, { status: 401 });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
+  if (!hasGeminiApiKey()) return NextResponse.json({ error: "ai_no_config" }, { status: 500 });
 
   let body: GenerarViajeLooksBody;
   try { body = await req.json(); }
@@ -231,20 +229,14 @@ Respondé ÚNICAMENTE con JSON válido, sin markdown ni texto extra:
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    const geminiRes = await geminiGenerateContent(
+      GEMINI_FLASH_LITE,
+      {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature:     0.75,
-          topK:            40,
-          topP:            0.95,
-          maxOutputTokens: 2048,
-        },
-      }),
-      signal: controller.signal,
-    });
+        generationConfig: { temperature: 0.75, topK: 40, topP: 0.95, maxOutputTokens: 2048 },
+      },
+      { signal: controller.signal },
+    );
 
     clearTimeout(tid);
 

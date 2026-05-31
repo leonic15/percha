@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import type { Prenda } from "@/lib/database.types";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { GARMENT_IMAGE_MAX_BYTES, detectImageMimeType } from "@/lib/upload/validation";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * LOOKSI-008 / LOOKSI-009: API Routes de prendas.
@@ -52,7 +54,7 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false })
     .range(from, from + limit); // limit + 1 filas para detectar hasMore
 
-  if (q)          query = query.or(`nombre.ilike.%${q}%,color_principal.ilike.%${q}%,notas.ilike.%${q}%`);
+  if (q)          query = query.or(`nombre.ilike.%${sanitizeQ(q)}%,color_principal.ilike.%${sanitizeQ(q)}%,notas.ilike.%${sanitizeQ(q)}%`);
   if (categoryId) query = query.eq("category_id", categoryId);
   if (season)     query = query.contains("estaciones", [season]);
   if (occasion)   query = query.contains("ocasiones", [occasion]);
@@ -132,7 +134,7 @@ export async function POST(req: NextRequest) {
         { slug: "accesorios",              nombre: "Accesorios"              },
         { slug: "otros",                   nombre: "Otros"                   },
       ], { onConflict: "slug" });
-      if (upsertErr) console.error("[garments/POST] upsert categories error:", upsertErr.message);
+      if (upsertErr) logger.error("[garments/POST] upsert categories error", { endpoint: "garments/POST" }, upsertErr instanceof Error ? upsertErr : undefined);
 
       // Re-leer con service client (tabla ya tiene datos)
       const { data: catRow2, error: catErr2 } = await svc
@@ -140,9 +142,9 @@ export async function POST(req: NextRequest) {
         .select("id")
         .eq("slug", category_slug)
         .single();
-      if (catErr2) console.error("[garments/POST] re-read category error:", catErr2.message);
+      if (catErr2) logger.error("[garments/POST] re-read category error", { endpoint: "garments/POST" }, catErr2 instanceof Error ? catErr2 : undefined);
       category_id = (catRow2 as { id: number } | null)?.id ?? null;
-      console.log("[garments/POST] after seed — category_id:", category_id, "for slug:", category_slug);
+      logger.info("[garments/POST] after seed", { endpoint: "garments/POST", category_id, category_slug });
     }
   }
 
@@ -150,14 +152,20 @@ export async function POST(req: NextRequest) {
   if (!nombre) return NextResponse.json({ error: "nombre_requerido" }, { status: 400 });
   // category_id es nullable en DB — si no se pudo resolver, se guarda null
   if (!imagen || imagen.size === 0) return NextResponse.json({ error: "imagen_requerida" }, { status: 400 });
+  if (imagen.size > GARMENT_IMAGE_MAX_BYTES) {
+    return NextResponse.json(
+      { error: "imagen_demasiado_grande", message: "La imagen no puede superar 5 MB." },
+      { status: 422 },
+    );
+  }
 
-  // Normalizar tipos no-estándar: vacío/"image/jpg" → "image/jpeg"
-  const normalizedType = (!imagen.type || imagen.type === "image/jpg")
-    ? "image/jpeg"
-    : imagen.type;
-  if (!normalizedType.startsWith("image/")) {
+  // H-17: detectar tipo real por magic bytes (ignora el MIME declarado por el cliente)
+  const detectedType = await detectImageMimeType(imagen);
+  if (!detectedType) {
     return NextResponse.json({ error: "tipo_imagen_invalido" }, { status: 400 });
   }
+  // Usar el tipo detectado como fuente de verdad
+  const normalizedType = detectedType;
 
   // 1. Insertar prenda en DB (sin imagen_url todavía)
   const { data: prendaData, error: insertError } = await supabase
@@ -180,7 +188,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (insertError || !prendaData) {
-    console.error("[garments/POST] db_insert_error:", insertError?.message);
+    logger.error("[garments/POST] db_insert_error", { endpoint: "garments/POST" }, insertError instanceof Error ? insertError : undefined);
     return NextResponse.json({ error: "db_insert_error" }, { status: 500 });
   }
 
@@ -215,7 +223,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (updateError) {
-    console.error("[garments/POST] Error updating imagen_url:", updateError.message);
+    logger.error("[garments/POST] Error updating imagen_url", { endpoint: "garments/POST" }, updateError instanceof Error ? updateError : undefined);
     // Prenda guardada sin imagen — igual emitir evento
     await captureServerEvent(user.id, "prenda_agregada", {
       categoria_id: category_id,
@@ -236,6 +244,11 @@ export async function POST(req: NextRequest) {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Removes PostgREST filter special chars and caps length to prevent filter injection. */
+function sanitizeQ(raw: string): string {
+  return raw.slice(0, 80).replace(/[,()\\*:.]/g, " ").trim();
+}
 
 function parseJsonArray(value: string | null): string[] {
   if (!value) return [];

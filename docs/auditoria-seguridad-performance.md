@@ -42,20 +42,20 @@ El resto son hallazgos medios y bajos de hardening y performance.
 | H-01 | 🔴 | Seguridad / Costos | `ai_usage` se inserta con cliente de usuario sin política RLS de INSERT → rate limit de imágenes evadible + costos no registrados | Alto | ✅ |
 | H-02 | 🔴 | Seguridad | `/api/auth/debug` expone variables de entorno sin auth | Alto | ✅ |
 | H-03 | 🔴 | Seguridad / Costos | Sin rate limiting en endpoints de IA (`analizar`, `generar`, `cambiar-prenda`, `generar-looks`, `validar-imagen`) | Alto | ✅ |
-| H-04 | 🟡 | Seguridad | Inyección de filtros PostgREST en parámetro `q` de `GET /api/garments` (`.or()` con interpolación) | Medio | ⬜ |
-| H-05 | 🟡 | Seguridad | CSP con `'unsafe-inline'` + `'unsafe-eval'` en `script-src` | Medio | ⬜ |
-| H-06 | 🟡 | DoS / Recursos | `POST /api/validar-imagen` acepta base64 en JSON sin límite de tamaño (buffer en memoria) | Medio | ⬜ |
-| H-07 | 🟡 | DoS / Recursos | Subidas leen el archivo completo a memoria (`arrayBuffer`) sin validar tamaño antes | Medio | ⬜ |
-| H-08 | 🟡 | Integridad / Reliability | `POST /api/viajes` sin transacción y sin verificar pertenencia de `prenda_id` | Medio | ⬜ |
+| H-04 | 🟡 | Seguridad | Inyección de filtros PostgREST en parámetro `q` de `GET /api/garments` (`.or()` con interpolación) | Medio | ✅ |
+| H-05 | 🟡 | Seguridad | CSP con `'unsafe-inline'` + `'unsafe-eval'` en `script-src` | Medio | ✅ |
+| H-06 | 🟡 | DoS / Recursos | `POST /api/validar-imagen` acepta base64 en JSON sin límite de tamaño (buffer en memoria) | Medio | ✅ |
+| H-07 | 🟡 | DoS / Recursos | Subidas leen el archivo completo a memoria (`arrayBuffer`) sin validar tamaño antes | Medio | ✅ |
+| H-08 | 🟡 | Integridad / Reliability | `POST /api/viajes` sin transacción y sin verificar pertenencia de `prenda_id` | Medio | ✅ |
 | H-09 | 🟡 | Repo / Secretos | `.codegraph/*.db` y `playwright-1.60.0.tgz` versionados (trackeados pese a `.gitignore`) | Medio | ✅ |
 | H-10 | 🟡 | Performance | `count: "exact"` en cada página de `GET /api/garments` | Medio | ✅ |
-| H-11 | 🟢 | Seguridad | API key de Gemini viajando en query string (`?key=`) | Bajo | ⬜ |
-| H-12 | 🟢 | Seguridad | `next` param del callback OAuth no validado (debe empezar con `/`) | Bajo | ⬜ |
+| H-11 | 🟢 | Seguridad | API key de Gemini viajando en query string (`?key=`) | Bajo | ✅ |
+| H-12 | 🟢 | Seguridad | `next` param del callback OAuth no validado (debe empezar con `/`) | Bajo | ✅ |
 | H-13 | 🟢 | Performance | `POST /api/viajes`: inserts secuenciales (N+1) en loop de looks | Bajo | ✅ |
 | H-14 | 🟢 | Performance | `generar-imagen`: fallback secuencial por hasta 9 modelos sin cachear el que funciona | Bajo | ✅ |
-| H-15 | 🟢 | Observabilidad | Uso de `console.*` directo en rutas en vez del `logger` estructurado existente | Bajo | ⬜ |
+| H-15 | 🟢 | Observabilidad | Uso de `console.*` directo en rutas en vez del `logger` estructurado existente | Bajo | ✅ |
 | H-16 | 🟢 | Performance | Búsqueda `ilike %q%` con comodín inicial (no usa índice) | Bajo | ✅ |
-| H-17 | 🟢 | Seguridad | Falta validación de extensión/contenido real de imagen (solo se confía en `mime` del cliente) | Bajo | ⬜ |
+| H-17 | 🟢 | Seguridad | Falta validación de extensión/contenido real de imagen (solo se confía en `mime` del cliente) | Bajo | ✅ |
 
 ---
 
@@ -128,7 +128,7 @@ El resto son hallazgos medios y bajos de hardening y performance.
 
 ---
 
-### 🟡 H-04 — Inyección de filtros PostgREST en `q`
+### 🟡 H-04 — Inyección de filtros PostgREST en `q`  ✅ Implementado
 
 - **Categoría:** Seguridad (inyección de filtros)
 - **Impacto:** Medio. El RLS (`.eq("user_id", user.id)`) acota el daño a los datos del propio usuario, pero la interpolación permite alterar la lógica del query, provocar errores 500 o degradar performance.
@@ -138,6 +138,7 @@ El resto son hallazgos medios y bajos de hardening y performance.
   1. Sanitizar `q`: eliminar/escapar `,`, `(`, `)`, `*`, `:` y `\` antes de construir el filtro; limitar longitud (p. ej. 80 chars).
   2. Mejor aún: usar `textSearch` (FTS de Postgres) o construir el `or` con valores ya escapados (envolver el patrón entre comillas dobles según la sintaxis PostgREST).
   3. Validar entradas con Zod (ya es dependencia) en todos los handlers que reciben query params/JSON.
+- **✅ Implementado:** función `sanitizeQ()` en [garments/route.ts](app/api/garments/route.ts) elimina `,()\\*:.` y limita `q` a 80 chars antes de interpolar en `.or()`.
 
 ---
 
@@ -155,7 +156,7 @@ El resto son hallazgos medios y bajos de hardening y performance.
 
 ---
 
-### 🟡 H-06 — `validar-imagen` acepta base64 sin límite de tamaño
+### 🟡 H-06 — `validar-imagen` acepta base64 sin límite de tamaño  ✅ Implementado
 
 - **Categoría:** DoS / consumo de memoria
 - **Impacto:** Medio. El handler hace `req.json()` de un body que contiene la imagen en base64 sin tope, cargándola entera en memoria; un payload grande puede agotar memoria de la función serverless.
@@ -165,10 +166,11 @@ El resto son hallazgos medios y bajos de hardening y performance.
   1. Validar `Content-Length` y rechazar > N MB (p. ej. 6 MB) antes de parsear.
   2. Validar longitud del base64 y prefijo MIME permitido.
   3. Reusar el patrón de `multipart/form-data` + `File.size` que ya usan otras rutas, en lugar de base64 en JSON.
+- **✅ Implementado:** check de `Content-Length` (→ 413) antes de `req.json()` y validación de `imagen.length` contra `BASE64_IMAGE_MAX_CHARS` (8 M chars ≈ 6 MB imagen) en [validar-imagen/route.ts](app/api/validar-imagen/route.ts). Constantes centralizadas en [lib/upload/validation.ts](lib/upload/validation.ts).
 
 ---
 
-### 🟡 H-07 — Subidas leen el archivo completo a memoria sin guardia previa
+### 🟡 H-07 — Subidas leen el archivo completo a memoria sin guardia previa  ✅ Implementado
 
 - **Categoría:** DoS / consumo de memoria
 - **Impacto:** Medio. `await file.arrayBuffer()` materializa todo el archivo en memoria antes de subir; aunque el bucket tiene límite (5 MB prendas, 10 MB body), la validación ocurre tarde y depende de `file.type`/`file.size` reportados por el cliente.
@@ -179,10 +181,11 @@ El resto son hallazgos medios y bajos de hardening y performance.
   1. Validar `file.size` contra un máximo explícito en cada ruta de subida (como ya hace [foto-corporal/route.ts:51](app/api/perfil/foto-corporal/route.ts#L51)).
   2. Centralizar límites de tamaño/MIME en un helper compartido.
   3. Considerar subida directa a Storage con *signed upload URL* para imágenes grandes (evita pasar bytes por la función).
+- **✅ Implementado:** check `imagen.size > GARMENT_IMAGE_MAX_BYTES` (5 MB) antes de `arrayBuffer()` en [garments/route.ts](app/api/garments/route.ts) (POST) y [garments/[id]/route.ts](app/api/garments/[id]/route.ts) (PATCH). Constante `GARMENT_IMAGE_MAX_BYTES` centralizada en [lib/upload/validation.ts](lib/upload/validation.ts).
 
 ---
 
-### 🟡 H-08 — `POST /api/viajes` sin transacción ni verificación de pertenencia
+### 🟡 H-08 — `POST /api/viajes` sin transacción ni verificación de pertenencia  ✅ Implementado
 
 - **Categoría:** Integridad de datos / Reliability
 - **Impacto:** Medio. Una falla a mitad de las ~7 operaciones deja un viaje huérfano/parcial. Además se insertan `prenda_id` provenientes del cliente sin verificar que pertenezcan al usuario.
@@ -193,6 +196,7 @@ El resto son hallazgos medios y bajos de hardening y performance.
   1. Envolver la creación en una función RPC `SECURITY DEFINER` (transacción atómica) o usar el patrón de "insert con rollback" ya presente en `looks/guardar`.
   2. Verificar que todos los `prenda_id` recibidos pertenezcan al usuario (como hace [looks/guardar/route.ts:78-97](app/api/looks/guardar/route.ts#L78-L97)).
   3. Validar el body con Zod (fechas coherentes `fecha_inicio <= fecha_fin`, tipos de evento válidos, cantidades > 0).
+- **✅ Implementado:** [viajes/route.ts](app/api/viajes/route.ts) ahora: (1) valida el body con `CreateViajeSchema` (Zod) incluyendo `.refine` de coherencia de fechas; (2) verifica en batch que todos los `prenda_id` pertenezcan al usuario (mismo patrón que `looks/guardar`); (3) chequea el error de cada insert y ejecuta `rollback()` (DELETE viaje → CASCADE a hijos) ante cualquier fallo parcial.
 
 ---
 
@@ -232,12 +236,13 @@ El resto son hallazgos medios y bajos de hardening y performance.
 
 ---
 
-### 🟢 H-12 — `next` del callback OAuth no validado
+### 🟢 H-12 — `next` del callback OAuth no validado  ✅ Implementado
 
 - **Categoría:** Seguridad (open redirect — bajo riesgo en este caso)
 - **Impacto:** Bajo. `next` se concatena a un `origin` fijo, lo que limita el riesgo, pero conviene validar.
 - **Observaciones:** [auth/callback/route.ts:38,87](app/auth/callback/route.ts#L38).
 - **Cómo se soluciona:** aceptar `next` solo si empieza con `/` y no con `//`; caer a `/guardarropas` en cualquier otro caso.
+- **✅ Implementado:** [auth/callback/route.ts](app/auth/callback/route.ts) valida `nextRaw`: acepta solo si `startsWith("/") && !startsWith("//")`, cae a `/guardarropas` en cualquier otro caso.
 
 ---
 
@@ -304,23 +309,23 @@ Priorizado por riesgo y esfuerzo. Estimaciones en puntos relativos (S = pequeño
 **Criterio de salida:** rate limit de imágenes verificado, `ai_usage` registrando filas, sin endpoints debug, repo sin binarios trackeados.
 **Verificación pendiente recomendada:** test de integración que confirme el `429` tras superar el límite (con `SUPABASE_SERVICE_ROLE_KEY` configurada) y commit de los cambios.
 
-### Fase 1 — Hardening de entrada y recursos (próximo sprint) 🟡
+### Fase 1 — Hardening de entrada y recursos 🟡  — ✅ Completada
 
-| Orden | Hallazgo | Acción | Esfuerzo |
-|------|----------|--------|:------:|
-| 5 | H-04 | Sanitizar/validar `q` (Zod) y construir el `or` con valores escapados o FTS | M |
-| 6 | H-06 / H-07 | Límites de tamaño (Content-Length / file.size) y MIME en todas las rutas de subida/validación; helper compartido | M |
-| 7 | H-08 | RPC transaccional para crear viaje + verificación de pertenencia de `prenda_id` + validación Zod | L |
-| 8 | H-12 | Validar `next` del callback OAuth | S |
+| Orden | Hallazgo | Acción | Esfuerzo | Estado |
+|------|----------|--------|:------:|:------:|
+| 5 | H-04 | Sanitizar/validar `q` (Zod) y construir el `or` con valores escapados o FTS | M | ✅ |
+| 6 | H-06 / H-07 | Límites de tamaño (Content-Length / file.size) y MIME en todas las rutas de subida/validación; helper compartido | M | ✅ |
+| 7 | H-08 | RPC transaccional para crear viaje + verificación de pertenencia de `prenda_id` + validación Zod | L | ✅ |
+| 8 | H-12 | Validar `next` del callback OAuth | S | ✅ |
 
-### Fase 2 — CSP y observabilidad 🟡🟢
+### Fase 2 — CSP y observabilidad 🟡🟢  — ✅ Completada
 
-| Orden | Hallazgo | Acción | Esfuerzo |
-|------|----------|--------|:------:|
-| 9 | H-05 | CSP basada en nonce; aislar WASM de `background-removal` (worker / CSP por ruta) | L |
-| 10 | H-15 | Adoptar `logger` estructurado + `requestId` en API Routes | M |
-| 11 | H-11 | Helper único de Gemini con key en header `x-goog-api-key` | S |
-| 12 | H-17 | Validación de magic bytes en subidas de imagen | S |
+| Orden | Hallazgo | Acción | Esfuerzo | Estado |
+|------|----------|--------|:------:|:------:|
+| 9 | H-05 | CSP basada en nonce; aislar WASM de `background-removal` (worker / CSP por ruta) | L | ✅ (split por ruta) |
+| 10 | H-15 | Adoptar `logger` estructurado + `requestId` en API Routes | M | ✅ |
+| 11 | H-11 | Helper único de Gemini con key en header `x-goog-api-key` | S | ✅ |
+| 12 | H-17 | Validación de magic bytes en subidas de imagen | S | ✅ |
 
 ### Fase 3 — Performance y escalabilidad 🟢  — ✅ Completada
 

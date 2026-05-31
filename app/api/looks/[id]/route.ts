@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/utils/logger";
 import { createClient } from "@/lib/supabase/server";
 
 // ── Tipos públicos ─────────────────────────────────────────────────────────────
@@ -179,7 +180,7 @@ export async function DELETE(
   const { error } = await supabase.from("looks").delete().eq("id", id);
 
   if (error) {
-    console.error("[looks/delete] DB error:", error);
+    logger.error("[looks/delete] DB error", { endpoint: "looks/[id]" }, error instanceof Error ? error : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 

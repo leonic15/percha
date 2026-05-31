@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/utils/logger";
 
 const BUCKET = "body-photos";
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
     });
 
   if (uploadError) {
-    console.error("[foto-corporal] upload error:", uploadError.message);
+    logger.error("[foto-corporal] upload error", { endpoint: "perfil/foto-corporal" }, uploadError instanceof Error ? uploadError : undefined);
     return NextResponse.json({ error: "upload_failed" }, { status: 500 });
   }
 
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     .eq("id", user.id);
 
   if (dbError) {
-    console.error("[foto-corporal] db update error:", dbError.message);
+    logger.error("[foto-corporal] db update error", { endpoint: "perfil/foto-corporal" }, dbError instanceof Error ? dbError : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
@@ -104,7 +105,7 @@ export async function DELETE() {
       .from(BUCKET)
       .remove([profile.body_photo_url]);
     if (removeError) {
-      console.warn("[foto-corporal] storage remove error:", removeError.message);
+      logger.warn("[foto-corporal] storage remove error", { endpoint: "perfil/foto-corporal" });
     }
   }
 
@@ -114,7 +115,7 @@ export async function DELETE() {
     .eq("id", user.id);
 
   if (dbError) {
-    console.error("[foto-corporal] db null error:", dbError.message);
+    logger.error("[foto-corporal] db null error", { endpoint: "perfil/foto-corporal" }, dbError instanceof Error ? dbError : undefined);
     return NextResponse.json({ error: "db_error" }, { status: 500 });
   }
 
