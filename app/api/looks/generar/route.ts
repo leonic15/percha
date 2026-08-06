@@ -130,6 +130,11 @@ export async function POST(req: NextRequest) {
   const garments   = (garmentsData as Prenda[]).filter(
     (g) => !excludeSet.has(g.id)
   );
+  // Fisher-Yates shuffle — rompe el sesgo posicional del LLM
+  for (let i = garments.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [garments[i], garments[j]] = [garments[j], garments[i]];
+  }
 
   // ── 1b. Obtener género del perfil ─────────────────────────────────────────
   const { data: profileData } = await supabase
@@ -139,6 +144,28 @@ export async function POST(req: NextRequest) {
     .single();
 
   const genero = profileData?.genero ?? null;
+
+  // ── 1c. Historial reciente de prendas usadas ──────────────────────────────
+  const { data: recentLooksData } = await supabase
+    .from("looks")
+    .select("id")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  let recentlyUsedIds = new Set<string>();
+  const recentLookIds = (recentLooksData ?? []).map((l) => l.id);
+  if (recentLookIds.length > 0) {
+    const { data: recentPrendasData } = await supabase
+      .from("look_prendas")
+      .select("prenda_id")
+      .in("look_id", recentLookIds);
+    recentlyUsedIds = new Set(
+      (recentPrendasData ?? [])
+        .map((lp) => lp.prenda_id)
+        .filter(Boolean) as string[]
+    );
+  }
 
   // ── 2. Resolver categorías ─────────────────────────────────────────────────
   const categoryIds = [
@@ -183,6 +210,13 @@ export async function POST(req: NextRequest) {
         ? "Género: mujer. Priorizá prendas y estilos femeninos. Usá terminología femenina al describir (blusa, vestido, falda, saco, etc.)."
         : "Género: no especificado. Usá terminología neutra y genérica para las prendas.";
 
+  const recentNames = garments
+    .filter((g) => recentlyUsedIds.has(g.id))
+    .map((g) => g.nombre);
+  const recentlyUsedSection = recentNames.length > 0
+    ? `\nPRENDAS USADAS EN LOOKS RECIENTES (priorizá NO repetirlas, elegí otras):\n${recentNames.map((n) => `- ${n}`).join("\n")}`
+    : "";
+
   const prompt = `Sos una estilista experta. Armá un look cohesivo para esta persona.
 
 PARÁMETROS:
@@ -193,7 +227,7 @@ PARÁMETROS:
 - ${modeInstruction}
 
 GUARDARROPAS DISPONIBLE (${garments.length} prendas):
-${garmentLines}
+${garmentLines}${recentlyUsedSection}
 
 INSTRUCCIONES:
 1. Elegí entre 2 y 6 prendas de la lista anterior.
@@ -227,7 +261,7 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
       GEMINI_FLASH_LITE,
       {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, topK: 40, topP: 0.95, maxOutputTokens: 512 },
+        generationConfig: { temperature: 0.5, topK: 40, topP: 0.95, maxOutputTokens: 512 },
       },
       { signal: controller.signal },
     );
