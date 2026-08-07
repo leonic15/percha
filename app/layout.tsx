@@ -24,15 +24,15 @@ const archivoNarrow = Archivo_Narrow({
 /* ─── Metadata ─── */
 export const metadata: Metadata = {
   title: {
-    default: "LookSi",
-    template: "%s · LookSi",
+    default: "Percha",
+    template: "%s · Percha",
   },
   description: "Digitalizá tu ropa, analizá prendas con IA y armá looks pensados para hoy.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "LookSi",
+    title: "Percha",
   },
   formatDetection: { telephone: false },
 };
@@ -93,12 +93,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="es"
       data-theme="light"
       className={`${inter.variable} ${archivoNarrow.variable}`}
-      suppressHydrationWarning // data-theme se actualiza en cliente (LOOKSI-025)
+      suppressHydrationWarning // data-theme se actualiza en cliente (PERCHA-025)
     >
       <body className="bg-bg text-ink antialiased">
         {/* Estilos críticos inline: se inyectan en <head> vía React 19 style hoisting.
             Garantizan fondo, tipografía y layout base sin depender del bundle JS. */}
-        <style href="looksi-critical" precedence="high">{CRITICAL_CSS}</style>
+        <style href="percha-critical" precedence="high">{CRITICAL_CSS}</style>
         {children}
       </body>
     </html>

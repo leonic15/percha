@@ -2,13 +2,13 @@
 
 **Fecha:** 2026-05-01  
 **Estado:** Aceptado  
-**Historia relacionada:** LOOKSI-026 (Setup inicial)
+**Historia relacionada:** PERCHA-026 (Setup inicial)
 
 ---
 
 ## Contexto
 
-LookSi es primariamente una app móvil (los usuarios se fotografían la ropa desde el celular). La decisión de arquitectura define toda la experiencia: cómo los usuarios la instalan, la actualizan y la usan offline.
+Percha es primariamente una app móvil (los usuarios se fotografían la ropa desde el celular). La decisión de arquitectura define toda la experiencia: cómo los usuarios la instalan, la actualizan y la usan offline.
 
 Las alternativas consideradas:
 
@@ -41,7 +41,7 @@ Se eligió **PWA** sobre Next.js con `@ducanh2912/next-pwa` (Workbox).
 
 - **Limitaciones de iOS**: iOS Safari tiene restricciones en PWA — no soporta push notifications (aún), y el acceso a hardware es más limitado que en app nativa.
 - **Experiencia de instalación**: la instalación es menos obvia que "descargar de App Store". Mitigado con un banner de instalación en la bienvenida (feature futura).
-- **Performance**: las apps nativas tienen acceso a APIs de sistema de más bajo nivel. Para LookSi (guardarropa + fotos) la diferencia no es perceptible.
+- **Performance**: las apps nativas tienen acceso a APIs de sistema de más bajo nivel. Para Percha (guardarropa + fotos) la diferencia no es perceptible.
 - **Distribución**: sin tienda de apps, la adquisición de usuarios es 100% web (SEO, links directos). Puede ser una limitación si se quiere presencia en las tiendas.
 
 ### Por qué no React Native / Expo ahora

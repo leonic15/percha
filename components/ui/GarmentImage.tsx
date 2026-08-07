@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-// ── Color swatches — de components.jsx del prototipo LookSi.html ──────────────
+// ── Color swatches — de components.jsx del prototipo original ──────────────
 const SWATCHES: Record<string, [string, string]> = {
   neutral:   ["#e8e3d8", "#d8d0c0"],
   cream:     ["#efe9dc", "#dfd6c2"],

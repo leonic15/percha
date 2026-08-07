@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LOOKSI-030: Error boundary global — captura errores en el root layout.
+ * PERCHA-030: Error boundary global — captura errores en el root layout.
  *
  * Se activa cuando el root layout (app/layout.tsx) o cualquier componente
  * sin error boundary propio lanza un error. Debe incluir sus propias
@@ -33,7 +33,7 @@ export default function GlobalError({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Error · LookSi</title>
+        <title>Error · Percha</title>
         <style>{`
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
           body {
@@ -99,7 +99,7 @@ export default function GlobalError({
       </head>
       <body>
         <div className="card">
-          <p className="wordmark">LookSi</p>
+          <p className="wordmark">Percha</p>
           <h1>Algo salió mal</h1>
           <p>
             Ocurrió un error inesperado. Ya lo registramos automáticamente.

@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button, Input } from "@/components/ui";
 
 /**
- * LOOKSI-001: Registro con email y contraseña — rediseño Handoff 03
+ * PERCHA-001: Registro con email y contraseña — rediseño Handoff 03
  *
  * Layout mobile (390):
  *   pt-70px / px-24px / pb-30px — flex-col full-height
@@ -296,7 +296,7 @@ export default function RegistroPage() {
         style={{ fontSize: 11 }}
       >
         Al crear tu cuenta aceptás los términos
-        <br />y la política de privacidad de LookSi.
+        <br />y la política de privacidad de Percha.
       </p>
 
       {/* ── Footer ── */}

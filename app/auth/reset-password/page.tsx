@@ -7,7 +7,7 @@ import { Input } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * LOOKSI-004: Nueva contraseña (fuera de [locale] — recibe el token de Supabase).
+ * PERCHA-004: Nueva contraseña (fuera de [locale] — recibe el token de Supabase).
  * useSearchParams requiere Suspense boundary en Next.js App Router.
  */
 export default function ResetPasswordPage() {

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic"; // filtros via searchParams → no cache
 const PAGE_SIZE = 20;
 
 /**
- * LOOKSI-008: Listado del guardarropas.
+ * PERCHA-008: Listado del guardarropas.
  * Server Component: lee filtros de searchParams, fetcha primera página y categorías,
  * genera URLs firmadas en batch, y pasa todo al cliente para interacción.
  */

@@ -6,7 +6,7 @@ import { geminiPost, geminiGet, hasGeminiApiKey } from "@/lib/gemini/client";
 import { logger } from "@/lib/utils/logger";
 
 /**
- * POST /api/looks/generar-imagen — LOOKSI-035
+ * POST /api/looks/generar-imagen — PERCHA-035
  *
  * Genera una imagen fotorrealista del usuario usando el outfit del look.
  * Requiere que el perfil tenga: body_photo_url, altura_cm, peso_kg, genero.

@@ -39,7 +39,7 @@ export function Sidebar() {
         href="/"
         className="font-display font-bold text-2xl uppercase tracking-[0.08em] text-ink mb-12"
       >
-        LookSi<span className="text-accent">.</span>
+        Percha<span className="text-accent">.</span>
       </Link>
 
       {/* primary CTA */}

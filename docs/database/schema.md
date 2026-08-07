@@ -1,4 +1,4 @@
-# Schema de base de datos — LookSi
+# Schema de base de datos — Percha
 
 > Documentación del schema PostgreSQL en Supabase. Para el SQL completo ver `supabase/migrations/20260523000000_initial_schema.sql`.
 

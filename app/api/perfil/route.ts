@@ -19,7 +19,7 @@ import { logger } from "@/lib/utils/logger";
  * Body JSON: { full_name?, idioma?, tema?, clima_habilitado?,
  *              estilos_favoritos?, ocasiones_frecuentes? }
  *
- * Implementa LOOKSI-024 (LSI-35) y LOOKSI-025 (LSI-36).
+ * Implementa PERCHA-024 (LSI-35) y PERCHA-025 (LSI-36).
  */
 
 export interface ProfileData {
@@ -30,11 +30,11 @@ export interface ProfileData {
   clima_habilitado: boolean;
   estilos_favoritos: string[];
   ocasiones_frecuentes: string[];
-  // LOOKSI-033
+  // PERCHA-033
   genero: 'hombre' | 'mujer' | 'prefiero_no_decirlo' | null;
   altura_cm: number | null;
   peso_kg: number | null;
-  // LOOKSI-034
+  // PERCHA-034
   body_photo_url: string | null;
   prendasCount: number;
   looksCount: number;
@@ -123,16 +123,16 @@ export async function PATCH(req: NextRequest) {
   if ("clima_habilitado"     in body) update.clima_habilitado     = body.clima_habilitado     as boolean;
   if ("estilos_favoritos"    in body) update.estilos_favoritos    = body.estilos_favoritos    as string[];
   if ("ocasiones_frecuentes" in body) update.ocasiones_frecuentes = body.ocasiones_frecuentes as string[];
-  // Campos de ciudad (LOOKSI-023)
+  // Campos de ciudad (PERCHA-023)
   if ("ciudad_nombre"        in body) update.ciudad_nombre        = body.ciudad_nombre        as string | null;
   if ("ciudad_latitud"       in body) update.ciudad_latitud       = body.ciudad_latitud       as number | null;
   if ("ciudad_longitud"      in body) update.ciudad_longitud      = body.ciudad_longitud      as number | null;
   if ("ciudad_pais"          in body) update.ciudad_pais          = body.ciudad_pais          as string | null;
-  // Campos corporales (LOOKSI-033)
+  // Campos corporales (PERCHA-033)
   if ("genero"               in body) update.genero               = body.genero               as 'hombre' | 'mujer' | 'prefiero_no_decirlo' | null;
   if ("altura_cm"            in body) update.altura_cm            = body.altura_cm            as number | null;
   if ("peso_kg"              in body) update.peso_kg              = body.peso_kg              as number | null;
-  // Foto corporal (LOOKSI-034) — el path en Storage; el upload/delete usa /api/perfil/foto-corporal
+  // Foto corporal (PERCHA-034) — el path en Storage; el upload/delete usa /api/perfil/foto-corporal
   if ("body_photo_url"       in body) update.body_photo_url       = body.body_photo_url       as string | null;
 
   if (Object.keys(update).length === 0) {
@@ -154,7 +154,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 // ── DELETE ────────────────────────────────────────────────────────────────────
-// LOOKSI-007 (LSI-17) — Eliminación de cuenta y datos
+// PERCHA-007 (LSI-17) — Eliminación de cuenta y datos
 //
 // Orden de eliminación para respetar FK constraints y no perder referencias:
 //   1. Storage: archivos en bucket `prendas` (imagen_url de cada prenda del usuario)

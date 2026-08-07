@@ -1,5 +1,5 @@
 /**
- * LOOKSI-030: Configuración de Sentry para el servidor (Node.js).
+ * PERCHA-030: Configuración de Sentry para el servidor (Node.js).
  *
  * Importado desde instrumentation.ts en el runtime 'nodejs'.
  * Captura errores de API Routes, Server Components y Server Actions.

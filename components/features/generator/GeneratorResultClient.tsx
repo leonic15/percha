@@ -4,7 +4,7 @@
  * GeneratorResultClient — Handoff 13 · GENERADOR · RESULTADO
  * Ruta: /generador/resultado
  *
- * LOOKSI-019 — Revisar y ajustar look generado:
+ * PERCHA-019 — Revisar y ajustar look generado:
  * - Swap de prenda individual via POST /api/looks/cambiar-prenda
  * - Botón swap activo en hover/tap por prenda (loading state individual)
  * - Toast "sin alternativas" cuando la IA no encuentra candidatas
@@ -12,7 +12,7 @@
  * - Versiones cacheadas client-side (stepper)
  * - "Otro" → regenera look completo con mismos parámetros
  *
- * LOOKSI-020 — Guardar look con nombre y fecha de uso:
+ * PERCHA-020 — Guardar look con nombre y fecha de uso:
  * - Bottom sheet con campo nombre (pre-filled con sugerencia IA)
  * - Selector de fecha de uso (Sin fecha / Hoy / Otra fecha)
  * - POST /api/looks/guardar → redirect a /guardarropas con toast éxito
@@ -759,7 +759,7 @@ export function GeneratorResultClient() {
   // Advertencias de incompatibilidad por prenda (prendaId → texto)
   const [advertencias, setAdvertencias] = useState<Record<string, string>>({});
 
-  // LOOKSI-020 — sheet de guardado
+  // PERCHA-020 — sheet de guardado
   const [showSaveSheet, setShowSaveSheet] = useState(false);
   const [saving, setSaving]               = useState(false);
   const [savedLookId, setSavedLookId]     = useState<string | null>(null);
@@ -768,7 +768,7 @@ export function GeneratorResultClient() {
   const [addGarmentText, setAddGarmentText] = useState("");
   const [addingGarment, setAddingGarment]   = useState(false);
 
-  // LOOKSI-035 — Vestir mi look
+  // PERCHA-035 — Vestir mi look
   const [profileReady, setProfileReady]         = useState<boolean | null>(null); // null=cargando
   const [vestirPhase, setVestirPhase]           = useState<"idle" | "escenario" | "generating" | "result">("idle");
   const [vestirEscenario, setVestirEscenario]   = useState("");
@@ -778,7 +778,7 @@ export function GeneratorResultClient() {
 
   const paramsRef = useRef<Record<string, unknown> | null>(null);
 
-  // ── Verificar si el perfil tiene datos corporales (LOOKSI-035) ────────────
+  // ── Verificar si el perfil tiene datos corporales (PERCHA-035) ────────────
   useEffect(() => {
     fetch("/api/perfil")
       .then((r) => r.ok ? r.json() : null)
@@ -925,7 +925,7 @@ export function GeneratorResultClient() {
     }
   };
 
-  // ── Vestir mi look — generar imagen (LOOKSI-035) ──────────────────────────
+  // ── Vestir mi look — generar imagen (PERCHA-035) ──────────────────────────
   const handleVestirGenerar = async (escenario: string) => {
     if (!current) return;
 
@@ -1036,7 +1036,7 @@ export function GeneratorResultClient() {
     }
   };
 
-  // ── Guardar look (LOOKSI-020) ──────────────────────────────────────────────
+  // ── Guardar look (PERCHA-020) ──────────────────────────────────────────────
   // Handoff 14: tras guardar — cerrar sheet y quedarse en el resultado (no redirigir)
   const handleSave = async (nombre: string, fechaUso: string | null) => {
     if (!current) return;
@@ -1338,7 +1338,7 @@ export function GeneratorResultClient() {
         </div>
       </div>
 
-      {/* ── Save bottom sheet (LOOKSI-020) ─────────────────────────────────── */}
+      {/* ── Save bottom sheet (PERCHA-020) ─────────────────────────────────── */}
       <SaveLookSheet
         open={showSaveSheet}
         nombreSugerido={current.nombre_sugerido}

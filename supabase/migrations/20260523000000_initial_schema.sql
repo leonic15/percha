@@ -1,6 +1,6 @@
 -- =============================================================================
--- LookSi — Migración inicial
--- LOOKSI-027: Schema completo, trigger, índices y RLS
+-- Percha — Migración inicial
+-- PERCHA-027: Schema completo, trigger, índices y RLS
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -17,16 +17,16 @@ CREATE TABLE profiles (
   id                   UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name            TEXT,
   avatar_url           TEXT,
-  -- Preferencias de app (LOOKSI-025)
+  -- Preferencias de app (PERCHA-025)
   idioma               TEXT        NOT NULL DEFAULT 'es',
   tema                 TEXT        NOT NULL DEFAULT 'sistema',  -- 'claro' | 'oscuro' | 'sistema'
   clima_habilitado     BOOLEAN     NOT NULL DEFAULT true,
-  -- Ciudad para clima (LOOKSI-023)
+  -- Ciudad para clima (PERCHA-023)
   ciudad_nombre        TEXT,
   ciudad_latitud       FLOAT,
   ciudad_longitud      FLOAT,
   ciudad_pais          TEXT,
-  -- Preferencias de estilo (LOOKSI-024) — JSONB para arrays flexibles
+  -- Preferencias de estilo (PERCHA-024) — JSONB para arrays flexibles
   estilos_favoritos    JSONB       NOT NULL DEFAULT '[]',
   ocasiones_frecuentes JSONB       NOT NULL DEFAULT '[]',
   updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -75,7 +75,7 @@ CREATE TABLE prendas (
   category_id      INT         REFERENCES categories(id),
   subcategory_id   INT         REFERENCES subcategories(id),
   color_principal  TEXT,
-  -- Atributos multivalor — JSONB permite arrays flexibles sin tabla de join (LOOKSI-004 ADR)
+  -- Atributos multivalor — JSONB permite arrays flexibles sin tabla de join (PERCHA-004 ADR)
   estaciones       JSONB       NOT NULL DEFAULT '[]',  -- ["primavera","verano","otono","invierno","todo_el_anio"]
   estilos          JSONB       NOT NULL DEFAULT '[]',  -- ["casual","clasico","deportivo","elegante","bohemio","urbano"]
   ocasiones        JSONB       NOT NULL DEFAULT '[]',  -- ["casual","trabajo","formal","deporte","salida"]
@@ -84,7 +84,7 @@ CREATE TABLE prendas (
   etiquetas        JSONB       NOT NULL DEFAULT '[]',
   imagen_url       TEXT,
   is_favorite      BOOLEAN     NOT NULL DEFAULT false,
-  -- IA (LOOKSI-014 / LOOKSI-015)
+  -- IA (PERCHA-014 / PERCHA-015)
   ia_analizada     BOOLEAN     NOT NULL DEFAULT false,
   ia_descripcion   TEXT,
   -- Soft delete — se usa para mantener historial en look_prendas
@@ -147,7 +147,7 @@ COMMENT ON TABLE look_usos IS 'Historial de usos de un look. Inmutable una vez c
 
 -- ---------------------------------------------------------------------------
 -- TABLA: ai_usage
--- Registro de llamadas a la IA para tracking de costos (LOOKSI-031)
+-- Registro de llamadas a la IA para tracking de costos (PERCHA-031)
 -- Solo escritura desde service_role (API Routes)
 -- ---------------------------------------------------------------------------
 CREATE TABLE ai_usage (
@@ -232,13 +232,13 @@ CREATE INDEX idx_look_prendas_look_id   ON look_prendas (look_id);
 CREATE INDEX idx_look_usos_look_id      ON look_usos (look_id);
 CREATE INDEX idx_look_usos_fecha        ON look_usos (look_id, fecha_uso DESC);
 
--- ai_usage: métricas de costo por usuario y período (LOOKSI-031)
+-- ai_usage: métricas de costo por usuario y período (PERCHA-031)
 CREATE INDEX idx_ai_usage_user_date     ON ai_usage (user_id, created_at DESC);
 
 
 -- ---------------------------------------------------------------------------
 -- RLS — Row Level Security
--- Habilitado en todas las tablas. Políticas detalladas en LOOKSI-029.
+-- Habilitado en todas las tablas. Políticas detalladas en PERCHA-029.
 -- ---------------------------------------------------------------------------
 
 ALTER TABLE profiles     ENABLE ROW LEVEL SECURITY;

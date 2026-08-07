@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/lib/utils/logger";
 import { createClient } from "@/lib/supabase/server";
 
-// LOOKSI-004: Enviar email de recuperación de contraseña
+// PERCHA-004: Enviar email de recuperación de contraseña
 export async function POST(request: Request) {
   try {
     const { email } = await request.json();

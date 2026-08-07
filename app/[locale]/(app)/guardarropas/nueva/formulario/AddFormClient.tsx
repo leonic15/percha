@@ -19,10 +19,10 @@ import { cn } from "@/lib/cn";
 
 // ── Constantes ─────────────────────────────────────────────────────────────────
 
-const SS_IMAGE_KEY = "looksi_nueva_imagen";
-const SS_TYPE_KEY  = "looksi_nueva_tipo";
-const SS_IA_KEY    = "looksi_nueva_ia";
-const SS_NOBG_KEY  = "looksi_nueva_imagen_nobg"; // PNG sin fondo generado en el paso 2
+const SS_IMAGE_KEY = "percha_nueva_imagen";
+const SS_TYPE_KEY  = "percha_nueva_tipo";
+const SS_IA_KEY    = "percha_nueva_ia";
+const SS_NOBG_KEY  = "percha_nueva_imagen_nobg"; // PNG sin fondo generado en el paso 2
 
 const SEASONS = [
   { value: "primavera",   label: "Primavera"   },

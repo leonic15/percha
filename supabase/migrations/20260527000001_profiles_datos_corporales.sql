@@ -1,4 +1,4 @@
--- LOOKSI-033 (LSI-53) · Datos corporales en perfil
+-- PERCHA-033 (LSI-53) · Datos corporales en perfil
 -- Agrega género, altura y peso a la tabla profiles.
 
 ALTER TABLE profiles

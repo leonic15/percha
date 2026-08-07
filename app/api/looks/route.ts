@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
  *
  * Usado por LooksHistoryClient para pull-to-refresh sin full page reload.
  *
- * LOOKSI-021
+ * PERCHA-021
  */
 
 export interface LookItemData {

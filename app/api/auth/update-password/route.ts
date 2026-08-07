@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-// LOOKSI-004: Actualizar contraseña (desde página /auth/reset-password)
+// PERCHA-004: Actualizar contraseña (desde página /auth/reset-password)
 // Requiere sesión activa (establecida por el callback al intercambiar el code)
 export async function POST(request: Request) {
   try {

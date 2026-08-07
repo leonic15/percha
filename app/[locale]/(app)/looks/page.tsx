@@ -6,7 +6,7 @@ import type { LookItemData } from "@/app/api/looks/route";
 export const dynamic = "force-dynamic";
 
 /**
- * LOOKSI-021: Historial de looks guardados.
+ * PERCHA-021: Historial de looks guardados.
  *
  * Server Component: fetcha todos los looks del usuario con prendas y usos,
  * firma URLs en batch, y pasa los datos al cliente para filtrado interactivo.

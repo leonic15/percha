@@ -1,4 +1,4 @@
-# LookSi — Estado del proyecto
+# Percha — Estado del proyecto
 
 ## Stack (no negociable)
 - **Framework:** Next.js 16.2.6 App Router + React 19.2.4 + TypeScript 5 + Turbopack
@@ -16,7 +16,7 @@
 - `lib/supabase/server.ts` y `client.ts` — createClient con @supabase/ssr
 - `app/layout.tsx` — carga fuentes Inter + Archivo Narrow via next/font
 - `docs/design/Handoff.html` — spec de diseño de todas las pantallas
-- `/Users/nico/Downloads/LookSi-2/LookSi.html` — prototipo visual interactivo (React inline). **Referencia visual autoritativa.** Ver: `components.jsx`, `screens-1.jsx`, `screens-2.jsx`, `screens-3.jsx`, `tokens.css`
+- `/Users/nico/Downloads/percha-proto/prototipo.html` — prototipo visual interactivo (React inline). **Referencia visual autoritativa.** Ver: `components.jsx`, `screens-1.jsx`, `screens-2.jsx`, `screens-3.jsx`, `tokens.css`
 
 ## Tokens Tailwind v4 importantes
 - `--font-display: var(--font-archivo)` → clase `font-display` = Archivo Narrow
@@ -35,14 +35,14 @@
 ## Estado de implementación (2026-05-23)
 
 ### ✅ EP-01 — Autenticación — COMPLETA (18 pts)
-- LOOKSI-001 Registro email/password · LOOKSI-002 Login email/password
-- LOOKSI-003 Login Google OAuth · LOOKSI-004 Recuperar contraseña
-- LOOKSI-005 Edición perfil (diferido a settings) · LOOKSI-006 Cierre sesión global
-- LOOKSI-007 Eliminación cuenta (diferido a settings)
+- PERCHA-001 Registro email/password · PERCHA-002 Login email/password
+- PERCHA-003 Login Google OAuth · PERCHA-004 Recuperar contraseña
+- PERCHA-005 Edición perfil (diferido a settings) · PERCHA-006 Cierre sesión global
+- PERCHA-007 Eliminación cuenta (diferido a settings)
 - Rutas: `/login`, `/registro`, `/recuperar-password` — route group `app/[locale]/(auth)/`
 
 ### ⚠️ EP-02 — Guardarropas — PARCIAL
-- ✅ LOOKSI-008 Listado grilla — Handoff 05 implementado:
+- ✅ PERCHA-008 Listado grilla — Handoff 05 implementado:
   - Header sticky (wordmark + iconos, H1 36px "Guardarropa" + contador)
   - Category chips scroll horizontal sin scrollbar
   - Sub-bar: filtros activos + toggle grid/list
@@ -50,14 +50,14 @@
   - Filtros como bottom sheet (slide-up 280ms, pending state, commit/discard)
   - Grilla 2/3/4/5 cols (mobile/md/lg/xl)
   → `components/features/wardrobe/WardrobeClient.tsx`
-- ✅ LOOKSI-009 Agregar prenda — flujo 3 pasos con IA:
+- ✅ PERCHA-009 Agregar prenda — flujo 3 pasos con IA:
   - **Paso 1** `/guardarropas/nueva` — captura: dropzone + corner brackets + cámara/galería + sessionStorage
   - **Paso 2** `/guardarropas/nueva/analizar` — scan overlay animado + progress steps + Gemini 2.5 Flash-Lite
   - **Paso 3** `/guardarropas/nueva/formulario` — form con AI prefill + badges desaparecen al editar + color picker 12 colores
   - API `/api/prendas/analizar` — Gemini REST, devuelve nombre/categoría/color/estaciones/ocasiones/estilos/descripción
   - `/api/garments` POST actualizado — acepta `ia_analizada` + `ia_descripcion`
-- ✅ LOOKSI-013 Toggle favorito → `app/api/garments/[id]/favorite/route.ts`
-- ✅ LOOKSI-010 Ver detalle prenda — Handoff 11 implementado:
+- ✅ PERCHA-013 Toggle favorito → `app/api/garments/[id]/favorite/route.ts`
+- ✅ PERCHA-010 Ver detalle prenda — Handoff 11 implementado:
   - Hero full-width aspect 1/1.15 + floating top bar (back/heart/edit, glass 38px, blur 8px)
   - Dots de paginación · eyebrow categoría+color · H1 32px
   - AI description box (accent-tint + AIBadge + italic entre comillas)
@@ -69,12 +69,12 @@
   - Desktop: sidebar + breadcrumb + two-column (foto sticky left 50%)
   → `app/[locale]/(app)/guardarropas/[id]/page.tsx` + `components/features/wardrobe/GarmentDetailClient.tsx`
   → API: `app/api/garments/[id]/route.ts` (GET prenda+categoría+signedURL · DELETE soft)
-- ❌ LOOKSI-011 Editar prenda
-- ❌ LOOKSI-012 Eliminar prenda (interfaz — la lógica está en LOOKSI-010)
+- ❌ PERCHA-011 Editar prenda
+- ❌ PERCHA-012 Eliminar prenda (interfaz — la lógica está en PERCHA-010)
 
 API: `app/api/garments/route.ts` (GET paginado + POST crear con ia fields)
 Storage: bucket `prendas`, path `{user_id}/{prenda_id}.{ext}`, signed URLs 1h
-SessionStorage keys: `looksi_nueva_imagen` (base64), `looksi_nueva_tipo` (MIME), `looksi_nueva_ia` (JSON análisis), `looksi_generar_result` (JSON look generado), `looksi_generar_params` (JSON params para regenerar)
+SessionStorage keys: `percha_nueva_imagen` (base64), `percha_nueva_tipo` (MIME), `percha_nueva_ia` (JSON análisis), `percha_generar_result` (JSON look generado), `percha_generar_params` (JSON params para regenerar)
 
 ### ✅ Handoff 01 — Bienvenida — IMPLEMENTADA
 - Ruta `/` → `app/[locale]/page.tsx`
@@ -86,23 +86,23 @@ SessionStorage keys: `looksi_nueva_imagen` (base64), `looksi_nueva_tipo` (MIME),
 ### ❌ EP-03 — Análisis IA — NO IMPLEMENTADA
 
 ### ⚠️ EP-04 — Generación de looks — PARCIAL
-- ✅ LOOKSI-017 Generar look desde cero — Handoffs 12 + 13 implementados:
+- ✅ PERCHA-017 Generar look desde cero — Handoffs 12 + 13 implementados:
   - **Config** `/generador` — Handoff 12: wordmark + "PASO 1/2" eyebrow, H1 "Armemos tu look", weather widget (geo → `/api/clima` → Open-Meteo), chips ocasión single-select, textarea contexto, tiles "Desde cero"/"Con base", sticky CTA accent
   - **Con base**: bottom sheet picker de prendas con búsqueda (slide-up 280ms)
-  - **Resultado** `/generador/resultado` — Handoff 13: AIBadge + meta + H1 nombre + descripción italic, version stepper, grid 2-col (md:4-col) prendas con swap decorativo, prendas faltantes, acciones "Otro" (regenera) + "Guardar look" (disabled pending LOOKSI-020)
+  - **Resultado** `/generador/resultado` — Handoff 13: AIBadge + meta + H1 nombre + descripción italic, version stepper, grid 2-col (md:4-col) prendas con swap decorativo, prendas faltantes, acciones "Otro" (regenera) + "Guardar look" (disabled pending PERCHA-020)
   - **API clima**: `GET /api/clima?lat=&lon=` — proxy a Open-Meteo, cache 30min
   - **API generación**: `POST /api/looks/generar` — Gemini 2.5 Flash-Lite, metadatos sin imágenes, signed URLs resultado, logging ai_usage, timeout 20s
-  - SessionStorage: `looksi_generar_result` + `looksi_generar_params`
+  - SessionStorage: `percha_generar_result` + `percha_generar_params`
   → `app/[locale]/(app)/generador/page.tsx`
   → `app/[locale]/(app)/generador/resultado/page.tsx`
   → `components/features/generator/GeneratorConfigClient.tsx`
   → `components/features/generator/GeneratorResultClient.tsx`
   → `app/api/clima/route.ts`
   → `app/api/looks/generar/route.ts`
-- ❌ LOOKSI-018 Generar desde prenda base (flujo parcial en LOOKSI-017 — tile "Con base" funcional)
-- ❌ LOOKSI-019 Revisar y ajustar look (swap por pieza, UI de botón swap implementado pero deshabilitado)
-- ❌ LOOKSI-020 Guardar look (botón visible pero disabled)
-- ✅ LOOKSI-035 Vestir mi look (pantallas 22-25):
+- ❌ PERCHA-018 Generar desde prenda base (flujo parcial en PERCHA-017 — tile "Con base" funcional)
+- ❌ PERCHA-019 Revisar y ajustar look (swap por pieza, UI de botón swap implementado pero deshabilitado)
+- ❌ PERCHA-020 Guardar look (botón visible pero disabled)
+- ✅ PERCHA-035 Vestir mi look (pantallas 22-25):
   - Pantalla 22: botón "Vestir mi look" en resultado del generador (activo/disabled según perfil)
   - Pantalla 23: EscenarioSheet — ocasión pre-llenada + textarea escenario + "Generar imagen"
   - Pantalla 24: VestirGeneratingOverlay — spinner + dots animados
@@ -111,7 +111,7 @@ SessionStorage keys: `looksi_nueva_imagen` (base64), `looksi_nueva_tipo` (MIME),
   → `components/features/generator/GeneratorResultClient.tsx`
   → `app/api/looks/generar-imagen/route.ts`
   → `app/api/looks/guardar-imagen-vestir/route.ts`
-- ✅ LOOKSI-036 Validación imagen con IA:
+- ✅ PERCHA-036 Validación imagen con IA:
   - `POST /api/validar-imagen` — Gemini 2.5 Flash-Lite, tipo "prenda" | "foto_corporal"
   - Integrado en Paso 1 de agregar prenda; bottom sheet error bloqueante + advertencia no-bloqueante
   - Fail-open en timeout >5s o error de red
@@ -135,7 +135,7 @@ SessionStorage keys: `looksi_nueva_imagen` (base64), `looksi_nueva_tipo` (MIME),
 - Build: `npx next build`
 
 ## Próximos pasos
-1. Completar EP-02: LOOKSI-010 (detalle prenda — Handoff 11), LOOKSI-011 (editar), LOOKSI-012 (eliminar)
+1. Completar EP-02: PERCHA-010 (detalle prenda — Handoff 11), PERCHA-011 (editar), PERCHA-012 (eliminar)
 2. Revisar pantallas auth (Handoff 02-04) vs prototipo
 3. Ajuste desktop Handoff 01
 4. Push a GitHub (repo solo local, sin remote)

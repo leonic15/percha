@@ -69,7 +69,7 @@ function Wordmark() {
       className="font-display font-bold uppercase text-ink leading-none"
       style={{ fontSize: 16, letterSpacing: "0.08em" }}
     >
-      LookSi
+      Percha
     </span>
   );
 }

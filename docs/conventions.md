@@ -1,4 +1,4 @@
-# Convenciones de código — LookSi
+# Convenciones de código — Percha
 
 > Este documento define las reglas que aplican a todo el código del proyecto. Seguirlas garantiza consistencia y facilita el mantenimiento.
 
@@ -330,7 +330,7 @@ Uso en componentes:
 
 ### Escala tipográfica personalizada
 
-La escala de LookSi difiere de la de Tailwind estándar:
+La escala de Percha difiere de la de Tailwind estándar:
 
 | Clase | Tamaño |
 |---|---|

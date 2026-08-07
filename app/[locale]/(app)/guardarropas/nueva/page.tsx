@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * LOOKSI-009 — Paso 1: Captura de imagen.
- * LOOKSI-036 — Validación de imagen con IA antes de continuar.
+ * PERCHA-009 — Paso 1: Captura de imagen.
+ * PERCHA-036 — Validación de imagen con IA antes de continuar.
  * Spec 08 · /guardarropas/nueva
  *
  * El usuario elige una foto (cámara o galería).
@@ -23,9 +23,9 @@ import type { ValidarImagenResponse } from "@/app/api/validar-imagen/route";
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
-const SS_IMAGE_KEY = "looksi_nueva_imagen";
-const SS_TYPE_KEY  = "looksi_nueva_tipo";
-const SS_IA_KEY    = "looksi_nueva_ia";
+const SS_IMAGE_KEY = "percha_nueva_imagen";
+const SS_TYPE_KEY  = "percha_nueva_tipo";
+const SS_IA_KEY    = "percha_nueva_ia";
 
 const COMPRESSION_OPTIONS = {
   maxSizeMB:        0.8,
@@ -59,7 +59,7 @@ function CornerBracket({ pos }: { pos: "tl" | "tr" | "bl" | "br" }) {
 }
 
 // ── ValidationSheet ───────────────────────────────────────────────────────────
-// Pantalla bloqueante de error de validación (escenarios 2, 6, 7 de LOOKSI-036).
+// Pantalla bloqueante de error de validación (escenarios 2, 6, 7 de PERCHA-036).
 // Aparece como bottom sheet; fuerza al usuario a reintentar o cambiar imagen.
 
 type SheetMode = "error" | "warning";
@@ -280,7 +280,7 @@ export default function NuevaPrendaPage() {
       return;
     }
 
-    // ── LOOKSI-036: Validar con IA ──────────────────────────────────────────
+    // ── PERCHA-036: Validar con IA ──────────────────────────────────────────
     setLoadingState({ phase: "validating" });
     try {
       const res = await fetch("/api/validar-imagen", {
@@ -509,7 +509,7 @@ export default function NuevaPrendaPage() {
         />
       </div>
 
-      {/* ── Validation sheet (LOOKSI-036) ─────────────────────────────────── */}
+      {/* ── Validation sheet (PERCHA-036) ─────────────────────────────────── */}
       {validation && (
         <ValidationSheet
           mode={validation.mode}

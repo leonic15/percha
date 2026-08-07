@@ -1,12 +1,12 @@
 -- =============================================================================
--- LookSi — Seed de datos de referencia
--- LOOKSI-027: Categorías y subcategorías de prendas (LOOKSI-009)
+-- Percha — Seed de datos de referencia
+-- PERCHA-027: Categorías y subcategorías de prendas (PERCHA-009)
 -- =============================================================================
 -- Este seed es idempotente: ON CONFLICT DO NOTHING evita duplicados al re-ejecutar.
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
--- Categorías (8 categorías según LOOKSI-009)
+-- Categorías (8 categorías según PERCHA-009)
 -- ---------------------------------------------------------------------------
 INSERT INTO categories (nombre, slug) VALUES
   ('Tops',                    'tops'),

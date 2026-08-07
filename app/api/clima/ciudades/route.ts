@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
  * La consulta se realiza siempre desde el servidor para no exponer la URL
  * directamente desde el cliente.
  *
- * LOOKSI-023 (LSI-34) — EP-05 Integración de clima
+ * PERCHA-023 (LSI-34) — EP-05 Integración de clima
  */
 
 export interface CiudadResult {

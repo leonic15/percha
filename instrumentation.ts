@@ -1,5 +1,5 @@
 /**
- * LOOKSI-030: Instrumentación del servidor — Next.js 16 App Router.
+ * PERCHA-030: Instrumentación del servidor — Next.js 16 App Router.
  *
  * Next.js llama a `register()` una vez al arrancar el servidor.
  * Importamos las configs de Sentry condicionalmente por runtime para

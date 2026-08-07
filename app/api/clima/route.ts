@@ -17,7 +17,7 @@ import { createClient } from "@/lib/supabase/server";
  *     franjas: { mañana, tarde, noche }
  *   }
  *
- * LOOKSI-022 (LSI-33) — EP-05 Integración de clima
+ * PERCHA-022 (LSI-33) — EP-05 Integración de clima
  */
 
 // WMO Weather Interpretation Codes → texto en español

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-// LOOKSI-002 / LOOKSI-006: Cierre de sesión
+// PERCHA-002 / PERCHA-006: Cierre de sesión
 // scope: 'local' (solo este dispositivo) | 'global' (todos los dispositivos)
 export async function POST(request: Request) {
   try {

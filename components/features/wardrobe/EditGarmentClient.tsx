@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * EditGarmentClient — LOOKSI-011 (LSI-21) · EDITAR PRENDA
+ * EditGarmentClient — PERCHA-011 (LSI-21) · EDITAR PRENDA
  * Ruta: /guardarropas/[id]/editar
  *
  * Criterios de aceptación:

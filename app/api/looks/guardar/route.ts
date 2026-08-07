@@ -19,7 +19,7 @@ import { logger } from "@/lib/utils/logger";
  * Respuesta 201:
  *   { id: string }  — ID del look creado
  *
- * LOOKSI-020
+ * PERCHA-020
  */
 
 interface GuardarLookBody {

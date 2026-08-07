@@ -78,7 +78,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // ── Cabeceras de seguridad HTTP (LOOKSI-029) ─────────────────────────────
+  // ── Cabeceras de seguridad HTTP (PERCHA-029) ─────────────────────────────
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
 

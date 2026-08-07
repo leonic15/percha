@@ -1,6 +1,6 @@
-# Estructura del proyecto LookSi
+# Estructura del proyecto Percha
 
-> Generado como parte de LOOKSI-026 (Setup inicial). Actualizar ante cambios estructurales.
+> Generado como parte de PERCHA-026 (Setup inicial). Actualizar ante cambios estructurales.
 
 ## Árbol de carpetas
 
@@ -63,14 +63,14 @@
 │   └── icons/                        # Íconos PWA: 192/512, maskable, svg, shortcuts
 │
 ├── supabase/
-│   ├── migrations/                   # Migraciones SQL (LOOKSI-027)
+│   ├── migrations/                   # Migraciones SQL (PERCHA-027)
 │   └── seed.sql                      # Datos iniciales (categorías, subcategorías)
 │
 ├── docs/
 │   ├── STRUCTURE.md                  # Este archivo
 │   ├── design/
 │   │   └── Handoff.html              # Developer handoff de Claude Design (16 pantallas)
-│   └── stories/                      # Historias de usuario LOOKSI-001 a LOOKSI-032
+│   └── stories/                      # Historias de usuario PERCHA-001 a PERCHA-032
 │
 ├── middleware.ts                     # Auth (Supabase session) + i18n (next-intl)
 ├── next.config.ts                    # withNextIntl + withPWA + cabeceras HTTP

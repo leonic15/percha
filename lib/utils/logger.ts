@@ -1,5 +1,5 @@
 /**
- * LOOKSI-030: Logger utilitario para API Routes y Server Components.
+ * PERCHA-030: Logger utilitario para API Routes y Server Components.
  *
  * - Producción: formato JSON estructurado (compatible con Vercel Log Drains)
  * - Desarrollo: formato legible en consola con colores
@@ -112,7 +112,7 @@ export const logger = {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Hashea un userId con SHA-256 para logs y analytics (LOOKSI-030, LOOKSI-031).
+ * Hashea un userId con SHA-256 para logs y analytics (PERCHA-030, PERCHA-031).
  * Solo llamar desde server-side (API Routes, Server Components).
  * Retorna los primeros 16 chars del hash (suficiente para correlación, más corto en logs).
  */

@@ -3,7 +3,7 @@
 /**
  * LookDetailClient — Handoff 16 (detalle look) + 17 (dialog eliminar)
  * Ruta: /looks/[id]
- * LOOKSI-021
+ * PERCHA-021
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";

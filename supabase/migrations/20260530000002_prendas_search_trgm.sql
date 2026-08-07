@@ -1,5 +1,5 @@
 -- =============================================================================
--- LookSi — Índices trigram para búsqueda de prendas
+-- Percha — Índices trigram para búsqueda de prendas
 -- Auditoría de performance H-16
 -- =============================================================================
 --

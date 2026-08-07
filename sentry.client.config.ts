@@ -1,5 +1,5 @@
 /**
- * LOOKSI-030: Configuración de Sentry para el cliente (browser).
+ * PERCHA-030: Configuración de Sentry para el cliente (browser).
  *
  * Este archivo es importado por instrumentation-client.ts antes de la
  * hidratación de React. Configura captura de errores, PII scrubbing

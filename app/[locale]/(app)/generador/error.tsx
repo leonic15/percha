@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LOOKSI-030: Error boundary — sección Generador de looks.
+ * PERCHA-030: Error boundary — sección Generador de looks.
  *
  * Captura errores en la config del generador (/generador) y el resultado
  * (/generador/resultado), incluyendo errores de la API de Gemini y timeouts.

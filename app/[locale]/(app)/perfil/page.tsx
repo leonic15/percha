@@ -5,8 +5,8 @@ import { ProfileClient } from "@/components/features/settings/ProfileClient";
 export const dynamic = "force-dynamic";
 
 /**
- * LOOKSI-024 / LOOKSI-025 (LSI-35 / LSI-36)
- * LOOKSI-023 (LSI-34) — configuración de ciudad del clima
+ * PERCHA-024 / PERCHA-025 (LSI-35 / LSI-36)
+ * PERCHA-023 (LSI-34) — configuración de ciudad del clima
  * Handoff 16 · Configuración · perfil
  * Ruta: /perfil
  *

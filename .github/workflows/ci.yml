@@ -1,6 +1,6 @@
 # =============================================================================
-# LookSi — CI Pipeline
-# LOOKSI-028: Typecheck, lint y build en cada Pull Request hacia main
+# Percha — CI Pipeline
+# PERCHA-028: Typecheck, lint y build en cada Pull Request hacia main
 # =============================================================================
 #
 # Secrets requeridos en GitHub (Settings → Secrets → Actions):

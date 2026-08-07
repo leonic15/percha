@@ -6,7 +6,7 @@ import type { CookieOptions } from "@supabase/ssr";
 import { logger } from "@/lib/utils/logger";
 
 /**
- * LOOKSI-003: Inicio de OAuth con Google — server-side.
+ * PERCHA-003: Inicio de OAuth con Google — server-side.
  *
  * Por qué server-side en vez de client-side:
  *   - En dev por LAN, los chunks JS de Turbopack a veces no cargan en

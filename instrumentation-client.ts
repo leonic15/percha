@@ -1,5 +1,5 @@
 /**
- * LOOKSI-030: Instrumentación del cliente — Next.js 16 App Router.
+ * PERCHA-030: Instrumentación del cliente — Next.js 16 App Router.
  *
  * Este archivo se ejecuta en el browser ANTES de la hidratación de React
  * (después de cargar el HTML, antes de las interacciones del usuario).

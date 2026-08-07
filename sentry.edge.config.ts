@@ -1,5 +1,5 @@
 /**
- * LOOKSI-030: Configuración de Sentry para el Edge runtime.
+ * PERCHA-030: Configuración de Sentry para el Edge runtime.
  *
  * Importado desde instrumentation.ts en el runtime 'edge'.
  * Captura errores del middleware (proxy.ts) y Edge API Routes.

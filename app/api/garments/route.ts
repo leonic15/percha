@@ -6,7 +6,7 @@ import { GARMENT_IMAGE_MAX_BYTES, detectImageMimeType } from "@/lib/upload/valid
 import { logger } from "@/lib/utils/logger";
 
 /**
- * LOOKSI-008 / LOOKSI-009: API Routes de prendas.
+ * PERCHA-008 / PERCHA-009: API Routes de prendas.
  *
  * GET  /api/garments — Listado paginado con filtros (usado para infinite scroll)
  * POST /api/garments — Crear prenda (sube imagen a Storage, luego guarda en DB)

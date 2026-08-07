@@ -1,5 +1,5 @@
 /**
- * Tipos TypeScript del schema de Supabase — LOOKSI-027
+ * Tipos TypeScript del schema de Supabase — PERCHA-027
  *
  * Generados manualmente en base a la migración inicial.
  * Una vez el proyecto Supabase esté creado, reemplazar con:
@@ -40,11 +40,11 @@ export interface Database {
           ciudad_pais: string | null;
           estilos_favoritos: string[];
           ocasiones_frecuentes: string[];
-          // LOOKSI-033
+          // PERCHA-033
           genero: 'hombre' | 'mujer' | 'prefiero_no_decirlo' | null;
           altura_cm: number | null;
           peso_kg: number | null;
-          // LOOKSI-034
+          // PERCHA-034
           body_photo_url: string | null;
           updated_at: string;
         };

@@ -4,22 +4,22 @@
  * ProfileClient — Handoff 16 · CONFIGURACIÓN · PERFIL
  * Ruta: /perfil
  *
- * LOOKSI-005 (LSI-15) — Edición de perfil básico:
+ * PERCHA-005 (LSI-15) — Edición de perfil básico:
  *   - Avatar clickable → file picker → compresión → POST /api/perfil/avatar
  *   - Nombre editable inline con Save/Cancel → PATCH /api/perfil
  *   - Validación client-side: tipo (JPG/PNG/WebP) y tamaño (≤5 MB)
  *
- * LOOKSI-024 (LSI-35) — Preferencias de estilo personal:
+ * PERCHA-024 (LSI-35) — Preferencias de estilo personal:
  *   - Chips multi-select de estilos favoritos (6 opciones)
  *   - Chips multi-select de ocasiones frecuentes (5 opciones)
  *   - Auto-save optimistic PATCH /api/perfil
  *
- * LOOKSI-025 (LSI-36) — Preferencias generales:
+ * PERCHA-025 (LSI-36) — Preferencias generales:
  *   - Tema: mini action sheet (Claro / Oscuro / Seguir sistema)
  *   - Idioma: Español / English
  *   - Clima: toggle habilitado/deshabilitado
  *
- * LOOKSI-023 (LSI-34) — Configurar ciudad manualmente:
+ * PERCHA-023 (LSI-34) — Configurar ciudad manualmente:
  *   - Row de ciudad con bottom sheet de búsqueda
  *   - Búsqueda con debounce 300ms → /api/clima/ciudades?q=
  */
@@ -97,7 +97,7 @@ function applyTheme(tema: string) {
     : tema === "claro" ? "light"
     : prefersDark ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", effective);
-  try { localStorage.setItem("looksi-tema", tema); } catch {}
+  try { localStorage.setItem("percha-tema", tema); } catch {}
 }
 
 /** Iniciales de un nombre (máx 2 letras) */
@@ -306,7 +306,7 @@ function TemaSheet({
   );
 }
 
-/** Sheet de búsqueda y selección de ciudad (LOOKSI-023) */
+/** Sheet de búsqueda y selección de ciudad (PERCHA-023) */
 function CiudadSheet({
   visible,
   currentNombre,
@@ -498,7 +498,7 @@ function CiudadSheet({
   );
 }
 
-/** Sheet de confirmación para cerrar sesión en todos los dispositivos — LOOKSI-006 */
+/** Sheet de confirmación para cerrar sesión en todos los dispositivos — PERCHA-006 */
 function GlobalSignOutSheet({
   visible,
   onConfirm,
@@ -781,7 +781,7 @@ export interface ProfileClientProps {
   ciudadPais:          string | null;
   estilosFavoritos:    string[];
   ocasionesFrecuentes: string[];
-  // LOOKSI-033
+  // PERCHA-033
   genero:              string | null;
   alturaCm:            number | null;
   pesoKg:              number | null;
@@ -1071,14 +1071,14 @@ export function ProfileClient({
     setEditingName(false);
   }, [displayName]);
 
-  /** Cierra la sesión en este dispositivo únicamente (scope: local) — LOOKSI-006 */
+  /** Cierra la sesión en este dispositivo únicamente (scope: local) — PERCHA-006 */
   const handleSignOut = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut({ scope: "local" });
     router.push("/login");
   }, [router]);
 
-  /** Cierra la sesión en TODOS los dispositivos (scope: global) — LOOKSI-006 */
+  /** Cierra la sesión en TODOS los dispositivos (scope: global) — PERCHA-006 */
   const handleSignOutGlobal = useCallback(async () => {
     setSigningOutGlobal(true);
     try {
@@ -1121,7 +1121,7 @@ export function ProfileClient({
             className="font-display font-bold uppercase text-ink leading-none"
             style={{ fontSize: 16, letterSpacing: "0.08em" }}
           >
-            LookSi
+            Percha
           </span>
         </header>
 
@@ -1406,7 +1406,7 @@ export function ProfileClient({
         {/* ── Footer ──────────────────────────────────────────────────────── */}
         <div className="flex-1" />
         <div className="py-8 text-center">
-          <span className="eyebrow text-[10px] text-ink-3">LookSi · v0.1.0 · BETA</span>
+          <span className="eyebrow text-[10px] text-ink-3">Percha · v0.1.0 · BETA</span>
         </div>
         <div className="h-2" />
       </div>

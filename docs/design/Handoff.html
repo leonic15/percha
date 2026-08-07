@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LookSi — handoff doc</title>
+  <title>Percha — handoff doc</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -452,7 +452,7 @@
 <div class="topbar">
   <div style="display:flex; align-items:center; gap:12px;">
     <span style="font-family: var(--font-display); font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:0.08em;">
-      LookSi<span style="color: var(--accent);">.</span>
+      Percha<span style="color: var(--accent);">.</span>
     </span>
     <span class="pill">Developer Handoff · v1</span>
   </div>
@@ -461,7 +461,7 @@
     <button id="theme-toggle" class="pill" style="cursor: pointer;">
       <span id="theme-label">Claro</span>
     </button>
-    <a class="pill" href="LookSi.html" style="color: var(--ink);">← Prototipo</a>
+    <a class="pill" href="prototipo.html" style="color: var(--ink);">← Prototipo</a>
   </div>
 </div>
 
@@ -1057,7 +1057,7 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     <div class="example">
       <div style="width: 240px; padding: 28px 20px; background: var(--bg); border: 1px solid var(--line-2); border-radius: 4px;">
         <div style="font-family: var(--font-display); font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 28px;">
-          LookSi<span style="color: var(--accent);">.</span>
+          Percha<span style="color: var(--accent);">.</span>
         </div>
         <button class="btn btn-accent btn-md" style="width: 100%; margin-bottom: 24px;">+ Agregar prenda</button>
         <div style="display: flex; flex-direction: column; gap: 2px;">
@@ -1867,7 +1867,7 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
             <li>Perfil head: avatar 68px iniciales accent + H2 24px nombre + email 12px ink-3 + stats mono "47 / prendas" + "23 / looks".</li>
             <li>Secciones con eyebrow + lista:
               <strong>Ubicación</strong> · <strong>Estilo</strong> (chips multi) · <strong>App</strong> (Tema con value+chevron, Clima toggle on, Notificaciones toggle off) · <strong>Cuenta</strong> (Cerrar sesión, Eliminar cuenta danger).</li>
-            <li>Footer eyebrow 10px centrado "LookSi · v0.4.2 · BETA".</li>
+            <li>Footer eyebrow 10px centrado "Percha · v0.4.2 · BETA".</li>
             <li>BottomNav activo <span class="mono">perfil</span>.</li>
           </ul>
         </div>
@@ -1895,10 +1895,10 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     </article>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- 19 PERSONAL DATA · LOOKSI-033/034 -->
+    <!-- 19 PERSONAL DATA · PERCHA-033/034 -->
     <article class="spec" id="screen-personal-data">
       <div class="spec-head">
-        <div><div class="num">19</div><h3>Datos personales <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-033 · 034</span></h3></div>
+        <div><div class="num">19</div><h3>Datos personales <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">PERCHA-033 · 034</span></h3></div>
         <span class="spec-route">/perfil/datos</span>
       </div>
       <div class="spec-grid">
@@ -1964,7 +1964,7 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
       <div class="spec-notes">
         <div class="lbl">Detalle</div>
         <ul>
-          <li>Al completar los 3 datos (género + altura + peso + foto), se desbloquea el botón <strong>"Vestir mi look"</strong> en todo el sistema (LOOKSI-034). Persistir flag <span class="mono">user.profileComplete</span> en el backend.</li>
+          <li>Al completar los 3 datos (género + altura + peso + foto), se desbloquea el botón <strong>"Vestir mi look"</strong> en todo el sistema (PERCHA-034). Persistir flag <span class="mono">user.profileComplete</span> en el backend.</li>
           <li>El badge <span class="mono">&lt;AIBadge /&gt;</span> en "Foto de referencia" comunica que la foto se usa para alimentar IA — no que la IA la generó.</li>
           <li>Tap "Cambiar" abre la sheet 20 con el estado actual preservado.</li>
           <li>Tap "Eliminar" pide confirmación inline (no abrir modal): la fila se reemplaza por "¿Eliminar foto? Sí · Cancelar" durante 4s.</li>
@@ -1975,10 +1975,10 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     </article>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- 20 ADD BODY PHOTO SHEET · LOOKSI-033 -->
+    <!-- 20 ADD BODY PHOTO SHEET · PERCHA-033 -->
     <article class="spec" id="screen-personal-data-sheet">
       <div class="spec-head">
-        <div><div class="num">20</div><h3>Sheet · agregar foto de referencia <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-033</span></h3></div>
+        <div><div class="num">20</div><h3>Sheet · agregar foto de referencia <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">PERCHA-033</span></h3></div>
         <span class="spec-route">/perfil/datos <span style="color:var(--ink-3);">· state</span></span>
       </div>
       <div class="spec-grid">
@@ -2023,10 +2023,10 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     </article>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- 21 VESTIR BUTTON · ESTADOS (LOOKSI-034) -->
+    <!-- 21 VESTIR BUTTON · ESTADOS (PERCHA-034) -->
     <article class="spec" id="screen-vestir-button">
       <div class="spec-head">
-        <div><div class="num">21</div><h3>Botón "Vestir mi look" · estados reutilizables <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-034</span></h3></div>
+        <div><div class="num">21</div><h3>Botón "Vestir mi look" · estados reutilizables <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">PERCHA-034</span></h3></div>
         <span class="spec-route" style="background: var(--accent-tint); color: var(--accent);">&lt;VestirButton /&gt;</span>
       </div>
       <div class="spec-grid">
@@ -2081,10 +2081,10 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     </article>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- 22 GEN RESULT WITH VESTIR · LOOKSI-035 -->
+    <!-- 22 GEN RESULT WITH VESTIR · PERCHA-035 -->
     <article class="spec" id="screen-vestir-result">
       <div class="spec-head">
-        <div><div class="num">22</div><h3>Resultado del generador · con "Vestir mi look" <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <div><div class="num">22</div><h3>Resultado del generador · con "Vestir mi look" <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">PERCHA-035</span></h3></div>
         <span class="spec-route">/generador/resultado</span>
       </div>
       <div class="spec-grid">
@@ -2129,10 +2129,10 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     </article>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- 23 VESTIR CONFIG SHEET · LOOKSI-035 -->
+    <!-- 23 VESTIR CONFIG SHEET · PERCHA-035 -->
     <article class="spec" id="screen-vestir-config">
       <div class="spec-head">
-        <div><div class="num">23</div><h3>Sheet · configurar escenario <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <div><div class="num">23</div><h3>Sheet · configurar escenario <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">PERCHA-035</span></h3></div>
         <span class="spec-route">/generador/resultado <span style="color:var(--ink-3);">· vestir state</span></span>
       </div>
       <div class="spec-grid">
@@ -2174,10 +2174,10 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     </article>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- 24 VESTIR GENERATING · LOOKSI-035 -->
+    <!-- 24 VESTIR GENERATING · PERCHA-035 -->
     <article class="spec" id="screen-vestir-generating">
       <div class="spec-head">
-        <div><div class="num">24</div><h3>Generando · pantalla intermedia <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <div><div class="num">24</div><h3>Generando · pantalla intermedia <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">PERCHA-035</span></h3></div>
         <span class="spec-route">/generador/vestir/loading</span>
       </div>
       <div class="spec-grid">
@@ -2222,10 +2222,10 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     </article>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- 25 VESTIR IMAGE · LOOKSI-035 -->
+    <!-- 25 VESTIR IMAGE · PERCHA-035 -->
     <article class="spec" id="screen-vestir-image">
       <div class="spec-head">
-        <div><div class="num">25</div><h3>Resultado · imagen generada <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <div><div class="num">25</div><h3>Resultado · imagen generada <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">PERCHA-035</span></h3></div>
         <span class="spec-route">/generador/vestir/[imageId]</span>
       </div>
       <div class="spec-grid">
@@ -2281,10 +2281,10 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     </article>
 
     <!-- ═══════════════════════════════════════════════════ -->
-    <!-- 26 SAVED LOOK WITH VESTIR · LOOKSI-035 -->
+    <!-- 26 SAVED LOOK WITH VESTIR · PERCHA-035 -->
     <article class="spec" id="screen-vestir-saved">
       <div class="spec-head">
-        <div><div class="num">26</div><h3>Detalle del look guardado · con imagen "Vestir" <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">LOOKSI-035</span></h3></div>
+        <div><div class="num">26</div><h3>Detalle del look guardado · con imagen "Vestir" <span class="eyebrow" style="font-size: 10px; margin-left: 6px;">PERCHA-035</span></h3></div>
         <span class="spec-route">/looks/[id]</span>
       </div>
       <div class="spec-grid">
@@ -2407,8 +2407,8 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
         <h3 class="h3">Campos clave</h3>
         <table>
           <tr><th>Field</th><th>Value</th></tr>
-          <tr><td class="mono">name</td><td>LookSi — Tu guardarropa, digital</td></tr>
-          <tr><td class="mono">short_name</td><td>LookSi</td></tr>
+          <tr><td class="mono">name</td><td>Percha — Tu guardarropa, digital</td></tr>
+          <tr><td class="mono">short_name</td><td>Percha</td></tr>
           <tr><td class="mono">lang</td><td class="mono">es-AR</td></tr>
           <tr><td class="mono">display</td><td class="mono">standalone</td></tr>
           <tr><td class="mono">orientation</td><td class="mono">portrait</td></tr>
@@ -2424,11 +2424,11 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
     <div style="margin-top: 32px;">
       <span class="filebar">📄 app/layout.tsx</span>
       <div class="code"><span class="k">export const</span> metadata = {
-  <span class="k">title</span>: <span class="s">"LookSi"</span>,
+  <span class="k">title</span>: <span class="s">"Percha"</span>,
   <span class="k">description</span>: <span class="s">"Tu guardarropa, digital y con IA."</span>,
   <span class="k">manifest</span>: <span class="s">"/manifest.json"</span>,
   <span class="k">themeColor</span>: <span class="s">"#6b7563"</span>,
-  <span class="k">appleWebApp</span>: { <span class="k">capable</span>: <span class="k">true</span>, <span class="k">title</span>: <span class="s">"LookSi"</span> },
+  <span class="k">appleWebApp</span>: { <span class="k">capable</span>: <span class="k">true</span>, <span class="k">title</span>: <span class="s">"Percha"</span> },
 };</div>
     </div>
   </section>
@@ -2445,7 +2445,7 @@ toast.<span class="k">error</span>(<span class="s">"No se pudo conectar"</span>)
       <li>Cargar las fuentes con <span class="mono">next/font</span> en <span class="mono">layout.tsx</span> (Inter + Archivo Narrow + JetBrains Mono).</li>
       <li>Copiar <span class="mono">handoff/public/</span> a <span class="mono">public/</span> (manifest + icons).</li>
       <li>Envolver <span class="mono">{children}</span> con <span class="mono">&lt;ToastProvider&gt;</span> y <span class="mono">&lt;ThemeProvider attribute="data-theme"&gt;</span>.</li>
-      <li>Construir las pantallas sobre estos componentes — los frames del prototipo (LookSi.html) son la referencia visual.</li>
+      <li>Construir las pantallas sobre estos componentes — los frames del prototipo original son la referencia visual.</li>
     </ol>
 
     <div style="margin-top: 32px; padding: 20px 24px; background: var(--accent-tint); color: var(--ink); border-radius: 4px;">

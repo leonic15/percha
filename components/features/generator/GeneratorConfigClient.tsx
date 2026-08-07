@@ -11,7 +11,7 @@
  * - Tiles "Desde cero"/"Con base" + bottom sheet picker de prenda
  * - CTA sticky "Generar look" → POST /api/looks/generar → sessionStorage → /generador/resultado
  *
- * LOOKSI-022 (LSI-33) — EP-05 Integración de clima
+ * PERCHA-022 (LSI-33) — EP-05 Integración de clima
  */
 
 import {
@@ -38,8 +38,8 @@ import type { ClimaData, GenerarLookResult } from "@/app/api/looks/generar/route
 
 // ── Constantes ────────────────────────────────────────────────────────────────
 
-export const SS_RESULT_KEY = "looksi_generar_result";
-export const SS_PARAMS_KEY = "looksi_generar_params";
+export const SS_RESULT_KEY = "percha_generar_result";
+export const SS_PARAMS_KEY = "percha_generar_params";
 
 const OCASIONES = [
   "Casual",
@@ -305,7 +305,7 @@ export function GeneratorConfigClient({
           {/* Header */}
           <div className="px-5 pt-3 pb-3 flex items-center justify-between">
             <span className="font-display font-bold text-xl uppercase tracking-[0.08em] text-ink">
-              LookSi<span className="text-accent">.</span>
+              Percha<span className="text-accent">.</span>
             </span>
             <span className="eyebrow text-ink-3">PASO 1 / 2</span>
           </div>

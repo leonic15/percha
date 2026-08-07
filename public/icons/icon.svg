@@ -5,6 +5,6 @@
     <circle cx="256" cy="168" r="28"></circle>
     <path d="M256 196 c 0 24 -24 40 -48 56 c -28 18 -108 60 -108 76 c 0 12 8 22 22 22 h 268 c 14 0 22 -10 22 -22 c 0 -16 -80 -58 -108 -76 c -24 -16 -48 -32 -48 -56"></path>
   </g>
-  <text x="256" y="408" font-family="&#39;Archivo Narrow&#39;, sans-serif" font-weight="700" font-size="120" letter-spacing="8" text-anchor="middle" fill="#f7f5ef" text-transform="uppercase">LookSi</text>
+  <text x="256" y="408" font-family="&#39;Archivo Narrow&#39;, sans-serif" font-weight="700" font-size="120" letter-spacing="8" text-anchor="middle" fill="#f7f5ef" text-transform="uppercase">Percha</text>
   <circle cx="408" cy="408" r="10" fill="#dd9874"></circle>
 </svg>

@@ -9,7 +9,7 @@
  * - Captura pageviews automáticamente con el router de Next.js
  * - En desarrollo, usa debug mode para ver eventos en consola
  *
- * LOOKSI-031: implementado según notas técnicas de la story.
+ * PERCHA-031: implementado según notas técnicas de la story.
  */
 
 import { useEffect, useRef, Suspense } from "react";

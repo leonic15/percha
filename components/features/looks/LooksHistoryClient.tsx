@@ -4,7 +4,7 @@
  * LooksHistoryClient — Handoff 15 · HISTORIAL DE LOOKS
  * Ruta: /looks
  *
- * LOOKSI-021 — Ver historial de looks guardados:
+ * PERCHA-021 — Ver historial de looks guardados:
  * - Header: wordmark + search (futuro) / H1 36px "Looks" + contador mono
  * - Filter row: 3 chips — Recientes / Más usados / Por ocasión
  * - Lista LookCard variant="row" con divider 1px line-2 (no en el primero)
@@ -88,7 +88,7 @@ function Wordmark() {
       className="font-display font-bold uppercase text-ink leading-none"
       style={{ fontSize: 16, letterSpacing: "0.08em" }}
     >
-      LookSi
+      Percha
     </span>
   );
 }

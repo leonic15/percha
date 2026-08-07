@@ -10,7 +10,7 @@ type GarmentWithMeta = Prenda & {
 };
 
 /**
- * LOOKSI-010: Detalle de prenda — Handoff 11
+ * PERCHA-010: Detalle de prenda — Handoff 11
  * Server Component: fetch prenda + categoría.
  * La imagen se sirve vía /api/garments/[id]/image (URL estable, cacheada en SW).
  */

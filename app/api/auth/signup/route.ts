@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-// LOOKSI-001: Registro con email y contraseña
+// PERCHA-001: Registro con email y contraseña
 export async function POST(request: Request) {
   try {
     const { email, password, nombre } = await request.json();

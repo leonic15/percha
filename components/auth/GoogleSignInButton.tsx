@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LOOKSI-003: Botón de autenticación con Google.
+ * PERCHA-003: Botón de autenticación con Google.
  *
  * Renderiza un <a href="/api/auth/google"> en vez de un <button onClick=...>.
  * El inicio del flujo OAuth ocurre en la API Route server-side, lo que garantiza

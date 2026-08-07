@@ -210,7 +210,7 @@ function ConfirmDeleteDialog({
   );
 }
 
-// ── Inline scan overlay (LOOKSI-016) ─────────────────────────────────────────
+// ── Inline scan overlay (PERCHA-016) ─────────────────────────────────────────
 
 const SCAN_STEPS = [
   "Detectando contornos",
@@ -431,7 +431,7 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
   const photoInputRef   = useRef<HTMLInputElement>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
 
-  // LOOKSI-016 — Análisis IA inline
+  // PERCHA-016 — Análisis IA inline
   const [iaDescripcion, setIaDescripcion] = useState(garment.ia_descripcion);
   const [iaAnalizada,   setIaAnalizada]   = useState(garment.ia_analizada);
   const [analyzing,     setAnalyzing]     = useState(false);
@@ -516,7 +516,7 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
     }
   }, [garment.id, toast]);
 
-  /** LOOKSI-016 — Lanza análisis IA desde el detalle */
+  /** PERCHA-016 — Lanza análisis IA desde el detalle */
   const handleAnalyze = useCallback(async () => {
     if (analyzing) return;
 
@@ -817,7 +817,7 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
                 {garment.nombre}
               </h1>
 
-              {/* Descripción IA + botón analizar (LOOKSI-016) */}
+              {/* Descripción IA + botón analizar (PERCHA-016) */}
 
               {/* Overlay de scan — activo durante el análisis */}
               {analyzing && (

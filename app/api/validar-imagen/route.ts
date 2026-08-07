@@ -6,7 +6,7 @@ import { geminiGenerateContent, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
 import { logger } from "@/lib/utils/logger";
 
 /**
- * POST /api/validar-imagen — LOOKSI-036
+ * POST /api/validar-imagen — PERCHA-036
  *
  * Valida con Gemini 2.5 Flash-Lite si una imagen es adecuada para el contexto indicado.
  * Body: { tipo: "prenda" | "foto_corporal", imagen: "<base64 data URL o base64 puro>" }

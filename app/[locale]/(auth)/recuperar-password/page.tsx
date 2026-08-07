@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui";
 
 /**
- * LOOKSI-004: Recuperación de contraseña — Handoff 04
+ * PERCHA-004: Recuperación de contraseña — Handoff 04
  * Estado 1: Formulario de email
  * Estado 2: Email enviado → subtítulo + nota dashed (siempre el mismo
  *           mensaje independientemente de si el email existe — seguridad)

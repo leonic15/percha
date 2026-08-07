@@ -8,9 +8,9 @@ import { Input } from "@/components/ui";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 /**
- * LOOKSI-001 (AC5: email no verificado)
- * LOOKSI-002: Login con email y contraseña + redirección post-login
- * LOOKSI-003: Botón de Google OAuth
+ * PERCHA-001 (AC5: email no verificado)
+ * PERCHA-002: Login con email y contraseña + redirección post-login
+ * PERCHA-003: Botón de Google OAuth
  *
  * Visual: Handoff 02 / ScreenLogin() — screens-1.jsx
  */
@@ -57,7 +57,7 @@ function Wordmark({ size = 18 }: { size?: number }) {
       display: "inline-flex",
       alignItems: "baseline",
     }}>
-      LookSi<span style={{ color: "var(--color-accent)", fontWeight: 700 }}>.</span>
+      Percha<span style={{ color: "var(--color-accent)", fontWeight: 700 }}>.</span>
     </span>
   );
 }

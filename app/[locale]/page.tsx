@@ -17,7 +17,7 @@ import { GarmentImage } from "@/components/ui";
  * - Desktop: split grid-cols-[1fr_1.2fr] con mosaico de prendas en la derecha
  * - Sin scroll: cabe completo en viewport
  *
- * Referencia visual: LookSi.html / screens-1.jsx → ScreenWelcome()
+ * Referencia visual: prototipo original / screens-1.jsx → ScreenWelcome()
  */
 export default async function BienvenidaPage() {
   const supabase = await createClient();
@@ -39,7 +39,7 @@ export default async function BienvenidaPage() {
       Esto garantiza que el layout y los estilos visuales estén presentes
       desde el primer byte, incluso en iPhone via LAN con latencia alta.
     */}
-    <style href="looksi-welcome-v1" precedence="high">{`
+    <style href="percha-welcome-v1" precedence="high">{`
       /* ── Reset full-bleed ───────────────────────────────────────── */
       /* body { margin: 8px } es default — sin esto hay bordes blancos.
          html.background cubre TAMBIÉN la zona del notch/status-bar en iOS
@@ -329,7 +329,7 @@ export default async function BienvenidaPage() {
         <div className="lk-desktop-left flex flex-col justify-between py-16 px-16 xl:px-20">
           {/* Wordmark */}
           <p className="lk-wordmark font-display font-bold uppercase text-ink">
-            LookSi<span className="lk-accent text-accent">.</span>
+            Percha<span className="lk-accent text-accent">.</span>
           </p>
 
           {/* Hero text */}
@@ -456,7 +456,7 @@ export default async function BienvenidaPage() {
                 opacity: 0.5,
               }}
             >
-              LookSi · V0.1
+              Percha · V0.1
             </p>
           </div>
         </div>

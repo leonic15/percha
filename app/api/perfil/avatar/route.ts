@@ -16,7 +16,7 @@ import { createClient } from "@/lib/supabase/server";
  *
  * La compresión se realiza en el cliente antes de enviar (browser-image-compression).
  *
- * LOOKSI-005 (LSI-15) — EP-01 Autenticación y gestión de cuenta
+ * PERCHA-005 (LSI-15) — EP-01 Autenticación y gestión de cuenta
  */
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB

@@ -6,7 +6,7 @@ import type { LookDetailData } from "@/app/api/looks/[id]/route";
 export const dynamic = "force-dynamic";
 
 /**
- * LOOKSI-021: Detalle de un look guardado.
+ * PERCHA-021: Detalle de un look guardado.
  * Ruta: /looks/[id]  — Handoff 16 + 17
  */
 export default async function LookDetailPage({

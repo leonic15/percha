@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { GeneratorResultClient } from "@/components/features/generator/GeneratorResultClient";
 
 /**
- * LOOKSI-017: Generador · Resultado (Handoff 13)
+ * PERCHA-017: Generador · Resultado (Handoff 13)
  * Ruta: /generador/resultado
  *
  * Server Component:

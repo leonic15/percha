@@ -3,12 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import { GeneratorConfigClient } from "@/components/features/generator/GeneratorConfigClient";
 
 /**
- * LOOKSI-017: Generador · Configurar (Handoff 12)
+ * PERCHA-017: Generador · Configurar (Handoff 12)
  * Ruta: /generador
  *
  * Server Component:
  * - Verifica sesión
- * - Lee ciudad + coordenadas del perfil (para fallback clima — LOOKSI-022)
+ * - Lee ciudad + coordenadas del perfil (para fallback clima — PERCHA-022)
  * - Pasa al client
  */
 export default async function GeneradorPage() {
@@ -30,7 +30,7 @@ export default async function GeneradorPage() {
   const ciudadLatitud  = profile?.ciudad_latitud  ?? null;
   const ciudadLongitud = profile?.ciudad_longitud ?? null;
 
-  // LOOKSI-024: primera ocasión frecuente como pre-selección en el generador
+  // PERCHA-024: primera ocasión frecuente como pre-selección en el generador
   const ocasiones      = (profile?.ocasiones_frecuentes ?? []) as string[];
   const defaultOcasion = ocasiones[0] ?? null;
 

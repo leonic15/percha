@@ -5,7 +5,7 @@ import { DatosPersonalesClient } from "@/components/features/settings/DatosPerso
 export const dynamic = "force-dynamic";
 
 /**
- * LOOKSI-033/034 — Datos corporales en perfil
+ * PERCHA-033/034 — Datos corporales en perfil
  * Handoff 19 · Datos personales
  * Ruta: /perfil/datos
  */

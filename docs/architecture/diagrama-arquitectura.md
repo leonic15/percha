@@ -1,4 +1,4 @@
-# Diagrama de arquitectura — LookSi
+# Diagrama de arquitectura — Percha
 
 > Renderizable en GitHub, GitLab, y cualquier visor de Mermaid.
 
@@ -129,7 +129,7 @@ sequenceDiagram
     API_GENERAR->>DB: INSERT INTO ai_usage
     API_GENERAR-->>Browser: { look, prendas con URLs }
 
-    Browser->>Browser: Guarda en sessionStorage (looksi_generar_result)
+    Browser->>Browser: Guarda en sessionStorage (percha_generar_result)
     Browser->>Usuario: Muestra /generador/resultado
 ```
 

@@ -6,7 +6,7 @@ import { EditGarmentClient } from "@/components/features/wardrobe/EditGarmentCli
 export const dynamic = "force-dynamic";
 
 /**
- * LOOKSI-011 (LSI-21): Editar prenda
+ * PERCHA-011 (LSI-21): Editar prenda
  * Ruta: /guardarropas/[id]/editar
  *
  * Server Component:

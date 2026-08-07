@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-05-01  
 **Estado:** Aceptado  
-**Historia relacionada:** LOOKSI-027 (Schema DB), LOOKSI-009 (Agregar prenda)
+**Historia relacionada:** PERCHA-027 (Schema DB), PERCHA-009 (Agregar prenda)
 
 ---
 

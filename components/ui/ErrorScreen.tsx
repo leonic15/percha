@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LOOKSI-030: Pantalla de error genérica reutilizable en error boundaries.
+ * PERCHA-030: Pantalla de error genérica reutilizable en error boundaries.
  *
  * Se usa en app/global-error.tsx y en los error.tsx seccionales.
  * Muestra un mensaje amigable con opción de reintentar y, opcionalmente,

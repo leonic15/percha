@@ -4,7 +4,7 @@ import type { Json } from "@/lib/database.types";
 import { logger } from "@/lib/utils/logger";
 
 /**
- * POST /api/looks/guardar-imagen-vestir — LOOKSI-035
+ * POST /api/looks/guardar-imagen-vestir — PERCHA-035
  *
  * Asocia una imagen "Vestir mi look" generada previamente con un look.
  * Si el look no existe aún, lo crea primero (auto-save).

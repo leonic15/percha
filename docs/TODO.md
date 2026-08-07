@@ -1,4 +1,4 @@
-# LookSi — TODO & Deuda Técnica
+# Percha — TODO & Deuda Técnica
 
 > Última actualización: 2026-05-23  
 > Organizados por prioridad e impacto. Los ítems de "dev/workaround" deben resolverse antes del lanzamiento.
@@ -102,15 +102,15 @@ o eliminar cuando el proyecto tenga una URL fija de producción.
 
 ### EP-02 — Guardarropas (parcial)
 
-- **LOOKSI-010** Ver detalle de prenda
+- **PERCHA-010** Ver detalle de prenda
   Pantalla modal o página con foto full, metadatos completos y
   acciones (editar, eliminar, toggle favorito).
 
-- **LOOKSI-011** Editar prenda
+- **PERCHA-011** Editar prenda
   Formulario pre-llenado con los datos actuales. Mismo componente
   que "agregar" pero en modo edición. Incluye reemplazar foto.
 
-- **LOOKSI-012** Eliminar prenda
+- **PERCHA-012** Eliminar prenda
   Confirmación + eliminar de DB + eliminar imagen de Supabase Storage.
   Desde el detalle y/o con swipe en la grilla.
 
@@ -133,14 +133,14 @@ o eliminar cuando el proyecto tenga una URL fija de producción.
 
 ### EP-06 — Preferencias / Configuración (no implementado)
 
-- **LOOKSI-005** Edición de perfil (diferido de EP-01):
+- **PERCHA-005** Edición de perfil (diferido de EP-01):
   nombre, avatar, preferencias de estilo.
 
-- **LOOKSI-006** Cierre de sesión global (todos los dispositivos).
+- **PERCHA-006** Cierre de sesión global (todos los dispositivos).
   La ruta `app/api/auth/logout/route.ts` ya existe pero solo
   cierra la sesión local.
 
-- **LOOKSI-007** Eliminación de cuenta (diferido de EP-01):
+- **PERCHA-007** Eliminación de cuenta (diferido de EP-01):
   soft-delete + eliminar datos del Storage.
 
 ---
@@ -168,7 +168,7 @@ o eliminar cuando el proyecto tenga una URL fija de producción.
   implementado: modo de solo iconos (64px) para pantallas `lg < xl`.
   → `components/ui/Sidebar.tsx:13-15`
 
-- **Dark mode (LOOKSI-025)**
+- **Dark mode (PERCHA-025)**
   Los tokens CSS en `globals.css` están preparados con `[data-theme="dark"]`
   pero el toggle de tema no está implementado. `suppressHydrationWarning`
   está puesto en `<html>` esperando este feature.
@@ -177,7 +177,7 @@ o eliminar cuando el proyecto tenga una URL fija de producción.
 - **Revisión de pantallas auth vs prototipo (Handoff 02-04)**
   Las pantallas de login, registro y recuperar contraseña están
   funcionales pero no se compararon contra el diseño final del prototipo
-  (`/Users/nico/Downloads/LookSi-2/LookSi.html`).
+  (`/Users/nico/Downloads/percha-proto/prototipo.html`).
 
 ### Observabilidad (EP-07)
 

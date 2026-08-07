@@ -1,6 +1,6 @@
 -- =============================================================================
--- LookSi — Políticas de Storage
--- LOOKSI-029: Buckets y RLS para imágenes de prendas y avatares
+-- Percha — Políticas de Storage
+-- PERCHA-029: Buckets y RLS para imágenes de prendas y avatares
 -- =============================================================================
 --
 -- Estructura de paths:

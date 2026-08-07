@@ -1,4 +1,4 @@
-# Auditoría de Seguridad y Performance — LookSi
+# Auditoría de Seguridad y Performance — Percha
 
 > **Fecha:** 2026-05-30
 > **Alcance:** API Routes (`app/api/**`), middleware (`proxy.ts`), clientes Supabase (`lib/supabase/**`),

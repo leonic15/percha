@@ -92,7 +92,7 @@ export async function DELETE(
   return NextResponse.json({ ok: true });
 }
 
-// ── PATCH — Editar prenda (LOOKSI-011 · LSI-21) ──────────────────────────────
+// ── PATCH — Editar prenda (PERCHA-011 · LSI-21) ──────────────────────────────
 //
 // Acepta FormData con:
 //   nombre, category_slug, color_principal, estaciones, estilos, ocasiones, notas (opcionales)

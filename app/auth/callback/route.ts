@@ -5,7 +5,7 @@ import type { Database } from "@/lib/database.types";
 import type { CookieOptions } from "@supabase/ssr";
 
 /**
- * LOOKSI-003: Callback de OAuth (Google) y recuperación de contraseña (LOOKSI-004).
+ * PERCHA-003: Callback de OAuth (Google) y recuperación de contraseña (PERCHA-004).
  *
  * Flujo PKCE:
  *   1. Supabase redirige aquí con ?code=xxx (OAuth o password recovery)

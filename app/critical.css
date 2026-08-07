@@ -1,5 +1,5 @@
 /*
-  critical.css — LookSi
+  critical.css — Percha
   ─────────────────────────────────────────────────────────────────────────
   CSS puro sin @import de Tailwind. Al no usar "@import tailwindcss",
   Turbopack lo extrae como archivo estático (<link rel="stylesheet">) en lugar

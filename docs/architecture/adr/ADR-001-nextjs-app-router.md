@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-05-01  
 **Estado:** Aceptado  
-**Historia relacionada:** LOOKSI-026 (Setup inicial)
+**Historia relacionada:** PERCHA-026 (Setup inicial)
 
 ---
 

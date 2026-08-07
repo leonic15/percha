@@ -4,7 +4,7 @@ import type { Category } from "@/lib/database.types";
 import { AddFormClient } from "./AddFormClient";
 
 /**
- * LOOKSI-009 — Paso 3: Formulario de revisión.
+ * PERCHA-009 — Paso 3: Formulario de revisión.
  * Spec 10 · /guardarropas/nueva/formulario
  *
  * Server Component: carga categorías desde la DB y se las pasa al cliente.

@@ -1,8 +1,8 @@
-# LookSi
+# Percha
 
 > Tu guardarropas inteligente — generá looks con IA según el clima y la ocasión.
 
-LookSi es una PWA mobile-first que te permite digitalizar tu ropa y generar outfits personalizados en segundos. La IA analiza cada prenda al agregarla y genera looks completos teniendo en cuenta el clima actual y la ocasión.
+Percha es una PWA mobile-first que te permite digitalizar tu ropa y generar outfits personalizados en segundos. La IA analiza cada prenda al agregarla y genera looks completos teniendo en cuenta el clima actual y la ocasión. También incluye un planificador de viajes que arma looks para cada día según el itinerario y el clima de destino.
 
 ---
 
@@ -14,7 +14,10 @@ LookSi es una PWA mobile-first que te permite digitalizar tu ropa y generar outf
 | UI | [React 19.2.4](https://react.dev) + TypeScript 5 |
 | Estilos | [Tailwind CSS v4](https://tailwindcss.com) (tokens en `@theme {}`) |
 | Backend / DB | [Supabase](https://supabase.com) — PostgreSQL + Storage + Auth |
-| IA | [Gemini 2.5 Flash-Lite](https://ai.google.dev) via Google AI API |
+| IA (análisis) | [Gemini 2.5 Flash-Lite](https://ai.google.dev) via Google AI API |
+| IA (generación de imágenes) | Gemini 3.x Flash/Pro Image (con fallback entre modelos) |
+| Procesamiento de imágenes | [@imgly/background-removal](https://img.ly/products/background-removal) — remoción de fondo client-side |
+| PWA | [@ducanh2912/next-pwa](https://github.com/DuCanhGH/next-pwa) |
 | Clima | [Open-Meteo](https://open-meteo.com) (sin API key, proxy server-side) |
 | i18n | [next-intl v4](https://next-intl-docs.vercel.app) — `es` (default) / `en` |
 | Observabilidad | [Sentry](https://sentry.io) + logger JSON estructurado |
@@ -43,7 +46,7 @@ LookSi es una PWA mobile-first que te permite digitalizar tu ropa y generar outf
 
 ```bash
 git clone <url-del-repo>
-cd looksi
+cd percha
 ```
 
 ### 2. Instalar dependencias
@@ -145,8 +148,8 @@ Ver [docs/STRUCTURE.md](docs/STRUCTURE.md) para el árbol de carpetas completo c
 | [docs/database/schema.md](docs/database/schema.md) | Schema de base de datos documentado |
 | [docs/architecture/diagrama-arquitectura.md](docs/architecture/diagrama-arquitectura.md) | Diagrama de arquitectura (Mermaid) |
 | [docs/architecture/adr/](docs/architecture/adr/) | Registros de decisiones arquitectónicas (ADRs) |
-| [docs/stories/](docs/stories/) | Historias de usuario LOOKSI-001 a LOOKSI-032 |
-| [docs/design/Handoff.html](docs/design/Handoff.html) | Handoff de diseño — 16 pantallas |
+| [docs/stories/](docs/stories/) | Historias de usuario PERCHA-001 a PERCHA-036 |
+| [docs/design/Handoff.html](docs/design/Handoff.html) | Handoff de diseño — 26 pantallas |
 
 ---
 

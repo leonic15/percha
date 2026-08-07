@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LOOKSI-030: Error boundary — sección Guardarropas.
+ * PERCHA-030: Error boundary — sección Guardarropas.
  *
  * Captura errores en el listado de prendas, detalle, nueva prenda
  * (incluyendo el flujo de análisis IA en /guardarropas/nueva/*).

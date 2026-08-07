@@ -1,4 +1,4 @@
--- LOOKSI-020: Aplica las políticas RLS de looks/look_prendas/look_usos
+-- PERCHA-020: Aplica las políticas RLS de looks/look_prendas/look_usos
 -- que pudieron no haberse ejecutado en la instancia de Supabase.
 -- Usar IF NOT EXISTS para que sea idempotente.
 

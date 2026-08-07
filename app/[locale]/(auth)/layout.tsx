@@ -139,7 +139,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <>
       {/* Estilos específicos de auth: cubre todas las clases Tailwind
           de Input, Button y GoogleSignInButton usadas en estas páginas. */}
-      <style href="looksi-auth" precedence="default">{AUTH_CSS}</style>
+      <style href="percha-auth" precedence="default">{AUTH_CSS}</style>
 
       {/*
         Mobile: flex-col full-height → cada página rellena con flex-1 + padding propio.

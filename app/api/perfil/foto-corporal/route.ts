@@ -18,7 +18,7 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
  *
  * Elimina el archivo del bucket y pone body_photo_url = null en el perfil.
  *
- * LOOKSI-034
+ * PERCHA-034
  */
 
 // ── POST ──────────────────────────────────────────────────────────────────────

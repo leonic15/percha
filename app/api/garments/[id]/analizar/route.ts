@@ -7,7 +7,7 @@ import { logger } from "@/lib/utils/logger";
 /**
  * POST /api/garments/[id]/analizar
  *
- * Relanza el análisis IA sobre una prenda ya guardada (LOOKSI-016).
+ * Relanza el análisis IA sobre una prenda ya guardada (PERCHA-016).
  * La imagen se descarga desde Supabase Storage (sin client upload).
  *
  * Flujo:

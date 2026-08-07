@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LOOKSI-030: Error boundary de nivel locale.
+ * PERCHA-030: Error boundary de nivel locale.
  *
  * Captura errores de cualquier ruta bajo /[locale]/ que no tenga
  * su propio error.tsx. Incluye las rutas de autenticación y el layout

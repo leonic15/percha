@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LOOKSI-009 — Paso 2: Analizando con IA.
+ * PERCHA-009 — Paso 2: Analizando con IA.
  * Spec 09 · /guardarropas/nueva/analizar
  *
  * Lee la imagen de sessionStorage, lanza en paralelo:
@@ -19,10 +19,10 @@ import type { GarmentAnalysis } from "@/app/api/prendas/analizar/route";
 
 // ── SessionStorage keys ────────────────────────────────────────────────────────
 
-const SS_IMAGE_KEY = "looksi_nueva_imagen";
-const SS_TYPE_KEY  = "looksi_nueva_tipo";
-const SS_IA_KEY    = "looksi_nueva_ia";
-const SS_NOBG_KEY  = "looksi_nueva_imagen_nobg"; // PNG sin fondo (si bg-removal ok)
+const SS_IMAGE_KEY = "percha_nueva_imagen";
+const SS_TYPE_KEY  = "percha_nueva_tipo";
+const SS_IA_KEY    = "percha_nueva_ia";
+const SS_NOBG_KEY  = "percha_nueva_imagen_nobg"; // PNG sin fondo (si bg-removal ok)
 
 // ── Steps de progreso ──────────────────────────────────────────────────────────
 

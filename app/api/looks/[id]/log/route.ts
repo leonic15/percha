@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
  *
  * Respuesta 200: { usageCount: number; lastUsedISO: string }
  *
- * LOOKSI-021
+ * PERCHA-021
  */
 export async function POST(
   _req: NextRequest,

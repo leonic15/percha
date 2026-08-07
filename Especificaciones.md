@@ -1,4 +1,4 @@
-# LookSi — Especificaciones de implementación
+# Percha — Especificaciones de implementación
 
 > Stack objetivo: **Next.js 16 + Tailwind v4 + TypeScript**.
 > Tokens en `app/globals.css` dentro de `@theme {}` — no hay `tailwind.config.js`.
@@ -469,7 +469,7 @@
   - **ESTILO:** chips wrap de estilos favoritos (multi-select).
   - **APP:** Tema (value "Claro" + chevron), Clima en generador (toggle on), Notificaciones (toggle off).
   - **CUENTA:** Cerrar sesión (no chevron), Eliminar cuenta (danger, no chevron).
-- **Footer:** texto eyebrow 10px centrado "LookSi · v0.4.2 · BETA".
+- **Footer:** texto eyebrow 10px centrado "Percha · v0.4.2 · BETA".
 - **Bottom nav:** active="perfil".
 - **Componentes:** `<SettingsSection />`, `<SettingsRow icon label value? toggle? danger? />`, `<Chip />`, `<BottomNav />`.
 

@@ -2,13 +2,13 @@
 
 **Fecha:** 2026-05-01  
 **Estado:** Aceptado  
-**Historia relacionada:** LOOKSI-009 (Agregar prenda), LOOKSI-017 (Generar look)
+**Historia relacionada:** PERCHA-009 (Agregar prenda), PERCHA-017 (Generar look)
 
 ---
 
 ## Contexto
 
-LookSi usa IA para dos casos de uso:
+Percha usa IA para dos casos de uso:
 
 1. **Análisis de prendas**: recibe una foto y devuelve nombre, categoría, color, temporadas, estilos y una descripción en lenguaje natural.
 2. **Generación de looks**: recibe el guardarropa completo del usuario (metadatos, sin imágenes) + contexto (clima, ocasión) y sugiere combinaciones.

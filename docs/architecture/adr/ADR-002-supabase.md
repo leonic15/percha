@@ -2,13 +2,13 @@
 
 **Fecha:** 2026-05-01  
 **Estado:** Aceptado  
-**Historia relacionada:** LOOKSI-026 (Setup inicial), LOOKSI-027 (Schema DB)
+**Historia relacionada:** PERCHA-026 (Setup inicial), PERCHA-027 (Schema DB)
 
 ---
 
 ## Contexto
 
-LookSi necesitaba un backend que cubriera: autenticación (email/password + OAuth Google), base de datos relacional, almacenamiento de imágenes y Row Level Security para aislar datos por usuario. Todo dentro del presupuesto de un free tier para el MVP.
+Percha necesitaba un backend que cubriera: autenticación (email/password + OAuth Google), base de datos relacional, almacenamiento de imágenes y Row Level Security para aislar datos por usuario. Todo dentro del presupuesto de un free tier para el MVP.
 
 Las alternativas consideradas:
 

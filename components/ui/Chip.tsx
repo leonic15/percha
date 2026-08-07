@@ -31,7 +31,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
         "inline-flex items-center gap-1.5 rounded-chip border leading-none whitespace-nowrap",
         "font-medium transition-colors duration-150 ease-out-soft",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-        // Dimensiones alineadas al prototipo LookSi.
+        // Dimensiones alineadas al prototipo Percha.
         // Alto auto vía padding (igual que el prototype: padding:"7px 12px" / "5px 9px")
         // — no usamos h-fijo para que el border-box no coma altura.
         size === "sm"
