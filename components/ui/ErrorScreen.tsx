@@ -65,8 +65,8 @@ export function ErrorScreen({
             className="flex items-center justify-center rounded-button font-medium text-base"
             style={{
               height: 48,
-              background: "#1a1a1a",
-              color: "#f7f5ef",
+              background: "var(--color-ink)",
+              color: "var(--color-bg)",
               border: "none",
               cursor: "pointer",
             }}
@@ -82,8 +82,8 @@ export function ErrorScreen({
             style={{
               height: 48,
               background: "transparent",
-              color: "#1a1a1a",
-              border: "1px solid rgba(26,26,26,0.15)",
+              color: "var(--color-ink)",
+              border: "1px solid var(--color-line)",
             }}
           >
             Ir al guardarropas

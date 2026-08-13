@@ -35,11 +35,25 @@ export default function GlobalError({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Error · Percha</title>
         <style>{`
+          /* Este boundary reemplaza el <html> raíz, así que no recibe el
+             bootstrap de tema ni globals.css: define sus propios tokens y
+             sigue a prefers-color-scheme (PERCHA-025). */
+          :root {
+            color-scheme: light dark;
+            --bg: #f7f5ef; --ink: #1a1a1a; --ink-2: #4a4a48; --ink-3: #66635b;
+            --surface-2: #e5e0d2; --btn-hover: #4a4a48;
+          }
+          @media (prefers-color-scheme: dark) {
+            :root {
+              --bg: #0d0c0a; --ink: #f1ede5; --ink-2: #b8b3a8; --ink-3: #98948a;
+              --surface-2: #2e2b25; --btn-hover: #b8b3a8;
+            }
+          }
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
           body {
             min-height: 100dvh;
-            background: #f7f5ef;
-            color: #1a1a1a;
+            background: var(--bg);
+            color: var(--ink);
             font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
             display: flex;
             align-items: center;
@@ -55,7 +69,7 @@ export default function GlobalError({
             font-size: 11px;
             letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: #8a877f;
+            color: var(--ink-3);
             margin-bottom: 32px;
           }
           h1 {
@@ -65,15 +79,15 @@ export default function GlobalError({
           }
           p {
             font-size: 14px;
-            color: #4a4a48;
+            color: var(--ink-2);
             line-height: 1.5;
             margin-bottom: 32px;
           }
           .digest {
             font-family: ui-monospace, monospace;
             font-size: 11px;
-            color: #8a877f;
-            background: #e5e0d2;
+            color: var(--ink-3);
+            background: var(--surface-2);
             border-radius: 6px;
             padding: 4px 8px;
             margin-top: -20px;
@@ -86,15 +100,15 @@ export default function GlobalError({
             justify-content: center;
             height: 48px;
             padding: 0 28px;
-            background: #1a1a1a;
-            color: #f7f5ef;
+            background: var(--ink);
+            color: var(--bg);
             border: none;
             border-radius: 9999px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
           }
-          button:hover { background: #2a2a28; }
+          button:hover { background: var(--btn-hover); }
         `}</style>
       </head>
       <body>

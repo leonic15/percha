@@ -21,9 +21,9 @@ export function GoogleSignInButton({ label = "Continuar con Google" }: GoogleSig
       href="/api/auth/google"
       className="
         w-full flex items-center justify-center gap-3
-        border border-stone-300 rounded-full
+        border border-line rounded-full
         px-4 py-2.5 text-sm font-medium text-ink
-        bg-bg hover:bg-stone-50 active:bg-stone-100
+        bg-bg hover:bg-surface-2 active:bg-surface-2
         transition-colors duration-150
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent
       "

@@ -30,8 +30,8 @@ function LoadingSpinner() {
     }}>
       <div style={{
         width: 24, height: 24, borderRadius: 999,
-        border: "2px solid rgba(26,26,26,0.15)",
-        borderTopColor: "#1a1a1a",
+        border: "2px solid var(--color-line)",
+        borderTopColor: "var(--color-ink)",
         animation: "spin 0.8s linear infinite",
       }} />
     </div>
@@ -339,8 +339,8 @@ function ResetPasswordContent() {
             {loading ? (
               <span style={{
                 width: 18, height: 18, borderRadius: 999,
-                border: "2px solid rgba(255,255,255,0.4)",
-                borderTopColor: "#fff",
+                border: "2px solid color-mix(in srgb, currentColor 35%, transparent)",
+                borderTopColor: "currentColor",
                 animation: "spin 0.8s linear infinite",
                 display: "inline-block",
               }} />

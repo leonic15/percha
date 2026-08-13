@@ -6,10 +6,44 @@
   de bundlearlo dentro de un chunk JS. Esto garantiza que los estilos críticos
   carguen en el primer byte, sin esperar la ejecución de JavaScript.
 
-  Valores hardcodeados (no var()) para ser independiente del orden de carga
-  de las hojas de estilo y funcionar desde el primer render en cualquier red.
+  TEMA (PERCHA-025)
+  ─────────────────
+  Estas reglas son *unlayered*: en la cascada le ganan a cualquier @layer, así
+  que le ganan siempre a las utilidades de Tailwind (@layer utilities). Si acá
+  se hardcodean colores claros, el modo oscuro no puede aplicarse nunca — ese
+  era el bug de las "barras blancas".
+
+  Por eso los colores salen de var(--color-*, var(--pc-*)):
+    • --color-* lo define globals.css (@theme + [data-theme="dark"]) → tema real.
+    • --pc-*    es el fallback propio de este archivo, definido más abajo para
+                light y dark, y sirve durante el primer paint (antes de que
+                globals.css cargue) sin depender del orden de las hojas.
+  Ambos caminos respetan data-theme, así que nunca hay un flash claro.
   ─────────────────────────────────────────────────────────────────────────
 */
+
+/* ── Tokens de fallback (solo aplican si globals.css todavía no cargó) ────── */
+:root {
+  --pc-bg:        #f7f5ef;              /* stone-50  */
+  --pc-ink:       #1a1a1a;
+  --pc-ink-2:     #4a4a48;
+  --pc-ink-3:     #66635b;              /* AA sobre bg y surface-2 */
+  --pc-accent:    #6b7563;              /* sage-600  */
+  --pc-danger:    #b85c3a;              /* terra-500 */
+  --pc-surface-2: #e5e0d2;              /* stone-200 */
+  --pc-line:      rgba(26, 26, 26, 0.10);
+}
+
+[data-theme="dark"] {
+  --pc-bg:        #0d0c0a;              /* stone-950 */
+  --pc-ink:       #f1ede5;
+  --pc-ink-2:     #b8b3a8;
+  --pc-ink-3:     #98948a;              /* AA sobre bg y surface-2 */
+  --pc-accent:    #97a386;              /* sage-400  */
+  --pc-danger:    #cc7752;              /* terra-400 */
+  --pc-surface-2: #2e2b25;              /* stone-800 */
+  --pc-line:      rgba(241, 237, 229, 0.10);
+}
 
 /* ── Reset full-bleed ────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -20,12 +54,15 @@ a { color: inherit; text-decoration: none; }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
 html, body {
-  background: #f7f5ef;            /* --color-stone-50 */
-  color: #1a1a1a;                  /* --color-ink */
+  background: var(--color-bg, var(--pc-bg));
+  color: var(--color-ink, var(--pc-ink));
   font-family: var(--font-sans, "Inter", ui-sans-serif, system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+/* El navegador usa esto para scrollbars, autofill y el overscroll de iOS */
+:root { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
 .antialiased {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -69,21 +106,21 @@ html, body {
 .underline-offset-2 { text-underline-offset: 2px; }
 
 /* ── Colores de texto ────────────────────────────────────────────────────── */
-.text-ink    { color: #1a1a1a; }
-.text-ink-2  { color: #4a4a48; }
-.text-ink-3  { color: #8a877f; }
-.text-accent { color: #6b7563; }   /* sage-600 */
-.text-bg     { color: #f7f5ef; }   /* stone-50 */
+.text-ink    { color: var(--color-ink,    var(--pc-ink)); }
+.text-ink-2  { color: var(--color-ink-2,  var(--pc-ink-2)); }
+.text-ink-3  { color: var(--color-ink-3,  var(--pc-ink-3)); }
+.text-accent { color: var(--color-accent, var(--pc-accent)); }
+.text-bg     { color: var(--color-bg,     var(--pc-bg)); }
 
 /* ── Fondos ──────────────────────────────────────────────────────────────── */
-.bg-bg          { background-color: #f7f5ef; }
-.bg-ink         { background-color: #1a1a1a; }
-.bg-surface-2   { background-color: #e5e0d2; }
+.bg-bg          { background-color: var(--color-bg,        var(--pc-bg)); }
+.bg-ink         { background-color: var(--color-ink,       var(--pc-ink)); }
+.bg-surface-2   { background-color: var(--color-surface-2, var(--pc-surface-2)); }
 .bg-transparent { background-color: transparent; }
 
 /* ── Bordes ──────────────────────────────────────────────────────────────── */
 .border      { border-width: 1px; border-style: solid; }
-.border-line { border-color: rgba(26, 26, 26, 0.10); }
+.border-line { border-color: var(--color-line, var(--pc-line)); }
 
 /* ── Radius ──────────────────────────────────────────────────────────────── */
 .rounded-button { border-radius: 9999px; }
@@ -93,6 +130,6 @@ html, body {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #8a877f;
+  color: var(--color-ink-3, var(--pc-ink-3));
   font-weight: 500;
 }

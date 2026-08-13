@@ -89,7 +89,7 @@ function ValidationSheet({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/[0.45]"
+        className="fixed inset-0 z-40 bg-overlay"
         aria-hidden
         onClick={mode === "warning" ? onClose : undefined}
       />
@@ -159,7 +159,7 @@ function ValidationSheet({
                 className={cn(
                   "w-full h-13 rounded-button flex items-center justify-center gap-2",
                   "text-sm font-medium uppercase tracking-wide",
-                  "bg-ink text-bg hover:bg-stone-800 active:scale-[0.985] transition-all",
+                  "bg-ink text-bg hover:bg-ink-2 active:scale-[0.985] transition-all",
                 )}
               >
                 Continuar de todas formas
@@ -173,7 +173,7 @@ function ValidationSheet({
                 "w-full h-13 rounded-button flex items-center justify-center gap-2",
                 "text-sm font-medium uppercase tracking-wide",
                 mode === "error"
-                  ? "bg-ink text-bg hover:bg-stone-800"
+                  ? "bg-ink text-bg hover:bg-ink-2"
                   : "bg-transparent text-ink border border-line hover:bg-surface-2",
                 "active:scale-[0.985] transition-all",
               )}
@@ -459,7 +459,7 @@ export default function NuevaPrendaPage() {
               "w-full h-13 rounded-button flex items-center justify-center gap-2",
               "text-sm font-medium uppercase tracking-wide",
               "bg-ink text-bg",
-              "hover:bg-stone-800 active:scale-[0.985] transition-all disabled:opacity-50",
+              "hover:bg-ink-2 active:scale-[0.985] transition-all disabled:opacity-50",
             )}
           >
             <Camera className="size-4" aria-hidden />

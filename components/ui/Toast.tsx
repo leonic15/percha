@@ -73,7 +73,7 @@ const kindIcons = {
 
 const kindStyles: Record<Kind, string> = {
   success: "bg-ink text-bg",
-  error:   "bg-danger text-white",
+  error:   "bg-danger text-danger-ink",
   warning: "bg-warning-500 text-stone-950",
   info:    "bg-ink text-bg",
 };

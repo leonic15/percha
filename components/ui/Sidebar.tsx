@@ -48,7 +48,7 @@ export function Sidebar() {
         className={cn(
           "mb-8 inline-flex w-full items-center justify-center gap-2",
           "rounded-button font-sans font-medium uppercase tracking-wide text-sm h-11 px-5",
-          "bg-accent text-accent-ink hover:bg-sage-700 dark:hover:bg-sage-300",
+          "bg-accent text-accent-ink hover:bg-sage-800 dark:hover:bg-sage-300",
           "transition-[transform,background-color,opacity] duration-150 ease-out-soft",
           "active:scale-[0.985]",
         )}

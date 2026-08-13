@@ -83,7 +83,7 @@ function GlassBtn({
       style={{
         width: 38, height: 38,
         borderRadius: 9999,
-        background: "rgba(255,255,255,0.85)",
+        background: "var(--color-glass)",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         border: "none",
@@ -195,7 +195,7 @@ function ConfirmDeleteDialog({
               borderRadius: "var(--radius-button)",
               border: "none",
               background: "var(--color-danger)",
-              color: "#fff",
+              color: "var(--color-danger-ink)",
               fontSize: 13,
               fontWeight: 500,
               cursor: "pointer",
@@ -741,9 +741,10 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
                       width: 5,
                       height: 5,
                       borderRadius: 999,
-                      background: i === 0
-                        ? (imgSrc ? "#fff" : "var(--color-ink)")
-                        : "rgba(255,255,255,0.5)",
+                      // Sobre foto van blancos; sobre el placeholder siguen al tema.
+                      background: imgSrc
+                        ? (i === 0 ? "#fff" : "rgba(255,255,255,0.5)")
+                        : (i === 0 ? "var(--color-ink)" : "var(--color-line)"),
                     }} />
                   ))}
                 </div>
@@ -759,7 +760,7 @@ export function GarmentDetailClient({ garment }: GarmentDetailClientProps) {
                   className={cn(
                     "flex items-center gap-2 h-9 px-4 rounded-button border text-sm font-medium transition-colors",
                     isFavorite
-                      ? "border-transparent bg-red-50 text-danger"
+                      ? "border-transparent bg-danger/10 text-danger"
                       : "border-line text-ink-2 hover:text-ink",
                   )}
                   style={{ fontSize: 13 }}

@@ -69,7 +69,7 @@ function GlassBtn({
       onClick={onClick}
       style={{
         width: 38, height: 38, borderRadius: 9999,
-        background: "rgba(255,255,255,0.88)",
+        background: "var(--color-glass)",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         border: "none",
@@ -336,14 +336,16 @@ function DeleteDialog({ look, onCancel, onDeleted }: DeleteDialogProps) {
             onClick={handleDelete}
             className={cn(
               "flex items-center justify-center gap-2 w-full md:flex-1",
-              "h-[52px] px-4 font-sans font-medium uppercase tracking-wide text-sm text-white",
+              // En dark --color-danger sube a terra-400: el texto se invierte
+              // para no caer a 3.3:1.
+              "h-[52px] px-4 font-sans font-medium uppercase tracking-wide text-sm text-danger-ink",
               "transition-opacity disabled:opacity-50",
             )}
             style={{ background: "var(--color-danger)", borderRadius: 0 }}
           >
             {deleting ? (
               <>
-                <span className="size-[14px] rounded-full border-2 border-white border-r-transparent animate-spin" aria-hidden />
+                <span className="size-[14px] rounded-full border-2 border-current border-r-transparent animate-spin" aria-hidden />
                 Eliminando…
               </>
             ) : (
@@ -418,7 +420,7 @@ function EscenarioSheet({ open, ocasion, onClose, onGenerar, loading }: Escenari
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/[0.45]" aria-hidden onClick={loading ? undefined : onClose} />
+      <div className="fixed inset-0 z-40 bg-overlay" aria-hidden onClick={loading ? undefined : onClose} />
       <div
         role="dialog"
         aria-modal="true"

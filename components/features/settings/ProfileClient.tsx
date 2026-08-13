@@ -49,6 +49,7 @@ import {
 import { Chip, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { createClient } from "@/lib/supabase/client";
+import { applyTheme } from "@/lib/theme";
 import type { CiudadResult } from "@/app/api/clima/ciudades/route";
 
 // ── Constantes de validación de avatar ───────────────────────────────────────
@@ -87,18 +88,6 @@ const IDIOMAS_OPTS = [
 ] as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Aplica el tema en el <html> y lo guarda en localStorage */
-function applyTheme(tema: string) {
-  if (typeof window === "undefined") return;
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const effective =
-    tema === "oscuro" ? "dark"
-    : tema === "claro" ? "light"
-    : prefersDark ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", effective);
-  try { localStorage.setItem("percha-tema", tema); } catch {}
-}
 
 /** Iniciales de un nombre (máx 2 letras) */
 function getInitials(name: string | null, email: string): string {
@@ -155,7 +144,9 @@ function Toggle({
         aria-hidden
         className={cn(
           "absolute left-0 top-[2px] size-[18px] rounded-full shadow-sm transition-transform duration-200",
-          checked ? "translate-x-[18px] bg-bg" : "translate-x-[2px] bg-white",
+          // bg-surface == blanco en light; en dark el knob apagado necesita
+          // aclararse sobre surface-2 para que el switch siga leyéndose.
+          checked ? "translate-x-[18px] bg-bg" : "translate-x-[2px] bg-surface dark:bg-ink-2",
         )}
       />
     </button>
@@ -701,7 +692,7 @@ function DeleteAccountSheet({
               "mt-4 w-full h-11 rounded-button text-sm font-medium uppercase tracking-wide",
               "transition-[transform,opacity] duration-150 active:scale-[0.985]",
               match && !deleting
-                ? "bg-danger text-white"
+                ? "bg-danger text-danger-ink"
                 : "bg-surface-2 text-ink-3 cursor-not-allowed",
             )}
           >
@@ -747,7 +738,7 @@ function UsageBars() {
             <div key={item.tipo}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-ink-2">{item.label}</span>
-                <span className={cn("text-[11px] font-mono", warning ? "text-amber-600" : "text-ink-3")}>
+                <span className={cn("text-[11px] font-mono", warning ? "text-warning-700 dark:text-warning-300" : "text-ink-3")}>
                   {item.usado}/{item.max}
                 </span>
               </div>
@@ -755,7 +746,7 @@ function UsageBars() {
                 <div
                   className={cn(
                     "h-full rounded-full transition-all",
-                    warning ? "bg-amber-500" : "bg-accent",
+                    warning ? "bg-warning-500" : "bg-accent",
                   )}
                   style={{ width: `${pct}%` }}
                 />

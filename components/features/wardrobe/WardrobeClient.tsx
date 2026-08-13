@@ -572,7 +572,7 @@ export function WardrobeClient({
           "flex items-center justify-center size-14 rounded-full",
           "bg-accent text-accent-ink",
           "shadow-[0_8px_24px_rgba(0,0,0,0.15)]",
-          "hover:bg-sage-700 active:scale-95 transition-all",
+          "hover:bg-sage-800 dark:hover:bg-sage-300 active:scale-95 transition-all",
         )}
       >
         <Plus className="size-6" strokeWidth={1.8} aria-hidden />
@@ -583,7 +583,7 @@ export function WardrobeClient({
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 bg-overlay"
             aria-hidden
             onClick={closeSheet}
           />
@@ -685,7 +685,7 @@ export function WardrobeClient({
                   onClick={() => setPFavorites((v) => !v)}
                   className={cn(
                     "relative inline-flex items-center h-6 w-10 rounded-full transition-colors duration-200",
-                    pFavorites ? "bg-ink" : "bg-stone-300",
+                    pFavorites ? "bg-ink" : "bg-surface-2",
                   )}
                 >
                   <span
@@ -705,7 +705,7 @@ export function WardrobeClient({
                   "w-full h-13 rounded-button",
                   "text-sm font-medium uppercase tracking-wide",
                   "bg-ink text-bg",
-                  "hover:bg-stone-800 active:scale-[0.985] transition-all",
+                  "hover:bg-ink-2 active:scale-[0.985] transition-all",
                 )}
               >
                 Aplicar filtros
@@ -864,7 +864,7 @@ function EmptyState({ hasFilters, onClear }: { hasFilters: boolean; onClear: () 
         className={cn(
           "inline-flex items-center gap-2 h-13 px-6 rounded-button",
           "text-sm font-medium uppercase tracking-wide",
-          "bg-accent text-accent-ink hover:bg-sage-700 transition-colors active:scale-[0.985]",
+          "bg-accent text-accent-ink hover:bg-sage-800 transition-colors active:scale-[0.985]",
         )}
       >
         <Plus className="size-4" aria-hidden />

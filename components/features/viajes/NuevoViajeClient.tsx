@@ -611,13 +611,13 @@ function Step5Generacion({
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+        {error && <p className="text-sm text-danger text-center">{error}</p>}
 
         <button
           onClick={generar}
           className={cn(
             "w-full h-12 rounded-button font-medium text-sm uppercase tracking-wide",
-            "bg-accent text-accent-ink hover:bg-sage-700 dark:hover:bg-sage-300",
+            "bg-accent text-accent-ink hover:bg-sage-800 dark:hover:bg-sage-300",
             "transition-colors flex items-center justify-center gap-2"
           )}
         >
@@ -832,13 +832,13 @@ function Step5Generacion({
 
       {/* Prendas faltantes */}
       {data.prendas_faltantes.length > 0 && (
-        <div className="rounded-button border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4">
-          <p className="text-xs font-medium text-amber-700 dark:text-amber-400 mb-2">
+        <div className="rounded-button border border-warning-100 bg-warning-50 dark:border-warning-700 dark:bg-warning-900/30 p-4">
+          <p className="text-xs font-medium text-warning-900 dark:text-warning-300 mb-2">
             Prendas que podrían faltar
           </p>
           <ul className="space-y-1">
             {data.prendas_faltantes.map((f, i) => (
-              <li key={i} className="text-sm text-amber-600 dark:text-amber-300">• {f}</li>
+              <li key={i} className="text-sm text-warning-900 dark:text-warning-300">• {f}</li>
             ))}
           </ul>
         </div>
@@ -958,7 +958,7 @@ export function NuevoViajeClient({ prendas, genero }: Props) {
               "w-full h-12 rounded-button font-medium text-sm uppercase tracking-wide",
               "flex items-center justify-center gap-2 transition-colors",
               canNext
-                ? "bg-accent text-accent-ink hover:bg-sage-700 dark:hover:bg-sage-300"
+                ? "bg-accent text-accent-ink hover:bg-sage-800 dark:hover:bg-sage-300"
                 : "bg-surface text-ink-3 cursor-not-allowed"
             )}
           >
@@ -973,7 +973,7 @@ export function NuevoViajeClient({ prendas, genero }: Props) {
               "w-full h-12 rounded-button font-medium text-sm uppercase tracking-wide",
               "flex items-center justify-center gap-2 transition-colors",
               canNext && !saving
-                ? "bg-accent text-accent-ink hover:bg-sage-700 dark:hover:bg-sage-300"
+                ? "bg-accent text-accent-ink hover:bg-sage-800 dark:hover:bg-sage-300"
                 : "bg-surface text-ink-3 cursor-not-allowed"
             )}
           >

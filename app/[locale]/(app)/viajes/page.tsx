@@ -73,7 +73,7 @@ export default async function ViajesPage() {
           href="/viajes/nuevo"
           className={cn(
             "inline-flex items-center gap-1.5 px-4 h-9 rounded-button text-sm font-medium",
-            "bg-accent text-accent-ink hover:bg-sage-700 dark:hover:bg-sage-300 transition-colors"
+            "bg-accent text-accent-ink hover:bg-sage-800 dark:hover:bg-sage-300 transition-colors"
           )}
         >
           <Plus className="size-4" />
@@ -92,7 +92,7 @@ export default async function ViajesPage() {
             href="/viajes/nuevo"
             className={cn(
               "mt-2 inline-flex items-center gap-2 px-6 h-11 rounded-button text-sm font-medium",
-              "bg-accent text-accent-ink hover:bg-sage-700 dark:hover:bg-sage-300 transition-colors"
+              "bg-accent text-accent-ink hover:bg-sage-800 dark:hover:bg-sage-300 transition-colors"
             )}
           >
             <Plus className="size-4" />

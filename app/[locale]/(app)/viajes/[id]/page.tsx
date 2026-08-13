@@ -167,7 +167,7 @@ export default function ViajeDetallePage() {
               )}
               <button
                 onClick={eliminar}
-                className="flex items-center gap-2 w-full px-4 py-3 text-sm text-red-500 hover:bg-surface transition-colors"
+                className="flex items-center gap-2 w-full px-4 py-3 text-sm text-danger hover:bg-surface transition-colors"
               >
                 <Trash2 className="size-4" />
                 Eliminar viaje

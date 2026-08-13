@@ -130,14 +130,27 @@
   --color-surface-2:   var(--color-stone-200);
   --color-ink:         #1a1a1a;
   --color-ink-2:       #4a4a48;
-  --color-ink-3:       #8a877f;
+  /* ink-3 mueve eyebrows y captions (10-12px), así que necesita AA 4.5:1.
+     El viejo #8a877f daba 3.3:1 sobre --color-bg; #66635b da 5.5:1 sobre bg,
+     4.6:1 sobre surface-2 y 6.0:1 sobre surface. */
+  --color-ink-3:       #66635b;
   --color-line:        rgb(26 26 26 / 0.10);
   --color-line-2:      rgb(26 26 26 / 0.06);
-  --color-accent:      var(--color-sage-600);
+  /* accent/danger bajaron un step (sage-600→700, terra-500→600) por contraste:
+     sage-600 daba 4.4:1 como texto sobre bg y 3.9:1 en .ai-badge (9px sobre
+     accent-tint); terra-500 daba 4.2:1 sobre bg. Con este step todo par
+     accent/danger — texto sobre bg, surface, surface-2 y tint, y accent-ink
+     encima — queda ≥4.5:1. Si se prefiere el verde original, volver acá. */
+  --color-accent:      var(--color-sage-700);
   --color-accent-ink:  #ffffff;
   --color-accent-tint: var(--color-sage-100);
-  --color-danger:      var(--color-terra-500);
+  --color-danger:      var(--color-terra-600);
+  /* Texto/iconos sobre --color-danger. En dark el danger sube a terra-400, que
+     con blanco da 3.3:1; por eso el par tiene su propio token. */
+  --color-danger-ink:  #ffffff;
   --color-overlay:     rgb(0 0 0 / 0.45);
+  /* Glass sobre fotos: sigue al surface para no quedar blanco en dark. */
+  --color-glass:       rgb(255 255 255 / 0.88);
 
   /* ───────────── Border-radius ─────────────
      Estética editorial: cards y forms con esquinas ~rectas; chips,
@@ -189,14 +202,18 @@
   --color-surface-2:   var(--color-stone-800);
   --color-ink:         #f1ede5;
   --color-ink-2:       #b8b3a8;
-  --color-ink-3:       #7a766d;
+  /* ídem light: el viejo #7a766d daba 4.3:1 sobre bg y 3.0:1 sobre surface-2 */
+  --color-ink-3:       #98948a;
   --color-line:        rgb(241 237 229 / 0.10);
   --color-line-2:      rgb(241 237 229 / 0.05);
   --color-accent:      var(--color-sage-400);   /* sube de step para legibilidad */
   --color-accent-ink:  var(--color-stone-950);
   --color-accent-tint: var(--color-sage-900);
-  --color-danger:      var(--color-terra-400);
+  /* terra-300 y no -400: sobre surface-2 el -400 se quedaba en 4.25:1 */
+  --color-danger:      var(--color-terra-300);
+  --color-danger-ink:  var(--color-stone-950);   /* 8.2:1 sobre terra-300 */
   --color-overlay:     rgb(0 0 0 / 0.65);
+  --color-glass:       rgb(46 43 37 / 0.88);     /* stone-800 */
 
   --shadow-card:   0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.3);
   --shadow-fab:    0 8px 24px rgb(0 0 0 / 0.5);

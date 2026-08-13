@@ -138,7 +138,7 @@ export default function AnalyzeStep() {
 
       {/* Foto con overlay de scan */}
       <div className="px-5">
-        <div style={{ position: "relative", aspectRatio: "1 / 1.1", overflow: "hidden", background: "var(--color-stone-100, #f1ede4)" }}>
+        <div style={{ position: "relative", aspectRatio: "1 / 1.1", overflow: "hidden", background: "var(--color-surface-2)" }}>
           {imageURL && (
             // eslint-disable-next-line @next/next/no-img-element
             <img

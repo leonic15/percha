@@ -168,7 +168,7 @@ function GarmentTile({ prenda, swapping, onSwap, advertencia }: GarmentTileProps
           }}
           className={cn(
             "absolute top-2 right-2 size-[30px] rounded-full",
-            "bg-white/92 backdrop-blur-[6px] border-0",
+            "bg-surface/92 backdrop-blur-[6px] border-0",
             "flex items-center justify-center",
             "transition-opacity duration-150",
             "opacity-100 md:opacity-0",
@@ -182,11 +182,11 @@ function GarmentTile({ prenda, swapping, onSwap, advertencia }: GarmentTileProps
         {/* Advertencia de incompatibilidad */}
         {advertencia && (
           <div
-            className="absolute top-2 left-2 size-6 rounded-full bg-amber-500 flex items-center justify-center"
+            className="absolute top-2 left-2 size-6 rounded-full bg-warning-500 flex items-center justify-center"
             title={advertencia}
             aria-label={`Advertencia: ${advertencia}`}
           >
-            <AlertTriangle className="size-3.5 text-white" strokeWidth={2} />
+            <AlertTriangle className="size-3.5 text-stone-950" strokeWidth={2} />
           </div>
         )}
       </div>
@@ -200,7 +200,7 @@ function GarmentTile({ prenda, swapping, onSwap, advertencia }: GarmentTileProps
           {prenda.nombre}
         </div>
         {advertencia && (
-          <p className="text-[10px] text-amber-600 leading-tight mt-0.5">{advertencia}</p>
+          <p className="text-[10px] text-warning-700 dark:text-warning-300 leading-tight mt-0.5">{advertencia}</p>
         )}
       </div>
     </div>
@@ -285,7 +285,7 @@ function EscenarioSheet({ open, ocasion, onClose, onGenerar, loading }: Escenari
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/[0.45]"
+        className="fixed inset-0 z-40 bg-overlay"
         aria-hidden
         onClick={loading ? undefined : onClose}
       />
@@ -713,7 +713,7 @@ function SaveLookSheet({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/[0.45]"
+        className="fixed inset-0 z-40 bg-overlay"
         aria-hidden
         onClick={saving ? undefined : onClose}
       />

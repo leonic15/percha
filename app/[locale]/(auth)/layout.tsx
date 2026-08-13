@@ -11,8 +11,12 @@
 /**
  * CSS de auth inline — cubre todas las clases Tailwind de las páginas de auth
  * y sus componentes (Input, Button, GoogleSignInButton).
- * Valores hardcodeados (no var()) para no depender del orden de carga de CSS.
  * NOTA: las clases ya cubiertas por CRITICAL_CSS en layout.tsx se omiten aquí.
+ *
+ * Colores vía var(--color-*, var(--pc-*)) — los fallbacks --pc-* los define
+ * CRITICAL_CSS para light y dark. Hardcodear colores acá rompía el modo oscuro
+ * en /login y /registro, porque estas reglas son unlayered y le ganan a las
+ * utilidades de Tailwind (PERCHA-025).
  */
 const AUTH_CSS = String.raw`
 /* ── Layout auth ── */
@@ -69,18 +73,17 @@ const AUTH_CSS = String.raw`
 .uppercase{text-transform:uppercase}
 
 /* ── Colores ── */
-.text-ink{color:#1a1a1a}
-.text-ink-2{color:#4a4a48}
-.text-ink-3{color:#8a877f}
-.text-ink\/70{color:rgba(26,26,26,0.7)}
-.text-ink\/60{color:rgba(26,26,26,0.6)}
-.text-ink\/50{color:rgba(26,26,26,0.5)}
-.text-ink\/40{color:rgba(26,26,26,0.4)}
-.text-danger{color:#b85c3a}
-.border-danger{border-color:#b85c3a}
-.border-stone-200{border-color:#e5e0d2}
-.border-stone-300{border-color:#d2cbb8}
-.border-t-ink{border-top-color:#1a1a1a}
+.text-ink{color:var(--color-ink,var(--pc-ink))}
+.text-ink-2{color:var(--color-ink-2,var(--pc-ink-2))}
+.text-ink-3{color:var(--color-ink-3,var(--pc-ink-3))}
+.text-ink\/70{color:color-mix(in srgb,var(--color-ink,var(--pc-ink)) 70%,transparent)}
+.text-ink\/60{color:color-mix(in srgb,var(--color-ink,var(--pc-ink)) 60%,transparent)}
+.text-ink\/50{color:color-mix(in srgb,var(--color-ink,var(--pc-ink)) 50%,transparent)}
+.text-ink\/40{color:color-mix(in srgb,var(--color-ink,var(--pc-ink)) 40%,transparent)}
+.text-danger{color:var(--color-danger,var(--pc-danger))}
+.border-danger{border-color:var(--color-danger,var(--pc-danger))}
+.border-line{border-color:var(--color-line,var(--pc-line))}
+.border-t-ink{border-top-color:var(--color-ink,var(--pc-ink))}
 
 /* ── Tamaños (input, botones) ── */
 .h-9{height:2.25rem}
@@ -107,8 +110,8 @@ const AUTH_CSS = String.raw`
 
 /* ── Formulario / Input ── */
 .outline-none{outline:2px solid transparent;outline-offset:2px}
-.focus-within\:border-ink:focus-within{border-color:#1a1a1a}
-.placeholder\:text-ink-3::placeholder{color:#8a877f}
+.focus-within\:border-ink:focus-within{border-color:var(--color-ink,var(--pc-ink))}
+.placeholder\:text-ink-3::placeholder{color:var(--color-ink-3,var(--pc-ink-3))}
 .placeholder\:font-normal::placeholder{font-weight:400}
 
 /* ── Estados de botón ── */
@@ -120,10 +123,9 @@ const AUTH_CSS = String.raw`
 
 /* ── Hover / active ── */
 .hover\:underline:hover{text-decoration-line:underline}
-.hover\:bg-stone-50:hover{background-color:#f7f5ef}
-.hover\:bg-ink-2:hover{background-color:#4a4a48}
-.hover\:text-accent:hover{color:#6b7563}
-.active\:bg-stone-100:active{background-color:#f1ede4}
+.hover\:bg-surface-2:hover{background-color:var(--color-surface-2,var(--pc-surface-2))}
+.hover\:bg-ink-2:hover{background-color:var(--color-ink-2,var(--pc-ink-2))}
+.hover\:text-accent:hover{color:var(--color-accent,var(--pc-accent))}
 
 /* ── Animación spinner ── */
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -131,7 +133,7 @@ const AUTH_CSS = String.raw`
 
 /* ── Focus visible (accesibilidad) ── */
 .focus-visible\:outline-none:focus-visible{outline:none}
-.focus-visible\:ring-2:focus-visible{box-shadow:0 0 0 2px #6b7563}
+.focus-visible\:ring-2:focus-visible{box-shadow:0 0 0 2px var(--color-accent,var(--pc-accent))}
 `;
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {

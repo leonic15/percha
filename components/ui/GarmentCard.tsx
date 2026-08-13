@@ -67,7 +67,7 @@ export function GarmentCard({
           }}
           className={cn(
             "absolute right-2 top-2 grid place-items-center size-8 rounded-full",
-            "bg-white/85 backdrop-blur-sm",
+            "bg-surface/85 backdrop-blur-sm",
             "transition-transform duration-150 hover:scale-110 active:scale-95",
           )}
         >

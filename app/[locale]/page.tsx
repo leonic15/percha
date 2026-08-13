@@ -49,7 +49,7 @@ export default async function BienvenidaPage() {
         margin: 0;
         padding: 0;
         overflow-x: hidden;
-        background: #f7f5ef;
+        background: var(--color-bg, var(--pc-bg));
       }
       body {
         margin: 0;
@@ -68,7 +68,7 @@ export default async function BienvenidaPage() {
       }
 
       /* ── Base page ───────────────────────────────────────────────── */
-      .lk-page { background: #f7f5ef; overflow: hidden; width: 100%; }
+      .lk-page { background: var(--color-bg, var(--pc-bg)); overflow: hidden; width: 100%; }
 
       /* ── Mobile full-screen ──────────────────────────────────────── */
       /* 100svh = "small viewport height": la altura con TODA la UI del
@@ -85,14 +85,14 @@ export default async function BienvenidaPage() {
         flex-direction: column;
         position: relative;
         overflow: hidden;
-        background: #f7f5ef;
+        background: var(--color-bg, var(--pc-bg));
       }
 
       /* ── Tipografía ───────────────────────────────────────────────── */
       .lk-h1 {
         font-family: var(--font-archivo, "Archivo Narrow"), ui-sans-serif, sans-serif;
         text-transform: uppercase;
-        color: #1a1a1a;
+        color: var(--color-ink, var(--pc-ink));
         font-weight: 600;
         line-height: 0.88;
         letter-spacing: -0.01em;
@@ -103,25 +103,25 @@ export default async function BienvenidaPage() {
            con width:calc(100%+28px)). Con Archivo Narrow: 12×0.40×48=230px ✓ */
         font-size: clamp(36px, 12vw, 48px);
       }
-      .lk-accent { color: #6b7563; }
+      .lk-accent { color: var(--color-accent, var(--pc-accent)); }
       .lk-eyebrow {
         font-size: 10px;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: #8a877f;
+        color: var(--color-ink-3, var(--pc-ink-3));
         font-weight: 500;
       }
       .lk-body {
         font-family: var(--font-inter, "Inter"), ui-sans-serif, sans-serif;
         font-size: 14px;
         line-height: 1.5;
-        color: #4a4a48;
+        color: var(--color-ink-2, var(--pc-ink-2));
       }
       .lk-wordmark {
         font-family: var(--font-archivo, "Archivo Narrow"), ui-sans-serif, sans-serif;
         font-weight: 700;
         text-transform: uppercase;
-        color: #1a1a1a;
+        color: var(--color-ink, var(--pc-ink));
         font-size: 24px;
         letter-spacing: 0.08em;
       }
@@ -144,15 +144,15 @@ export default async function BienvenidaPage() {
         text-decoration: none;
       }
       .lk-btn:active { transform: scale(0.985); }
-      .lk-btn-primary   { background: #1a1a1a; color: #f7f5ef; border: none; }
+      .lk-btn-primary   { background: var(--color-ink, var(--pc-ink)); color: var(--color-bg, var(--pc-bg)); border: none; }
       .lk-btn-secondary {
         background: transparent;
-        color: #1a1a1a;
-        border: 1px solid rgba(26, 26, 26, 0.10);
+        color: var(--color-ink, var(--pc-ink));
+        border: 1px solid var(--color-line, var(--pc-line));
       }
       @media (hover: hover) {
         .lk-btn-primary:hover   { opacity: 0.9; }
-        .lk-btn-secondary:hover { background: #e5e0d2; }
+        .lk-btn-secondary:hover { background: var(--color-surface-2, var(--pc-surface-2)); }
       }
 
       /* ── Legal text ───────────────────────────────────────────────── */
@@ -160,14 +160,14 @@ export default async function BienvenidaPage() {
         text-align: center;
         font-size: 11px;
         line-height: 1.5;
-        color: #8a877f;
+        color: var(--color-ink-3, var(--pc-ink-3));
       }
       .lk-legal span { text-decoration: underline; text-underline-offset: 2px; }
 
       /* ── Desktop columna derecha ──────────────────────────────────── */
       .lk-desktop-right {
         position: relative;
-        background: #e5e0d2;
+        background: var(--color-surface-2, var(--pc-surface-2));
         overflow: hidden;
       }
       .lk-desktop-left {
@@ -175,7 +175,7 @@ export default async function BienvenidaPage() {
         flex-direction: column;
         justify-content: space-between;
         padding: 4rem;
-        background: #f7f5ef;
+        background: var(--color-bg, var(--pc-bg));
       }
       @media (min-width: 80rem) {
         .lk-desktop-left { padding: 4rem 5rem; }

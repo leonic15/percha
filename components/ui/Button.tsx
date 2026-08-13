@@ -33,10 +33,12 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary:   "bg-ink text-bg hover:bg-ink-2",
-  accent:    "bg-accent text-accent-ink hover:bg-sage-700 dark:hover:bg-sage-300",
+  accent:    "bg-accent text-accent-ink hover:bg-sage-800 dark:hover:bg-sage-300",
   secondary: "bg-surface text-ink border border-line hover:bg-surface-2",
   ghost:     "bg-transparent text-ink border border-line hover:bg-surface-2",
-  danger:    "bg-danger text-white hover:bg-terra-600",
+  // En dark --color-danger sube a terra-400 (claro), así que el texto se invierte
+  // para no quedar en 3.3:1 — y el hover aclara en vez de oscurecer.
+  danger:    "bg-danger text-danger-ink hover:bg-terra-700 dark:hover:bg-terra-200",
 };
 
 const sizes: Record<Size, string> = {

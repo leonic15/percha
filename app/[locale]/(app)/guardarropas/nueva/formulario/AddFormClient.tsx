@@ -526,7 +526,7 @@ export function AddFormClient({ categories: serverCategories }: AddFormClientPro
             "flex items-center justify-center gap-2",
             "text-sm font-medium uppercase tracking-wide",
             "bg-accent text-accent-ink",
-            "hover:bg-sage-700 active:scale-[0.985] transition-all",
+            "hover:bg-sage-800 dark:hover:bg-sage-300 active:scale-[0.985] transition-all",
             "disabled:opacity-50 disabled:pointer-events-none",
           )}
         >

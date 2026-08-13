@@ -395,7 +395,7 @@ export function GeneratorConfigClient({
                 <span
                   className={cn(
                     "block mt-1 text-[11px] leading-none",
-                    modo === "desde_cero" ? "text-white/70" : "text-ink-3",
+                    modo === "desde_cero" ? "text-bg/70" : "text-ink-3",
                   )}
                 >
                   IA elige todo
@@ -416,7 +416,7 @@ export function GeneratorConfigClient({
               >
                 <span className="block">
                   {prendaBase && modo === "con_base" ? (
-                    <span className="inline-block size-[18px] rounded-sm overflow-hidden align-top bg-white/20">
+                    <span className="inline-block size-[18px] rounded-sm overflow-hidden align-top bg-bg/20">
                       {prendaBase.signedUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -425,7 +425,7 @@ export function GeneratorConfigClient({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="block w-full h-full bg-white/30" />
+                        <span className="block w-full h-full bg-bg/30" />
                       )}
                     </span>
                   ) : (
@@ -438,7 +438,7 @@ export function GeneratorConfigClient({
                 <span
                   className={cn(
                     "block mt-1 text-[11px] leading-none truncate",
-                    modo === "con_base" ? "text-white/70" : "text-ink-3",
+                    modo === "con_base" ? "text-bg/70" : "text-ink-3",
                   )}
                 >
                   {prendaBase && modo === "con_base" ? prendaBase.nombre : "Elegir prenda"}

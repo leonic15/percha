@@ -274,8 +274,8 @@ export default function LoginPage() {
           {loading ? (
             <span style={{
               width: 18, height: 18, borderRadius: 999,
-              border: "2px solid rgba(255,255,255,0.4)",
-              borderTopColor: "#fff",
+              border: "2px solid color-mix(in srgb, currentColor 35%, transparent)",
+              borderTopColor: "currentColor",
               animation: "spin 0.8s linear infinite",
               display: "inline-block",
             }} />
