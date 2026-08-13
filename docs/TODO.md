@@ -163,16 +163,67 @@ o eliminar cuando el proyecto tenga una URL fija de producción.
 
 ### UI / UX
 
+- **Versión web de escritorio (actualmente solo mobile-first)**
+  La app está diseñada y maquetada mobile-first (ver los Handoffs y los
+  layouts de `(auth)` y `(app)`); no hay un diseño ni implementación
+  dedicados para desktop más allá de ajustes puntuales de ancho. Falta
+  definir layout propio de escritorio (no solo estirar el mobile) para
+  las pantallas principales: guardarropas, generador, looks, perfil.
+  Relacionado con el ítem de sidebar colapsado debajo, pero de alcance
+  mayor — abarca toda la experiencia de escritorio, no solo el sidebar.
+
 - **Sidebar collapsed en desktop medio** (tablet/lg)
   El componente `<Sidebar>` tiene el layout documentado pero no
   implementado: modo de solo iconos (64px) para pantallas `lg < xl`.
   → `components/ui/Sidebar.tsx:13-15`
 
-- **Dark mode (PERCHA-025)**
-  Los tokens CSS en `globals.css` están preparados con `[data-theme="dark"]`
-  pero el toggle de tema no está implementado. `suppressHydrationWarning`
-  está puesto en `<html>` esperando este feature.
-  → `app/layout.tsx:98`
+- ~~**Dark mode (PERCHA-025) — inconsistencia en Perfil**~~ ✅ RESUELTO
+  No era solo `/perfil` ni solo literales sueltos: eran dos causas de
+  raíz que afectaban toda la app.
+
+  1. **El CSS crítico pisaba el tema.** `app/critical.css`, el
+     `CRITICAL_CSS` inline de `app/layout.tsx` y el `AUTH_CSS` de
+     `(auth)/layout.tsx` definían `.bg-bg`, `.text-ink`, `.bg-surface-2`,
+     `.border-line`, `.eyebrow` y `html,body` con colores claros
+     hardcodeados. Al ser reglas *unlayered* le ganan siempre a las
+     utilidades de Tailwind (`@layer utilities`), así que esos tokens
+     nunca podían cambiar a oscuro. De ahí las "barras blancas": el
+     `bg-bg` de la página quedaba crema mientras el `bg-bg/90` del
+     BottomNav (que no estaba pisado) sí viraba a oscuro, y los textos
+     `text-ink` quedaban oscuros sobre bloques oscuros.
+     → Ahora todos esos colores salen de `var(--color-*, var(--pc-*))`,
+     con fallbacks `--pc-*` definidos para light y dark.
+
+  2. **El tema solo se aplicaba en `/perfil`.** `applyTheme()` vivía en
+     `ProfileClient` y corría al montar esa pantalla, así que en
+     cualquier otra ruta —y tras cada recarga— `data-theme` volvía a
+     `"light"`.
+     → Se agregó un bootstrap bloqueante en `app/layout.tsx` que resuelve
+     la preferencia antes del primer paint, y la lógica compartida vive
+     en `lib/theme.ts`.
+
+  Además se reemplazaron los literales restantes (`bg-white`,
+  `bg-black/40`, `text-white`, `amber-*`, `red-500`, hex en `style={}`)
+  por tokens, y se corrigió el contraste: `--color-ink-3`, `--color-accent`
+  y `--color-danger` fallaban AA. Los 42 pares de tokens verifican ≥4.5:1
+  en ambos temas.
+  → `app/critical.css`, `app/layout.tsx`, `app/globals.css`, `lib/theme.ts`
+
+- **Email de verificación/registro con branding de Supabase**
+  El mail que recibe el usuario al registrarse (y el de recuperar
+  contraseña) usa la plantilla y el remitente por defecto de Supabase
+  (`noreply@mail.app.supabase.io`), sin el branding de Percha. Se
+  configura 100% desde el Dashboard de Supabase, no desde este repo:
+    1. **Contenido**: `Authentication → Emails → Templates` → editar
+       HTML/asunto de "Confirm signup" y "Reset password" con
+       branding de Percha.
+    2. **Remitente propio**: `Authentication → Settings → SMTP Settings`
+       → configurar SMTP custom (Resend, Postmark, SendGrid, SES...)
+       con dominio verificado propio. Sin esto, el remitente siempre
+       va a mostrar el dominio de Supabase y además hereda el límite
+       de 2-4 emails/hora del servicio de pruebas.
+  → Dispara desde `app/api/auth/signup/route.ts` y
+    `app/api/auth/reset-password/route.ts` (sin cambios de código).
 
 - **Revisión de pantallas auth vs prototipo (Handoff 02-04)**
   Las pantallas de login, registro y recuperar contraseña están
