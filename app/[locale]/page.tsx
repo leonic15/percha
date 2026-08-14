@@ -63,7 +63,9 @@ export default async function BienvenidaPage() {
       [data-layout="desktop"] { display: none !important; }
       [data-layout="mobile"]  { display: block; }
       @media (min-width: 48rem) {
-        [data-layout="desktop"] { display: grid !important; grid-template-columns: 1fr 1.2fr; min-height: 100dvh; }
+        /* Mosaico de prendas al 60% de su ancho original (54.55% → 32.73%);
+           el sobrante lo absorbe la columna de contenido (45.45% → 67.27%). */
+        [data-layout="desktop"] { display: grid !important; grid-template-columns: 67.27% 32.73%; min-height: 100dvh; }
         [data-layout="mobile"]  { display: none !important; }
       }
 
@@ -145,14 +147,17 @@ export default async function BienvenidaPage() {
       }
       .lk-btn:active { transform: scale(0.985); }
       .lk-btn-primary   { background: var(--color-ink, var(--pc-ink)); color: var(--color-bg, var(--pc-bg)); border: none; }
+      /* Relleno gris tenue + borde más marcado que --color-line (10% de ink):
+         sobre el fondo casi negro del modo oscuro el botón transparente con
+         borde al 10% se perdía. color-mix sobre ink funciona en ambos temas. */
       .lk-btn-secondary {
-        background: transparent;
+        background: color-mix(in srgb, var(--color-ink, var(--pc-ink)) 10%, transparent);
         color: var(--color-ink, var(--pc-ink));
-        border: 1px solid var(--color-line, var(--pc-line));
+        border: 1px solid color-mix(in srgb, var(--color-ink, var(--pc-ink)) 30%, transparent);
       }
       @media (hover: hover) {
         .lk-btn-primary:hover   { opacity: 0.9; }
-        .lk-btn-secondary:hover { background: var(--color-surface-2, var(--pc-surface-2)); }
+        .lk-btn-secondary:hover { background: color-mix(in srgb, var(--color-ink, var(--pc-ink)) 18%, transparent); }
       }
 
       /* ── Legal text ───────────────────────────────────────────────── */
@@ -170,15 +175,18 @@ export default async function BienvenidaPage() {
         background: var(--color-surface-2, var(--pc-surface-2));
         overflow: hidden;
       }
+      /* Padding +50% respecto del original (4rem / 4rem 5rem): la columna
+         creció de ~45% a ~67% del viewport y el contenido quedaba pegado al
+         borde izquierdo. Con el padding mayor respira dentro del nuevo ancho. */
       .lk-desktop-left {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding: 4rem;
+        padding: 6rem;
         background: var(--color-bg, var(--pc-bg));
       }
       @media (min-width: 80rem) {
-        .lk-desktop-left { padding: 4rem 5rem; }
+        .lk-desktop-left { padding: 6rem 7.5rem; }
       }
     `}</style>
 
@@ -295,8 +303,8 @@ export default async function BienvenidaPage() {
               href="/login"
               className={cn("lk-btn lk-btn-secondary",
                 "flex items-center justify-center w-full rounded-button",
-                "font-sans font-medium uppercase text-ink border border-line",
-                "bg-transparent",
+                "font-sans font-medium uppercase text-ink border border-ink/30",
+                "bg-ink/10",
                 "transition-transform duration-[120ms] active:scale-[0.985]",
               )}
             >
@@ -322,11 +330,11 @@ export default async function BienvenidaPage() {
       {/* data-layout="desktop" → controlado por el <style> incrustado arriba */}
       <div
         data-layout="desktop"
-        className="hidden md:grid md:grid-cols-[1fr_1.2fr] min-h-dvh"
-        style={{ gridTemplateColumns: "1fr 1.2fr" }}
+        className="hidden md:grid md:grid-cols-[67.27%_32.73%] min-h-dvh"
+        style={{ gridTemplateColumns: "67.27% 32.73%" }}
       >
         {/* Columna izquierda — contenido */}
-        <div className="lk-desktop-left flex flex-col justify-between py-16 px-16 xl:px-20">
+        <div className="lk-desktop-left flex flex-col justify-between py-24 px-24 xl:px-30">
           {/* Wordmark */}
           <p className="lk-wordmark font-display font-bold uppercase text-ink">
             Percha<span className="lk-accent text-accent">.</span>
@@ -378,9 +386,9 @@ export default async function BienvenidaPage() {
               href="/login"
               className={cn("lk-btn lk-btn-secondary",
                 "flex items-center justify-center w-full rounded-button",
-                "font-sans font-medium uppercase text-ink border border-line",
-                "bg-transparent",
-                "transition-[transform,background-color] duration-[120ms] hover:bg-surface-2 active:scale-[0.985]",
+                "font-sans font-medium uppercase text-ink border border-ink/30",
+                "bg-ink/10",
+                "transition-[transform,background-color] duration-[120ms] hover:bg-ink/[0.18] active:scale-[0.985]",
               )}
               style={{ marginBottom: 14 }}
             >
@@ -410,31 +418,40 @@ export default async function BienvenidaPage() {
             }}
           />
 
-          {/* Garment images — mosaico rotado */}
+          {/* Garment images — mosaico rotado con las fotos reales
+              (mismas prendas que el hero mobile, servidas por /api/img).
+              Anchos escalados ×0.8 respecto del mosaico original: la columna
+              pasó de ~54% a ~33% del viewport y a 768px las prendas se
+              recortaban contra el borde derecho. */}
           <GarmentImage
             color="camel"
-            label="abrigo camel"
-            style={{ position: "absolute", left: "8%",  top: "12%", width: 200, transform: "rotate(4deg)",  zIndex: 10 }}
+            label="camisa caramel"
+            src="/api/img/camisa-caramel.png"
+            style={{ position: "absolute", left: "8%",  top: "12%", width: 160, transform: "rotate(4deg)",  zIndex: 10 }}
           />
           <GarmentImage
             color="denim"
-            label="blusa denim"
-            style={{ position: "absolute", left: "38%", top: "8%",  width: 165, transform: "rotate(-6deg)", zIndex: 10, opacity: 0.8 }}
+            label="jean azul"
+            src="/api/img/jean-azul.png"
+            style={{ position: "absolute", left: "38%", top: "8%",  width: 132, transform: "rotate(-6deg)", zIndex: 10, opacity: 0.8 }}
           />
           <GarmentImage
-            color="olive"
-            label="falda oliva"
-            style={{ position: "absolute", left: "-4%", top: "48%", width: 180, transform: "rotate(-5deg)", zIndex: 10 }}
+            color="terra"
+            label="cartera roja"
+            src="/api/img/cartera-roja.png"
+            style={{ position: "absolute", left: "-4%", top: "48%", width: 144, transform: "rotate(-5deg)", zIndex: 10 }}
           />
           <GarmentImage
             color="sand"
-            label="pantalón arena"
-            style={{ position: "absolute", left: "32%", top: "44%", width: 210, transform: "rotate(7deg)",  zIndex: 10, opacity: 0.85 }}
+            label="pantalón mostaza"
+            src="/api/img/pantalon-mostaza.png"
+            style={{ position: "absolute", left: "32%", top: "44%", width: 168, transform: "rotate(7deg)",  zIndex: 10, opacity: 0.85 }}
           />
           <GarmentImage
-            color="cream"
-            label="camisa cruda"
-            style={{ position: "absolute", left: "18%", top: "74%", width: 155, transform: "rotate(-3deg)", zIndex: 10 }}
+            color="denim"
+            label="blazer azul"
+            src="/api/img/blazer-azul.png"
+            style={{ position: "absolute", left: "18%", top: "74%", width: 124, transform: "rotate(-3deg)", zIndex: 10 }}
           />
 
           {/* Eyebrow overlay */}
