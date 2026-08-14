@@ -49,6 +49,7 @@ import {
 import { Chip, useToast } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { createClient } from "@/lib/supabase/client";
+import { getInitials } from "@/lib/utils/initials";
 import { applyTheme } from "@/lib/theme";
 import type { CiudadResult } from "@/app/api/clima/ciudades/route";
 
@@ -88,15 +89,6 @@ const IDIOMAS_OPTS = [
 ] as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Iniciales de un nombre (máx 2 letras) */
-function getInitials(name: string | null, email: string): string {
-  if (name?.trim()) {
-    const parts = name.trim().split(/\s+/);
-    return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
-  }
-  return email[0]?.toUpperCase() ?? "?";
-}
 
 /** PATCH /api/perfil con los campos dados */
 async function patchPerfil(fields: Record<string, unknown>): Promise<boolean> {
@@ -1027,6 +1019,8 @@ export function ProfileClient({
         }
 
         setAvatarUrl(json.avatarUrl ?? null);
+        // Refresca el layout server para que la Sidebar tome el avatar nuevo
+        router.refresh();
         toast.success("Foto de perfil actualizada.");
       } catch (err) {
         console.error("[avatar] upload error:", err);
@@ -1035,7 +1029,7 @@ export function ProfileClient({
         setAvatarUploading(false);
       }
     },
-    [toast],
+    [router, toast],
   );
 
   // ── Nombre ────────────────────────────────────────────────────────────────
@@ -1052,10 +1046,12 @@ export function ProfileClient({
     if (ok) {
       setDisplayName(trimmed || null);
       setEditingName(false);
+      // Refresca el layout server para que la Sidebar tome el nombre nuevo
+      router.refresh();
     } else {
       toast.error("Error guardando el nombre. Intentá de nuevo.");
     }
-  }, [nameInput, displayName, toast]);
+  }, [nameInput, displayName, router, toast]);
 
   const handleNameCancel = useCallback(() => {
     setNameInput(displayName ?? "");

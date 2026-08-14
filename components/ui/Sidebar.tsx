@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Shirt, Sparkles, Layers, Luggage, User, Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { getInitials } from "@/lib/utils/initials";
+import { useCurrentUser } from "@/components/providers/CurrentUserProvider";
 
 /* ─────────────────────────────────────────────────────────────────────────
    Sidebar — fija en desktop (md+).
@@ -24,6 +26,11 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const user = useCurrentUser();
+
+  // Nombre a mostrar: nombre del perfil → parte local del email → genérico
+  const displayName =
+    user?.fullName?.trim() || user?.email?.split("@")[0] || "Mi cuenta";
 
   return (
     <aside
@@ -94,15 +101,31 @@ export function Sidebar() {
         <span>Configuración</span>
       </Link>
 
-      <div className="mt-3 px-3 pt-3 border-t border-line-2 flex items-center gap-3">
-        <div className="size-9 rounded-full bg-accent text-accent-ink grid place-items-center font-display font-semibold text-sm">
-          SM
+      {user && (
+        <div className="mt-3 pt-3 border-t border-line-2">
+          <Link
+            href="/perfil"
+            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-surface"
+          >
+            {user.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.avatarUrl}
+                alt=""
+                className="size-9 shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <div className="size-9 shrink-0 rounded-full bg-accent text-accent-ink grid place-items-center font-display font-semibold text-sm">
+                {getInitials(user.fullName, user.email)}
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-ink truncate">{displayName}</div>
+              <div className="text-xs text-ink-3 truncate">{user.email}</div>
+            </div>
+          </Link>
         </div>
-        <div className="min-w-0">
-          <div className="text-sm font-medium text-ink truncate">Sofía Marini</div>
-          <div className="text-xs text-ink-3 truncate">sofia@gmail.com</div>
-        </div>
-      </div>
+      )}
     </aside>
   );
 }
