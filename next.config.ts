@@ -46,6 +46,22 @@ const withPWA = withPWAInit({
           },
         },
       },
+      // Mismo criterio para los otros buckets privados (foto corporal e
+      // imágenes "vestir" de los looks) vía /api/storage/[bucket]/[...path].
+      {
+        urlPattern: /\/api\/storage\//,
+        handler: "StaleWhileRevalidate",
+        options: {
+          cacheName: "storage-images",
+          expiration: {
+            maxEntries: 200,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 días
+          },
+          cacheableResponse: {
+            statuses: [200],
+          },
+        },
+      },
     ],
   },
 });

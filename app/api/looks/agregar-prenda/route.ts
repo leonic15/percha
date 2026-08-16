@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { garmentImageUrl } from "@/lib/storage/urls";
 import type { Prenda } from "@/lib/database.types";
 import type { PrendaResult, ClimaData } from "@/app/api/looks/generar/route";
 import { geminiGenerateContent, hasGeminiApiKey, GEMINI_FLASH_LITE } from "@/lib/gemini/client";
@@ -242,14 +243,8 @@ donde N es el número de la prenda elegida (1 a ${candidatasSlice.length}).`;
 
   const nuevaPrenda = candidatasSlice[idx];
 
-  // ── 9. Firmar URL de imagen ──────────────────────────────────────────────────
-  let signedUrl: string | null = null;
-  if (nuevaPrenda.imagen_url) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrls([nuevaPrenda.imagen_url], 3600);
-    if (signed?.[0]?.signedUrl) signedUrl = signed[0].signedUrl;
-  }
+  // ── 9. URL de imagen (proxy con URL estable) ─────────────────────────────────
+  const signedUrl = garmentImageUrl(nuevaPrenda.id, nuevaPrenda.imagen_url);
 
   // ── 10. Registrar uso en ai_usage ────────────────────────────────────────────
   await supabase.from("ai_usage").insert({

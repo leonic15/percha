@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LookDetailClient } from "@/components/features/looks/LookDetailClient";
 import type { LookDetailData } from "@/app/api/looks/[id]/route";
+import { garmentImageUrl, storageImageUrl } from "@/lib/storage/urls";
 
 export const dynamic = "force-dynamic";
 
@@ -68,20 +69,6 @@ export default async function LookDetailPage({
     }
   }
 
-  // ── Firmar URLs en batch ───────────────────────────────────────────────────
-  const imagePaths = [...prendaMap.values()]
-    .map((p) => p.imagen_url)
-    .filter(Boolean) as string[];
-  const signedMap: Record<string, string> = {};
-  if (imagePaths.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrls(imagePaths, 3600);
-    for (const s of signed ?? []) {
-      if (s.path && s.signedUrl) signedMap[s.path] = s.signedUrl;
-    }
-  }
-
   // ── Piezas ─────────────────────────────────────────────────────────────────
   const piezas = (lpData ?? []).map((lp) => {
     if (!lp.prenda_id || lp.prenda_eliminada) {
@@ -95,7 +82,7 @@ export default async function LookDetailPage({
       id:        lp.prenda_id,
       nombre:    p.nombre,
       categoria: p.categoria,
-      signedUrl: p.imagen_url ? (signedMap[p.imagen_url] ?? null) : null,
+      signedUrl: garmentImageUrl(lp.prenda_id, p.imagen_url),
       eliminada: false,
     };
   });
@@ -119,15 +106,9 @@ export default async function LookDetailPage({
     contexto?: string;
   };
 
-  // ── Firmar URL de vestir (bucket: look-images) ─────────────────────────────
-  let vestirSignedUrl: string | null = null;
+  // ── URL de vestir (bucket: look-images) ────────────────────────────────────
   const vestirPath = (look as { vestir_imagen_url?: string | null }).vestir_imagen_url ?? null;
-  if (vestirPath) {
-    const { data: vs } = await supabase.storage
-      .from("look-images")
-      .createSignedUrl(vestirPath, 3600);
-    vestirSignedUrl = vs?.signedUrl ?? null;
-  }
+  const vestirSignedUrl = storageImageUrl("look-images", vestirPath);
 
   const detail: LookDetailData = {
     id:                look.id,

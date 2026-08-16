@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { garmentImageUrl } from "@/lib/storage/urls";
 import type { TipoEvento } from "@/lib/viajes/constants";
 
 /**
@@ -82,21 +83,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       for (const c of (cats ?? []) as { id: number; nombre: string }[]) catMap[c.id] = c.nombre;
     }
 
-    const imagePaths = (prendas ?? []).map((p) => p.imagen_url).filter(Boolean) as string[];
-    const signedMap: Record<string, string> = {};
-    if (imagePaths.length) {
-      const { data: signed } = await supabase.storage.from("prendas").createSignedUrls(imagePaths, 3600);
-      for (const s of (signed ?? [])) {
-        if (s.path && s.signedUrl) signedMap[s.path] = s.signedUrl;
-      }
-    }
-
     for (const p of (prendas ?? [])) {
       prendasMap[p.id] = {
         nombre:    p.nombre,
         categoria: p.category_id ? (catMap[p.category_id] ?? "Otro") : "Otro",
         color:     p.color_principal ?? "neutro",
-        signedUrl: p.imagen_url ? (signedMap[p.imagen_url] ?? null) : null,
+        signedUrl: garmentImageUrl(p.id, p.imagen_url),
       };
     }
   }

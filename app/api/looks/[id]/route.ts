@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/utils/logger";
 import { createClient } from "@/lib/supabase/server";
+import { garmentImageUrl, storageImageUrl } from "@/lib/storage/urls";
 
 // ── Tipos públicos ─────────────────────────────────────────────────────────────
 
@@ -83,20 +84,6 @@ export async function GET(
     }
   }
 
-  // ── Firmar URLs ────────────────────────────────────────────────────────────
-  const imagePaths = [...prendaMap.values()]
-    .map((p) => p.imagen_url)
-    .filter(Boolean) as string[];
-  const signedMap: Record<string, string> = {};
-  if (imagePaths.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrls(imagePaths, 3600);
-    for (const s of signed ?? []) {
-      if (s.path && s.signedUrl) signedMap[s.path] = s.signedUrl;
-    }
-  }
-
   // ── Piezas resultado ───────────────────────────────────────────────────────
   const piezas: PiezaData[] = (lpData ?? []).map((lp) => {
     if (!lp.prenda_id || lp.prenda_eliminada) {
@@ -106,7 +93,7 @@ export async function GET(
     if (!p) {
       return { id: lp.prenda_id, nombre: "Prenda eliminada", categoria: "", signedUrl: null, eliminada: true };
     }
-    const signedUrl = p.imagen_url ? (signedMap[p.imagen_url] ?? null) : null;
+    const signedUrl = garmentImageUrl(lp.prenda_id, p.imagen_url);
     return { id: lp.prenda_id, nombre: p.nombre, categoria: p.categoria, signedUrl, eliminada: false };
   });
 
@@ -128,15 +115,9 @@ export async function GET(
   // ── Parámetros ─────────────────────────────────────────────────────────────
   const params2 = (look.parametros_generacion ?? {}) as { ocasion?: string; contexto?: string };
 
-  // ── Firmar URL de vestir (bucket: look-images) ─────────────────────────────
-  let vestirSignedUrl: string | null = null;
+  // ── URL de vestir (bucket: look-images) ────────────────────────────────────
   const vestirPath = (look as { vestir_imagen_url?: string | null }).vestir_imagen_url ?? null;
-  if (vestirPath) {
-    const { data: vs } = await supabase.storage
-      .from("look-images")
-      .createSignedUrl(vestirPath, 3600);
-    vestirSignedUrl = vs?.signedUrl ?? null;
-  }
+  const vestirSignedUrl = storageImageUrl("look-images", vestirPath);
 
   const result: LookDetailData = {
     id:                look.id,

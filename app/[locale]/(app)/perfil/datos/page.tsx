@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DatosPersonalesClient } from "@/components/features/settings/DatosPersonalesClient";
+import { storageImageUrl } from "@/lib/storage/urls";
 
 export const dynamic = "force-dynamic";
 
@@ -23,14 +24,9 @@ export default async function DatosPersonalesPage() {
     .eq("id", user.id)
     .single();
 
-  // Generar signed URL (1h) para mostrar la foto en el cliente sin exponerla públicamente
-  let bodyPhotoSignedUrl: string | null = null;
-  if (p?.body_photo_url) {
-    const { data: signed } = await supabase.storage
-      .from("body-photos")
-      .createSignedUrl(p.body_photo_url, 3600);
-    bodyPhotoSignedUrl = signed?.signedUrl ?? null;
-  }
+  // URL estable del proxy autenticado: la foto no se expone públicamente y,
+  // a diferencia de una signed URL, no expira con la app abierta.
+  const bodyPhotoSignedUrl = storageImageUrl("body-photos", p?.body_photo_url);
 
   return (
     <DatosPersonalesClient

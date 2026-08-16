@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { garmentImageUrl } from "@/lib/storage/urls";
 import type { Prenda } from "@/lib/database.types";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { checkAiRateLimit, recordAiUsage, rateLimitResponse } from "@/lib/ai/usage";
@@ -326,29 +327,13 @@ Respondé ÚNICAMENTE con un JSON válido, sin markdown ni texto extra:
   const validatedIds  = (aiResult.prendas ?? []).filter((id: string) => validIds.has(id));
   const selectedItems = garments.filter((g) => validatedIds.includes(g.id));
 
-  // ── 6. Firmar URLs de las prendas seleccionadas ───────────────────────────
-  const imagePaths = selectedItems
-    .map((g) => g.imagen_url)
-    .filter((u): u is string => Boolean(u));
-
-  const signedMap: Record<string, string> = {};
-  if (imagePaths.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrls(imagePaths, 3600);
-    if (signed) {
-      for (const s of signed) {
-        if (s.path && s.signedUrl) signedMap[s.path] = s.signedUrl;
-      }
-    }
-  }
-
+  // ── 6. Datos de las prendas seleccionadas ─────────────────────────────────
   const prendasData: PrendaResult[] = selectedItems.map((g) => ({
     id:        g.id,
     nombre:    g.nombre,
     categoria: g.category_id ? (categoryMap[g.category_id] ?? "Otro") : "Otro",
     color:     g.color_principal ?? "neutro",
-    signedUrl: g.imagen_url ? (signedMap[g.imagen_url] ?? null) : null,
+    signedUrl: garmentImageUrl(g.id, g.imagen_url),
   }));
 
   // ── 7. Registrar uso en ai_usage (service role — H-01) ─────────────────────

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { garmentImageUrl } from "@/lib/storage/urls";
 import type { Prenda, PrendaUpdate } from "@/lib/database.types";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { GARMENT_IMAGE_MAX_BYTES, detectImageMimeType } from "@/lib/upload/validation";
@@ -36,14 +37,8 @@ export async function GET(
     category: { nombre: string; slug: string } | null;
   };
 
-  // Signed URL para la imagen
-  let signedUrl: string | null = null;
-  if (prenda.imagen_url) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrl(prenda.imagen_url, 3600);
-    signedUrl = signed?.signedUrl ?? null;
-  }
+  // URL estable del proxy de imágenes (no expira, y la cachea el SW)
+  const signedUrl = garmentImageUrl(prenda.id, prenda.imagen_url);
 
   return NextResponse.json({ garment: { ...prenda, signedUrl } });
 }

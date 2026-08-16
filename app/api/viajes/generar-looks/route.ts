@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { garmentImageUrl } from "@/lib/storage/urls";
 import type { Prenda } from "@/lib/database.types";
 import { TIPO_EVENTO, EVENTO_CONFIG, type TipoEvento, type ModoOptimizacion } from "@/lib/viajes/constants";
 import type { PrendaResult } from "@/app/api/looks/generar/route";
@@ -273,32 +274,17 @@ Respondé ÚNICAMENTE con JSON válido, sin markdown ni texto extra:
   try { aiResult = JSON.parse(jsonMatch[0]); }
   catch { return NextResponse.json({ error: "ai_parse_error" }, { status: 502 }); }
 
-  // ── 7. Validar IDs, normalizar eventos y firmar URLs ──────────────────────
+  // ── 7. Validar IDs y normalizar eventos ───────────────────────────────────
   const validIds     = new Set(garments.map((g) => g.id));
   const validEventos = new Set<string>(TIPO_EVENTO);
-  const imagePaths   = new Set<string>();
 
   const looksValidados = (aiResult.looks ?? [])
     .map((look) => ({ ...look, evento: (look.evento ?? "").toLowerCase() as TipoEvento }))
     .filter((look) => validEventos.has(look.evento))
     .map((look) => {
       const validPrendas = (look.prendas ?? []).filter((id) => validIds.has(id));
-      validPrendas.forEach((id) => {
-        const g = garments.find((g) => g.id === id);
-        if (g?.imagen_url) imagePaths.add(g.imagen_url);
-      });
       return { ...look, prendas: validPrendas };
     });
-
-  const signedMap: Record<string, string> = {};
-  if (imagePaths.size > 0) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrls([...imagePaths], 3600);
-    for (const s of signed ?? []) {
-      if (s.path && s.signedUrl) signedMap[s.path] = s.signedUrl;
-    }
-  }
 
   const looks: GeneratedViajeLook[] = looksValidados.map((look) => {
     const selected = garments.filter((g) => look.prendas.includes(g.id));
@@ -307,7 +293,7 @@ Respondé ÚNICAMENTE con JSON válido, sin markdown ni texto extra:
       nombre:    g.nombre,
       categoria: g.category_id ? (catMap[g.category_id] ?? "Otro") : "Otro",
       color:     g.color_principal ?? "neutro",
-      signedUrl: g.imagen_url ? (signedMap[g.imagen_url] ?? null) : null,
+      signedUrl: garmentImageUrl(g.id, g.imagen_url),
     }));
     return {
       evento:           look.evento,

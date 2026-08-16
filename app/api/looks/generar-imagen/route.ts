@@ -50,7 +50,7 @@ export interface GenerarImagenRequest {
 }
 
 export interface GenerarImagenResponse {
-  imagen_url:  string;  // signed URL (1h) de la imagen generada
+  imagen_url:  string;  // URL estable del proxy autenticado
   path:        string;  // path en Storage para guardar con el look
 }
 
@@ -557,15 +557,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "storage_error" }, { status: 500 });
   }
 
-  // ── 10. Generar signed URL para el cliente (1h) ───────────────────────────
-  const { data: resultUrl } = await supabase.storage
-    .from(BUCKET_LOOK_IMAGES)
-    .createSignedUrl(path, 3600);
-
-  if (!resultUrl?.signedUrl) {
-    return NextResponse.json({ error: "signed_url_error" }, { status: 500 });
-  }
-
   // ── 11. Registrar en ai_usage (service role — H-01) ───────────────────────
   await recordAiUsage(user.id, "generacion_imagen");
 
@@ -573,7 +564,9 @@ export async function POST(req: NextRequest) {
   logger.info("[generar-imagen] ok", { endpoint: "looks/generar-imagen", user_hash: userHash, look_id: look_id ?? "none", path });
 
   return NextResponse.json<GenerarImagenResponse>({
-    imagen_url: resultUrl.signedUrl,
+    // URL estable del proxy: a diferencia de una signed URL, no caduca mientras
+    // el usuario tiene la pantalla del look abierta.
+    imagen_url: `/api/storage/${BUCKET_LOOK_IMAGES}/${path.split("/").map(encodeURIComponent).join("/")}`,
     path,
   });
 }

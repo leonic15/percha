@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { garmentImageUrl } from "@/lib/storage/urls";
 
 /**
  * GET /api/looks
@@ -67,29 +68,17 @@ export async function GET() {
     }
   }
 
-  // ── 4. Firmar URLs ─────────────────────────────────────────────────────────
-  const imagePaths = [...prendaMap.values()].filter(Boolean) as string[];
-  const signedMap: Record<string, string> = {};
-  if (imagePaths.length > 0) {
-    const { data: signed } = await supabase.storage
-      .from("prendas")
-      .createSignedUrls(imagePaths, 3600);
-    for (const s of signed ?? []) {
-      if (s.path && s.signedUrl) signedMap[s.path] = s.signedUrl;
-    }
-  }
-
-  // ── 5. look_id → imágenes (hasta 4) ───────────────────────────────────────
+  // ── 4. look_id → imágenes (hasta 4) ───────────────────────────────────────
   const lookImages: Record<string, string[]> = {};
   for (const lp of lpData ?? []) {
     if (!lp.prenda_id) continue;
     if (!lookImages[lp.look_id]) lookImages[lp.look_id] = [];
     if (lookImages[lp.look_id].length >= 4) continue;
     const imgPath = prendaMap.get(lp.prenda_id) ?? null;
-    lookImages[lp.look_id].push(imgPath ? (signedMap[imgPath] ?? "") : "");
+    lookImages[lp.look_id].push(garmentImageUrl(lp.prenda_id, imgPath) ?? "");
   }
 
-  // ── 6. look_usos ──────────────────────────────────────────────────────────
+  // ── 5. look_usos ──────────────────────────────────────────────────────────
   const { data: usosData } = await supabase
     .from("look_usos")
     .select("look_id, fecha_uso")
@@ -102,7 +91,7 @@ export async function GET() {
     lookUsos[uso.look_id].push(uso.fecha_uso);
   }
 
-  // ── 7. Combinar ────────────────────────────────────────────────────────────
+  // ── 6. Combinar ────────────────────────────────────────────────────────────
   const result: LookItemData[] = looks.map((l) => {
     const params = (l.parametros_generacion ?? {}) as { ocasion?: string };
     const usos   = lookUsos[l.id] ?? [];
