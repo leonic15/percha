@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Inter, Archivo_Narrow } from "next/font/google";
+import { NONCE_HEADER } from "@/lib/csp";
 import {
   DARK_THEME_COLOR,
   LIGHT_THEME_COLOR,
@@ -160,7 +162,7 @@ const CRITICAL_CSS = String.raw`
 :root{--pc-bg:#f7f5ef;--pc-ink:#1a1a1a;--pc-ink-2:#4a4a48;--pc-ink-3:#66635b;--pc-accent:#6b7563;--pc-danger:#b85c3a;--pc-surface-2:#e5e0d2;--pc-line:rgba(26,26,26,0.10);color-scheme:light}
 [data-theme="dark"]{--pc-bg:#0d0c0a;--pc-ink:#f1ede5;--pc-ink-2:#b8b3a8;--pc-ink-3:#98948a;--pc-accent:#97a386;--pc-danger:#cc7752;--pc-surface-2:#2e2b25;--pc-line:rgba(241,237,229,0.10);color-scheme:dark}
 *,*::before,*::after{box-sizing:border-box}
-html,body{margin:0;padding:0;overflow-x:hidden;background:var(--color-bg,var(--pc-bg));color:var(--color-ink,var(--pc-ink));font-family:var(--font-inter,"Inter"),ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+html,body{margin:0;padding:0;overflow-x:clip;background:var(--color-bg,var(--pc-bg));color:var(--color-ink,var(--pc-ink));font-family:var(--font-inter,"Inter"),ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 a{color:inherit;text-decoration:none}
 /* Preflight: dentro de @layer base para NO ganar sobre @layer utilities de Tailwind.
    Sin el @layer, estas reglas unlayered sobreescriben cualquier utilidad (px-*, pl-*, etc.)
@@ -189,7 +191,17 @@ a{color:inherit;text-decoration:none}
 `;
 
 /* ─── Root layout ─── */
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Nonce del request, generado por proxy.ts. Solo existe en producción: en dev
+  // la CSP usa 'unsafe-inline' (ver lib/csp.ts). Leer headers() vuelve dinámico
+  // el árbol entero — es el costo de la CSP con nonce, y en esta app casi todas
+  // las páginas ya son force-dynamic.
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
+
   return (
     <html
       lang="es"
@@ -203,7 +215,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <style href="percha-critical" precedence="high">{CRITICAL_CSS}</style>
         {/* Bootstrap de tema: bloqueante y antes de cualquier contenido, para
             que data-theme quede fijado sin flash claro en modo oscuro. */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
         {children}
       </body>
     </html>

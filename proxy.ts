@@ -2,6 +2,13 @@ import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { routing } from "@/lib/i18n/routing";
+import {
+  buildCsp,
+  generateNonce,
+  CSP_HEADER,
+  NONCE_HEADER,
+  WASM_PATHS,
+} from "@/lib/csp";
 
 // Rutas protegidas (requieren autenticación) — sin prefijo de locale
 const protectedPaths = ["/guardarropas", "/generador", "/looks", "/perfil", "/configuracion"];
@@ -25,7 +32,41 @@ function getRedirectOrigin(request: NextRequest): string {
 
 const intlMiddleware = createMiddleware(routing);
 
+/**
+ * Arma la CSP del request y deja el nonce disponible para el render.
+ *
+ * En producción se emite un nonce por request y `script-src` va sin
+ * `'unsafe-inline'`. Los headers se escriben sobre el *request* a propósito:
+ * Next.js saca el nonce del header `content-security-policy` entrante para
+ * firmar sus scripts inline, y `app/layout.tsx` lee `x-nonce` para el bootstrap
+ * de tema. next-intl copia los headers del request en su rewrite, así que las
+ * mutaciones llegan al render.
+ *
+ * En dev no hay nonce (ver `lib/csp.ts`): Turbopack y el overlay de dev inyectan
+ * scripts inline que no pasan por el renderer y romperían con CSP estricta.
+ */
+function prepareCsp(request: NextRequest, pathnameWithoutLocale: string): string {
+  const isProd = process.env.NODE_ENV === "production";
+  const wasm = WASM_PATHS.some((p) => pathnameWithoutLocale.startsWith(p));
+  const nonce = isProd ? generateNonce() : undefined;
+
+  const csp = buildCsp({ nonce, wasm, isProd });
+
+  request.headers.set(CSP_HEADER, csp);
+  if (nonce) request.headers.set(NONCE_HEADER, nonce);
+  else request.headers.delete(NONCE_HEADER); // no confiar en un x-nonce entrante
+
+  return csp;
+}
+
 export async function proxy(request: NextRequest) {
+  // Normalizar pathname quitando prefijo de locale (/en/guardarropas → /guardarropas)
+  const { pathname } = request.nextUrl;
+  const pathnameWithoutLocale = pathname.replace(/^\/(es|en)/, "") || "/";
+
+  // Antes que nada: fijar la CSP sobre el request para que el render la vea
+  const csp = prepareCsp(request, pathnameWithoutLocale);
+
   // Actualizar la sesión de Supabase en cada request
   let response = NextResponse.next({ request });
 
@@ -54,10 +95,6 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Normalizar pathname quitando prefijo de locale (/en/guardarropas → /guardarropas)
-  const { pathname } = request.nextUrl;
-  const pathnameWithoutLocale = pathname.replace(/^\/(es|en)/, "") || "/";
-
   const isProtected = protectedPaths.some((p) => pathnameWithoutLocale.startsWith(p));
   const isAuthPath   = authPaths.some((p)   => pathnameWithoutLocale.startsWith(p));
 
@@ -67,15 +104,21 @@ export async function proxy(request: NextRequest) {
     const origin   = getRedirectOrigin(request);
     const loginUrl = new URL(`${origin}/login`);
     loginUrl.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(loginUrl);
+    return withCsp(NextResponse.redirect(loginUrl), csp);
   }
 
   if (isAuthPath && user) {
     const origin = getRedirectOrigin(request);
-    return NextResponse.redirect(new URL(`${origin}/guardarropas`));
+    return withCsp(NextResponse.redirect(new URL(`${origin}/guardarropas`)), csp);
   }
 
-  return intlMiddleware(request);
+  return withCsp(intlMiddleware(request), csp);
+}
+
+/** Publica la CSP del request en la respuesta que llega al navegador. */
+function withCsp(response: NextResponse, csp: string): NextResponse {
+  response.headers.set(CSP_HEADER, csp);
+  return response;
 }
 
 export const config = {

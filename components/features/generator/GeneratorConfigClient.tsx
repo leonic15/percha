@@ -68,7 +68,11 @@ interface GarmentPickItem {
   nombre:    string;
   categoria: string;
   color:     string;
-  signedUrl: string | null;
+  /**
+   * URL estable del proxy autenticado (`/api/garments/[id]/image`), la misma
+   * que usa el guardarropas: cacheable por el browser y el service worker.
+   */
+  imageUrl:  string | null;
 }
 
 // ── Componente ────────────────────────────────────────────────────────────────
@@ -78,12 +82,15 @@ export function GeneratorConfigClient({
   ciudadLatitud,
   ciudadLongitud,
   defaultOcasion,
+  categories = [],
 }: {
   ciudadNombre?:   string | null;
   ciudadLatitud?:  number | null;
   ciudadLongitud?: number | null;
   /** Primera ocasión frecuente del perfil. Pre-selecciona el chip. */
   defaultOcasion?: string | null;
+  /** Categorías para resolver `category_id` → nombre en el picker. */
+  categories?: { id: number; nombre: string }[];
 }) {
   const router    = useRouter();
   const { toast } = useToast();
@@ -174,19 +181,31 @@ export function GeneratorConfigClient({
   }, [ciudadLatitud, ciudadLongitud, fetchClima]);
 
   // ── Fetch garments para el picker ──────────────────────────────────────────
+  // GET /api/garments devuelve filas crudas de `prendas`: trae `imagen_url`
+  // (path de Storage) y `category_id`, no una URL de imagen ni el nombre de la
+  // categoría. La imagen se arma con el proxy `/api/garments/[id]/image` y la
+  // categoría se resuelve con las categorías que baja el server component.
   const fetchGarments = useCallback(async () => {
     if (garments.length > 0) return;
     setGLoading(true);
     try {
-      const res  = await fetch("/api/garments?limit=100");
+      const res = await fetch("/api/garments?limit=50");
+      if (!res.ok) throw new Error("garments_error");
       const json = await res.json();
+      const categoryNames = new Map(categories.map((c) => [c.id, c.nombre]));
       const list = (json.garments ?? []).map(
-        (g: { id: string; nombre: string; color_principal?: string; signedUrl?: string; category?: { nombre?: string } }) => ({
+        (g: {
+          id: string;
+          nombre: string;
+          color_principal?: string | null;
+          imagen_url?: string | null;
+          category_id?: number | null;
+        }) => ({
           id:        g.id,
           nombre:    g.nombre,
-          categoria: g.category?.nombre ?? "Prenda",
-          color:     g.color_principal  ?? "neutro",
-          signedUrl: g.signedUrl        ?? null,
+          categoria: (g.category_id != null ? categoryNames.get(g.category_id) : null) ?? "Prenda",
+          color:     g.color_principal ?? "neutro",
+          imageUrl:  g.imagen_url ? `/api/garments/${g.id}/image` : null,
         })
       );
       setGarments(list);
@@ -195,7 +214,7 @@ export function GeneratorConfigClient({
     } finally {
       setGLoading(false);
     }
-  }, [garments.length, toast]);
+  }, [garments.length, categories, toast]);
 
   const openSheet = () => {
     setSheetOpen(true);
@@ -417,10 +436,10 @@ export function GeneratorConfigClient({
                 <span className="block">
                   {prendaBase && modo === "con_base" ? (
                     <span className="inline-block size-[18px] rounded-sm overflow-hidden align-top bg-bg/20">
-                      {prendaBase.signedUrl ? (
+                      {prendaBase.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={prendaBase.signedUrl}
+                          src={prendaBase.imageUrl}
                           alt=""
                           className="w-full h-full object-cover"
                         />
@@ -775,10 +794,10 @@ const GarmentPickerSheet = forwardRef<
                     >
                       {/* Thumb */}
                       <div className="size-11 shrink-0 bg-surface-2 overflow-hidden rounded-xs">
-                        {g.signedUrl ? (
+                        {g.imageUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={g.signedUrl}
+                            src={g.imageUrl}
                             alt=""
                             className="w-full h-full object-cover"
                           />

@@ -36,7 +36,7 @@ export function Sidebar() {
     <aside
       aria-label="Navegación principal"
       className={cn(
-        "hidden md:flex sticky top-0 h-screen w-60 shrink-0",
+        "hidden md:flex sticky top-0 h-screen w-60 shrink-0 overflow-y-auto",
         "flex-col bg-bg border-r border-line-2",
         "px-6 py-8",
       )}

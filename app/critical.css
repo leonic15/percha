@@ -49,7 +49,10 @@
 *, *::before, *::after { box-sizing: border-box; }
 /* body { margin: 8px } es default en todos los browsers: sin esto el fondo
    no llega a los bordes del dispositivo */
-html, body { margin: 0; padding: 0; overflow-x: hidden; }
+/* overflow-x: clip, no hidden — `hidden` fuerza overflow-y:auto y convierte al
+   body en contenedor de scroll con la altura del contenido, lo que rompe el
+   `position: sticky` de la Sidebar. `clip` recorta igual sin scrollport. */
+html, body { margin: 0; padding: 0; overflow-x: clip; }
 a { color: inherit; text-decoration: none; }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */

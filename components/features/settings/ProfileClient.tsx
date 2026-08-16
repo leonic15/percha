@@ -232,27 +232,28 @@ function TemaSheet({
   onSelect: (v: string) => void;
   onClose: () => void;
 }) {
+  // Desmontar en vez de ocultar con translateY: en md+ el sheet se recentra
+  // (left/top-1/2), así que un translateY(100%) lo deja igual de visible.
+  if (!visible) return null;
+
   return (
     <>
-      {visible && (
-        <div
-          className="fixed inset-0 z-40 bg-overlay"
-          style={{ animation: "fadeIn 200ms ease forwards" }}
-          onClick={onClose}
-        />
-      )}
       <div
+        className="fixed inset-0 z-40 bg-overlay"
+        style={{ animation: "fadeIn 200ms ease forwards" }}
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal
+        aria-label="Tema visual"
         className={cn(
           "fixed inset-x-0 bottom-0 z-50 bg-surface rounded-t-[20px] pb-[max(env(safe-area-inset-bottom),16px)]",
           "shadow-modal",
           "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
           "md:w-full md:max-w-[340px] md:rounded-[20px]",
-          visible ? "pointer-events-auto" : "pointer-events-none",
         )}
-        style={{
-          animation: visible ? "sheet-up 280ms cubic-bezier(0.32,0.72,0,1) forwards" : undefined,
-          transform: visible ? undefined : "translateY(100%)",
-        }}
+        style={{ animation: "sheet-up 280ms cubic-bezier(0.32,0.72,0,1) forwards" }}
       >
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-9 h-1 rounded-full bg-line" />
@@ -493,28 +494,28 @@ function GlobalSignOutSheet({
   onClose:   () => void;
   loading:   boolean;
 }) {
+  // Ver nota en TemaSheet: desmontar, no ocultar con translateY.
+  if (!visible) return null;
+
   return (
     <>
-      {visible && (
-        <div
-          className="fixed inset-0 z-40 bg-overlay"
-          style={{ animation: "fadeIn 200ms ease forwards" }}
-          onClick={!loading ? onClose : undefined}
-        />
-      )}
       <div
+        className="fixed inset-0 z-40 bg-overlay"
+        style={{ animation: "fadeIn 200ms ease forwards" }}
+        onClick={!loading ? onClose : undefined}
+      />
+      <div
+        role="dialog"
+        aria-modal
+        aria-label="Cerrar todas las sesiones"
         className={cn(
           "fixed inset-x-0 bottom-0 z-50 bg-surface rounded-t-[20px]",
           "pb-[max(env(safe-area-inset-bottom),24px)] shadow-modal",
           "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2",
           "md:-translate-x-1/2 md:-translate-y-1/2",
           "md:w-full md:max-w-[420px] md:rounded-[20px]",
-          visible ? "pointer-events-auto" : "pointer-events-none",
         )}
-        style={{
-          animation: visible ? "sheet-up 280ms cubic-bezier(0.32,0.72,0,1) forwards" : undefined,
-          transform: visible ? undefined : "translateY(100%)",
-        }}
+        style={{ animation: "sheet-up 280ms cubic-bezier(0.32,0.72,0,1) forwards" }}
       >
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-1">
@@ -610,27 +611,27 @@ function DeleteAccountSheet({
 
   const match = typed.trim().toLowerCase() === email.toLowerCase();
 
+  // Ver nota en TemaSheet: desmontar, no ocultar con translateY.
+  if (!visible) return null;
+
   return (
     <>
-      {visible && (
-        <div
-          className="fixed inset-0 z-40 bg-overlay"
-          style={{ animation: "fadeIn 200ms ease forwards" }}
-          onClick={!deleting ? onClose : undefined}
-        />
-      )}
       <div
+        className="fixed inset-0 z-40 bg-overlay"
+        style={{ animation: "fadeIn 200ms ease forwards" }}
+        onClick={!deleting ? onClose : undefined}
+      />
+      <div
+        role="dialog"
+        aria-modal
+        aria-label="Eliminar cuenta"
         className={cn(
           "fixed inset-x-0 bottom-0 z-50 bg-surface rounded-t-[20px] pb-[max(env(safe-area-inset-bottom),24px)]",
           "shadow-modal",
           "md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
           "md:w-full md:max-w-[420px] md:rounded-[20px]",
-          visible ? "pointer-events-auto" : "pointer-events-none",
         )}
-        style={{
-          animation: visible ? "sheet-up 280ms cubic-bezier(0.32,0.72,0,1) forwards" : undefined,
-          transform: visible ? undefined : "translateY(100%)",
-        }}
+        style={{ animation: "sheet-up 280ms cubic-bezier(0.32,0.72,0,1) forwards" }}
       >
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-9 h-1 rounded-full bg-line" />

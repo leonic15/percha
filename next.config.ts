@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
+import { buildNonDocumentCsp } from "./lib/csp";
 
 /* ── PWA ── */
 const withPWA = withPWAInit({
@@ -79,41 +80,13 @@ const nextConfig: NextConfig = {
   },
 
   // ── Cabeceras de seguridad HTTP (PERCHA-029) ─────────────────────────────
+  //
+  // La CSP de los documentos HTML NO se define acá: necesita un nonce distinto
+  // por request, así que la arma `proxy.ts` (ver `lib/csp.ts`). Acá quedan los
+  // headers que no dependen del request, más la CSP de las rutas que el matcher
+  // del proxy excluye (`/api/*`, `/auth/*`), que no devuelven HTML.
   async headers() {
-    const isProd = process.env.NODE_ENV === "production";
-
-    // Directivas comunes a todas las rutas
-    const cspBase = (scriptSrc: string) => [
-      "default-src 'self'",
-      scriptSrc,
-      "style-src 'self' 'unsafe-inline'",
-      "font-src 'self'",
-      "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com",
-      // blob: requerido para Web Workers que crea @imgly/background-removal
-      "worker-src 'self' blob:",
-      // staticimgly.com: CDN de modelos ONNX de @imgly/background-removal
-      "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.ingest.sentry.io https://staticimgly.com",
-      "frame-src 'none'",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      // Solo en producción: en dev LAN (http://192.168.x.x) rompería imágenes/fonts en iOS Safari
-      ...(isProd ? ["upgrade-insecure-requests"] : []),
-    ].join("; ");
-
-    // CSP estricta: sin 'unsafe-eval' — usada en todo el sitio excepto la página WASM
-    const cspStrict = cspBase(
-      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:"
-    );
-
-    // CSP relajada: con 'unsafe-eval' — solo para la página de análisis IA con WASM
-    // (Emscripten/onnxruntime-web usa new Function() en la inicialización del binding WASM)
-    const cspWasm = cspBase(
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:"
-    );
-
-    const securityHeaders = (csp: string) => [
-      { key: "Content-Security-Policy",   value: csp },
+    const securityHeaders = [
       { key: "X-Frame-Options",           value: "DENY" },
       { key: "X-Content-Type-Options",    value: "nosniff" },
       { key: "Referrer-Policy",           value: "strict-origin-when-cross-origin" },
@@ -122,16 +95,25 @@ const nextConfig: NextConfig = {
     ];
 
     return [
-      // CSP relajada solo en la ruta que carga @imgly/background-removal (WASM + Emscripten)
-      // El patrón cubre todas las variantes de locale: /es/guardarropas/..., /en/guardarropas/...
+      // Respuestas no-documento: JSON, imágenes y redirects de auth.
       {
-        source: "/(.*)/guardarropas/nueva/analizar",
-        headers: securityHeaders(cspWasm),
+        source: "/api/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: buildNonDocumentCsp() },
+          ...securityHeaders,
+        ],
       },
-      // CSP estricta para todo lo demás
+      {
+        source: "/auth/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: buildNonDocumentCsp() },
+          ...securityHeaders,
+        ],
+      },
+      // Resto del sitio: la CSP la agrega el proxy con el nonce del request.
       {
         source: "/(.*)",
-        headers: securityHeaders(cspStrict),
+        headers: securityHeaders,
       },
     ];
   },

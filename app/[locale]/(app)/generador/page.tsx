@@ -9,6 +9,7 @@ import { GeneratorConfigClient } from "@/components/features/generator/Generator
  * Server Component:
  * - Verifica sesión
  * - Lee ciudad + coordenadas del perfil (para fallback clima — PERCHA-022)
+ * - Lee las categorías (para etiquetar las prendas del picker de prenda base)
  * - Pasa al client
  */
 export default async function GeneradorPage() {
@@ -34,6 +35,14 @@ export default async function GeneradorPage() {
   const ocasiones      = (profile?.ocasiones_frecuentes ?? []) as string[];
   const defaultOcasion = ocasiones[0] ?? null;
 
+  // GET /api/garments devuelve filas crudas de `prendas` (solo `category_id`),
+  // así que el nombre de la categoría se resuelve acá, igual que en el
+  // guardarropas.
+  const { data: categoriesData } = await supabase
+    .from("categories")
+    .select("id, nombre");
+  const categories = (categoriesData ?? []) as { id: number; nombre: string }[];
+
   return (
     // Desktop: columna central max-w-[640px]
     <div className="md:max-w-[640px] md:mx-auto md:w-full relative">
@@ -42,6 +51,7 @@ export default async function GeneradorPage() {
         ciudadLatitud={ciudadLatitud}
         ciudadLongitud={ciudadLongitud}
         defaultOcasion={defaultOcasion}
+        categories={categories}
       />
     </div>
   );
