@@ -27,19 +27,84 @@ const archivoNarrow = Archivo_Narrow({
 });
 
 /* ─── Metadata ─── */
+
+const DESCRIPTION =
+  "Digitalizá tu ropa, analizá prendas con IA y armá looks pensados para hoy.";
+
+/**
+ * Dominio canónico, fijo a propósito.
+ *
+ * Solo resuelve las URLs absolutas de OG/Twitter: los scrapers de WhatsApp,
+ * Slack, etc. leen el HTML desde afuera y necesitan un host alcanzable. Por eso
+ * apunta siempre a producción, incluso en dev y en previews — un og:image
+ * contra localhost o contra una URL de preview efímera no carga para nadie.
+ *
+ * No sustituye a NEXT_PUBLIC_APP_URL, que sigue rigiendo los redirects de auth.
+ */
+const SITE_URL = "https://tupercha.vercel.app";
+
+/**
+ * Splash screens de iOS en modo standalone. Cada entrada matchea un modelo
+ * concreto: si no hay match, iOS pinta el background_color del manifest.
+ */
+const APPLE_SPLASH = [
+  { url: "/apple-splash-1290-2796.png", device: "430px", height: "932px" },
+  { url: "/apple-splash-1284-2778.png", device: "428px", height: "926px" },
+  { url: "/apple-splash-1179-2556.png", device: "393px", height: "852px" },
+  { url: "/apple-splash-1170-2532.png", device: "390px", height: "844px" },
+  { url: "/apple-splash-1536-2048.png", device: "512px", height: "683px" },
+  { url: "/apple-splash-2048-2732.png", device: "683px", height: "911px" },
+].map(({ url, device, height }) => ({
+  url,
+  media: `(device-width: ${device}) and (device-height: ${height}) and (-webkit-device-pixel-ratio: 3)`,
+}));
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Percha",
     template: "%s · Percha",
   },
-  description: "Digitalizá tu ropa, analizá prendas con IA y armá looks pensados para hoy.",
+  description: DESCRIPTION,
+  applicationName: "Percha",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+      { url: "/apple-touch-icon-167x167.png", sizes: "167x167" },
+      { url: "/apple-touch-icon-152x152.png", sizes: "152x152" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Percha",
+    startupImage: APPLE_SPLASH,
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Percha",
+    title: "Percha — Tu guardarropa, digital",
+    description: DESCRIPTION,
+    locale: "es_AR",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Percha — Tu guardarropa, digital",
+    description: DESCRIPTION,
+    images: ["/og-image.png"],
   },
   formatDetection: { telephone: false },
+  other: { "msapplication-config": "/browserconfig.xml" },
 };
 
 export const viewport: Viewport = {
